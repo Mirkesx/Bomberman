@@ -1,0 +1,25 @@
+{
+  "name": "project_web_programming",
+  "version": "1.0.0",
+  "description": "Bomberman-like videogame as a Node.js application.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://Mirkesx@github.com/Mirkesx/project_web_programming.git"
+  },
+  "keywords": [
+    "Bomberman",
+    "Node.js",
+    "Videogame",
+    "app"
+  ],
+  "author": "Marco Cavalli",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mirkesx/project_web_programming/issues"
+  },
+  "homepage": "https://github.com/Mirkesx/project_web_programming#readme"
+}
