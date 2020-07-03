@@ -2,8 +2,9 @@
   "name": "project_web_programming",
   "version": "1.0.0",
   "description": "Bomberman-like videogame as a Node.js application.",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
+    "start": "node .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -21,5 +22,9 @@
   "bugs": {
     "url": "https://github.com/Mirkesx/project_web_programming/issues"
   },
-  "homepage": "https://github.com/Mirkesx/project_web_programming#readme"
+  "homepage": "https://github.com/Mirkesx/project_web_programming#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^2.3.0"
+  }
 }
