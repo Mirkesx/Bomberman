@@ -3,14 +3,57 @@
 
 <head>
     <title>Hello world</title>
+
+    <!-- COMPONENTS CSS-->
+    <link rel="stylesheet" href="assets/css/chat.css">
+
+    <!-- BOOTSTRAP CSS -->
+    <link rel="stylesheet" href="bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="font-awesome/css/font-awesome.min.css">
 </head>
 
 <body>
-    <input type="text" id="nickname"/>
-    <input type="text" id="roomName"/>
-    <input type="button" id="submit" value="Create/Join">
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <div class="container">
+        <div class="login_panel">
+            <input type="text" id="nickname" />
+            <input type="text" id="roomName" />
+            <input type="button" id="submit" value="Create/Join">
+        </div>
+
+        <div class="chat_panel">
+            <div class="card">
+                <div class="card-header">
+                    <span class="pull-left">Chat</span>
+                    <span class="pull-right fa fa-users fa-2" id="usersList"></span>
+                </div>
+                <div class="messages">
+                    <div class="card-body">
+                        <ul class="chat"></ul>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <div class="input-group">
+                        <input id="btn-input" type="text" class="message_input form-control input-sm"
+                            placeholder="Type your message here...">
+                        <span class="input-group-btn">
+                            <button class="btn btn-warning send_message" id="btn-chat">Send</button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODULES -->
+    <script src="underscore/underscore-min.js"></script>
+    <script src="jquery/dist/jquery.min.js"></script>
+    <script src="popper.js/dist/umd/popper.min.js"></script>
+    <script src="bootstrap/dist/js/bootstrap.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
+
+    <!-- COMPONENTS -->
+    <script src="assets/js/chat.js"></script>
     <script src="assets/js/index.js"></script>
 </body>
 

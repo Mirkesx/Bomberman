@@ -12,9 +12,10 @@ var express = require('express'),
  */
 
 app.use(express.static('public'));
+app.use(express.static('node_modules'));
 
 /**
- * Routes defnitions
+ * Routes definitions
  */
 
 app.get('/', function (req, res) {

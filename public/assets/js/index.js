@@ -1,5 +1,4 @@
 var socket = io(window.location.href);
-var sendMsg, receiveMsg;
 var userNickname;
 var roomName;
 var userList = [];
@@ -16,29 +15,31 @@ $(document).ready(() => {
 
                 socket.on("nickname-exists", () => {
                     alert("Nickname exists");
+                    $('.login_panel').show();
+                    $('.chat_panel').hide();
                     socket.close();
                 });
 
                 socket.on("user_list", (list) => {
                     userList = list;
+                    setUserList();
                 });
 
                 socket.on("user_logged", (nickname) => {
-                    if(nickname == userNickname) {
-                        $('body').html('');
-                    } else {
-                        $('body').append('Utente connesso: ' + nickname + '<br>');
+                    if (nickname !== userNickname) {
+                        serviceMessage('Utente connesso: ' + nickname);
                         userList.push(nickname);
+                        setUserList();
                     }
                 });
 
                 socket.on("user_disconnected", (nickname) => {
-                    $('body').append('Utente disconnesso: ' + nickname + '<br>');
+                    serviceMessage('Utente disconnesso: ' + nickname);
                     userList.splice(userList.indexOf(nickname), 1);
+                    setUserList();
                 });
 
                 socket.emit("login", { nickname: userNickname, roomName: roomName });
-                //socket.emit("request_user_list");
 
                 socket.on("message", (data) => {
 
@@ -47,18 +48,19 @@ $(document).ready(() => {
                         receiveMsg(data.nickname, data.message);
                     }
                 })
+
+                $('.login_panel').hide();
+                $('.chat_panel').show();
             });
         }
     }
 
-    sendMsg = (msg) => {
-        socket.emit("send_message", msg);
+    setUserList = () => {
+        let list = "Users online<br>";
+        for (let user of userList)
+        list += user + "<br>";
+        $("#usersList").attr("data-original-title", list );
     }
-
-    receiveMsg = (user, msg) => {
-        console.log(user + ": " + msg);
-    }
-
 
     /*
     Manage events
@@ -66,4 +68,5 @@ $(document).ready(() => {
 
     $("#submit").on('click', loginUser);
 
+    $('#usersList').tooltip({trigger: 'click hover', title: "Users online", placement: 'bottom', html: true });
 });
