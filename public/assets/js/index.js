@@ -16,7 +16,7 @@ $(document).ready(() => {
                 socket.on("nickname-exists", () => {
                     alert("Nickname exists");
                     $('.login_panel').show();
-                    $('.chat_panel').hide();
+                    $('.chat').hide();
                     socket.close();
                 });
 
@@ -50,7 +50,7 @@ $(document).ready(() => {
                 })
 
                 $('.login_panel').hide();
-                $('.chat_panel').show();
+                $('.chat').show();
             });
         }
     }
@@ -66,7 +66,21 @@ $(document).ready(() => {
     Manage events
     */
 
+    //$('.chat_panel').resizable({minWidth: 50, minHeight: 50, handles: "n, w, nw"});
+
     $("#submit").on('click', loginUser);
+
+    $('.chat_icon').on('click', () => {
+        $('.chat_icon').hide();
+        $('.chat_panel').show();
+        $('.messages').animate({ scrollTop: $('.messages').prop('scrollHeight') }, 300);
+    });
+
+    $('.chat_panel').find('.card-header').on('click', () => {
+        $('#unread-messages').html('0');
+        $('.chat_panel').hide();
+        $('.chat_icon').show();
+    });
 
     $('#usersList').tooltip({trigger: 'click hover', title: "Users online", placement: 'bottom', html: true });
 });

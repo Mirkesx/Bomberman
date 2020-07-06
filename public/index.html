@@ -2,12 +2,13 @@
 <html>
 
 <head>
-    <title>Hello world</title>
+    <title>Bomberman</title>
 
     <!-- COMPONENTS CSS-->
     <link rel="stylesheet" href="assets/css/chat.css">
 
-    <!-- BOOTSTRAP CSS -->
+    <!-- MODULES CSS -->
+    <link rel="stylesheet" href="jquery-ui-css/jquery-ui.min.css">
     <link rel="stylesheet" href="bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="font-awesome/css/font-awesome.min.css">
 </head>
@@ -20,27 +21,33 @@
             <input type="button" id="submit" value="Create/Join">
         </div>
 
-        <div class="chat_panel">
-            <div class="card">
-                <div class="card-header">
-                    <span class="pull-left">Chat</span>
-                    <span class="pull-right fa fa-users fa-2" id="usersList"></span>
-                </div>
-                <div class="messages">
-                    <div class="card-body">
-                        <ul class="chat"></ul>
+        <div class="chat">
+            <div class="chat_panel">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="pull-left">Chat</span>
+                        <span class="pull-right fa fa-users fa-2" id="usersList"></span>
+                    </div>
+                    <div class="messages">
+                        <div class="card-body">
+                            <ul class="chat_messages"></ul>
+                        </div>
+                    </div>
+        
+                    <div class="card-footer">
+                        <div class="input-group">
+                            <input id="btn-input" type="text" class="message_input form-control input-sm"
+                                placeholder="Type your message here...">
+                            <span class="input-group-btn">
+                                <button class="btn btn-warning send_message" id="btn-chat">Send</button>
+                            </span>
+                        </div>
                     </div>
                 </div>
-
-                <div class="card-footer">
-                    <div class="input-group">
-                        <input id="btn-input" type="text" class="message_input form-control input-sm"
-                            placeholder="Type your message here...">
-                        <span class="input-group-btn">
-                            <button class="btn btn-warning send_message" id="btn-chat">Send</button>
-                        </span>
-                    </div>
-                </div>
+            </div>
+            <div class="chat_icon">
+                <img src="assets/img/chat_icon.png">
+                <span id="unread-messages">0</span>
             </div>
         </div>
     </div>
@@ -48,6 +55,7 @@
     <!-- MODULES -->
     <script src="underscore/underscore-min.js"></script>
     <script src="jquery/dist/jquery.min.js"></script>
+    <script src="jquery-ui-css/jquery-ui.min.js"></script>
     <script src="popper.js/dist/umd/popper.min.js"></script>
     <script src="bootstrap/dist/js/bootstrap.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>

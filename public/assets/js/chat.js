@@ -31,7 +31,7 @@ $('document').ready(() => {
                 $('#btn-input').val('');
                 $messages = $('.messages');
                 socket.emit("send_message", text);
-                $message.appendTo('.chat');
+                $message.appendTo('.chat_messages');
                 return $messages.animate({ scrollTop: $messages.prop('scrollHeight') }, 300);
             };
             receiveMsg = function (user, text) {
@@ -53,7 +53,10 @@ $('document').ready(() => {
                     return;
                 }
                 $messages = $('.messages');
-                $message.appendTo('.chat');
+                $message.appendTo('.chat_messages');
+
+                var unread = parseInt($('#unread-messages').text())+1;
+                $('#unread-messages').html(unread);
                 return $messages.animate({ scrollTop: $messages.prop('scrollHeight') }, 300);
             };
 
@@ -72,7 +75,10 @@ $('document').ready(() => {
                     return;
                 }
                 $messages = $('.messages');
-                $message.appendTo('.chat');
+                $message.appendTo('.chat_messages');
+                
+                var unread = parseInt($('#unread-messages').text())+1;
+                $('#unread-messages').html(unread);
                 return $messages.animate({ scrollTop: $messages.prop('scrollHeight') }, 300);
             };
 
