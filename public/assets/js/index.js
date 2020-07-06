@@ -1,11 +1,12 @@
 var socket = io(window.location.href);
 var userNickname;
 var roomName;
+var avatar;
 var userList = [];
 
 $(document).ready(() => {
 
-    const loginUser = () => {
+    const loginUser = (isCreatingRoom) => {
         userNickname = $("#nickname").val();
         roomName = $("#roomName").val();
         if (roomName && roomName.length > 1 && userNickname && userNickname.length > 3) {
@@ -14,14 +15,37 @@ $(document).ready(() => {
             socket.on('connect', () => {
 
                 socket.on("nickname-exists", () => {
-                    alert("Nickname exists");
-                    $('.login_panel').show();
                     $('.chat').hide();
                     socket.close();
+                    console.log("Nickname exists");
+                    setTimeout(() => {
+                        $('#loginModal').modal('show');
+                        $('#carouselAvatar').carousel('pause');
+                    }, 500);
+                });
+
+                socket.on("room-not-exists", () => {
+                    $('.chat').hide();
+                    socket.close();
+                    console.log("Doesn't exists a room with this name");
+                    setTimeout(() => {
+                        $('#loginModal').modal('show');
+                        $('#carouselAvatar').carousel('pause');
+                    }, 500);
+                });
+
+                socket.on("room-full", () => {
+                    $('.chat').hide();
+                    socket.close();
+                    console.log("This room is full");
+                    setTimeout(() => {
+                        $('#loginModal').modal('show');
+                        $('#carouselAvatar').carousel('pause');
+                    }, 500);
                 });
 
                 socket.on("user_list", (list) => {
-                    userList = list;
+                    userList = _.map(list, (user) => user['nickname']);
                     setUserList();
                 });
 
@@ -39,17 +63,19 @@ $(document).ready(() => {
                     setUserList();
                 });
 
-                socket.emit("login", { nickname: userNickname, roomName: roomName });
+                if (isCreatingRoom)
+                    socket.emit('create-room', { nickname: userNickname, roomName: roomName, avatar: avatar });
+                else
+                    socket.emit("login", { nickname: userNickname, roomName: roomName, avatar: avatar });
 
                 socket.on("message", (data) => {
 
                     if (userNickname != data.nickname) {
                         //messaggio degli altri
-                        receiveMsg(data.nickname, data.message);
+                        receiveMsg(data.nickname, data.message, data.avatar);
                     }
                 })
 
-                $('.login_panel').hide();
                 $('.chat').show();
             });
         }
@@ -58,17 +84,28 @@ $(document).ready(() => {
     setUserList = () => {
         let list = "Users online<br>";
         for (let user of userList)
-        list += user + "<br>";
-        $("#usersList").attr("data-original-title", list );
+            list += user + "<br>";
+        $("#usersList").attr("data-original-title", list);
     }
 
     /*
     Manage events
     */
 
-    //$('.chat_panel').resizable({minWidth: 50, minHeight: 50, handles: "n, w, nw"});
+    $("#join-room").on('click', () => {
+        avatar = $('#carouselAvatar').find('.active').attr('data-avatar');
+        $('#loginModal').modal('hide');
+        loginUser(false);
+    });
+    $("#create-room").on('click', () => {
+        avatar = $('#carouselAvatar').find('.active').attr('data-avatar');
+        $('#loginModal').modal('hide');
+        loginUser(true);
+    });
 
-    $("#submit").on('click', loginUser);
+    /*
+     * Chat commands
+     */
 
     $('.chat_icon').on('click', () => {
         $('.chat_icon').hide();
@@ -82,5 +119,26 @@ $(document).ready(() => {
         $('.chat_icon').show();
     });
 
-    $('#usersList').tooltip({trigger: 'click hover', title: "Users online", placement: 'bottom', html: true });
+    $('#usersList').tooltip({ trigger: 'click hover', title: "Users online", placement: 'bottom', html: true });
+
+    /*
+     * Initial Setup
+     */
+
+    createLoginModal();
 });
+
+
+function createLoginModal() {
+    $('.chat').hide();
+    $('#loginModal').modal({ backdrop: 'static', keyboard: false });
+    $('#carouselAvatar').carousel();
+    $('#prev-avatar').click(() => {
+        $('#carouselAvatar').carousel('prev');
+        $('#carouselAvatar').carousel('pause');
+    });
+    $('#next-avatar').click(() => {
+        $('#carouselAvatar').carousel('next');
+        $('#carouselAvatar').carousel('pause');
+    });
+}

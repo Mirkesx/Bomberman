@@ -10,15 +10,16 @@ $('document').ready(() => {
                 return $message_input.val();
             };
             sendMsg = function (text) {
+                var today = new Date();
                 const $message = $('\
                     <li class="left clearfix">\
                         <span class="chat-img pull-left">\
-                            <img src="http://placehold.it/50/55C1E7/fff&amp;text=You" alt="User Avatar" class="rounded-circle">\
+                            <img src="assets/img/avatar/avatar_'+avatar+'.png" alt="User Avatar" class="rounded-circle">\
                         </span>\
                         <div class="chat-body clearfix">\
                             <div class="header">\
                                 <strong class="pull-right primary-font">You</strong>\
-                                <small class=" text-muted"><span class="fa fa-clock-o fa-1"></span> Now</small>\
+                                <small class=" text-muted"><span class="fa fa-clock-o fa-1"></span> '+today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds()+'</small>\
                             </div>\
                             <p>'+text+'</p>\
                         </div>\
@@ -34,16 +35,17 @@ $('document').ready(() => {
                 $message.appendTo('.chat_messages');
                 return $messages.animate({ scrollTop: $messages.prop('scrollHeight') }, 300);
             };
-            receiveMsg = function (user, text) {
+            receiveMsg = function (user, text, avatarUser) {
+                var today = new Date();
                 const $message = $('\
                     <li class="left clearfix">\
                         <span class="chat-img pull-left">\
-                            <img src="http://placehold.it/50/55C1E7/fff&amp;text='+user.substr(0,2)+'" alt="User Avatar" class="rounded-circle">\
+                            <img src="assets/img/avatar/avatar_'+avatarUser+'.png" alt="User Avatar" class="rounded-circle">\
                         </span>\
                         <div class="chat-body clearfix">\
                             <div class="header">\
                                 <strong class="pull-right primary-font">'+user+'</strong>\
-                                <small class=" text-muted"><span class="fa fa-clock-o fa-1"></span> Now</small>\
+                                <small class=" text-muted"><span class="fa fa-clock-o fa-1"></span> '+today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds()+'</small>\
                             </div>\
                             <p>'+text+'</p>\
                         </div>\
@@ -61,11 +63,12 @@ $('document').ready(() => {
             };
 
             serviceMessage = function (text) {
+                var today = new Date();
                 const $message = $('\
-                    <li class="left clearfix">\
+                    <li class="clearfix">\
                         <div class="chat-body clearfix">\
                             <div class="header">\
-                                <small class=" text-muted"><span class="fa fa-clock-o fa-1"></span> Now</small>\
+                                <small class=" text-muted"><span class="fa fa-clock-o fa-1"></span> '+today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds()+'</small>\
                             </div>\
                             <p><strong>'+text+'<strong></p>\
                         </div>\

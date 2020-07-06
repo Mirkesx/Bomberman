@@ -5,50 +5,112 @@
     <title>Bomberman</title>
 
     <!-- COMPONENTS CSS-->
+    <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/chat.css">
 
     <!-- MODULES CSS -->
     <link rel="stylesheet" href="jquery-ui-css/jquery-ui.min.css">
     <link rel="stylesheet" href="bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="bootstrap/dist/css/bootstrap-grid.min.css">
     <link rel="stylesheet" href="font-awesome/css/font-awesome.min.css">
 </head>
 
-<body>
-    <div class="container">
-        <div class="login_panel">
-            <input type="text" id="nickname" />
-            <input type="text" id="roomName" />
-            <input type="button" id="submit" value="Create/Join">
-        </div>
+<body background="assets/img/background_bomberman.png" style="background-position: center top;">
 
-        <div class="chat">
-            <div class="chat_panel">
-                <div class="card">
-                    <div class="card-header">
-                        <span class="pull-left">Chat</span>
-                        <span class="pull-right fa fa-users fa-2" id="usersList"></span>
-                    </div>
-                    <div class="messages">
-                        <div class="card-body">
-                            <ul class="chat_messages"></ul>
+    <div id="loginModal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-lg" role="content">
+            <div class="modal-content">
+                <div class="modal-header btn-primary">
+                    <h4 class="modal-title">Login</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="row row-content align-items-center">
+                            <div class="form-group col-12 col-sm-6">
+                                <label class="sr-only" for="nickname">Nickname</label>
+                                <input type="text" class="form-control form-control-sm mr-1" id="nickname"
+                                    placeholder="Enter a nickname">
+                            </div>
+                            <div class="form-group col-12 col-sm-6">
+                                <label class="sr-only" for="roomName">Room Name</label>
+                                <input type="text" class="form-control form-control-sm mr-1" id="roomName"
+                                    placeholder="Room Name">
+                            </div>
+                            <div class="form-group col-12 d-flex justify-content-center">
+                                <label class="sr-only" for="avatar">Avatar</label>
+                                <div id="carouselAvatar" class="carousel">
+                                    <div class="carousel-inner">
+                                        <div class="carousel-item active" data-avatar="1">
+                                            <img class="d-block w-100" src="assets/img/avatar/avatar_1.png"
+                                                alt="First slide">
+                                        </div>
+                                        <div class="carousel-item" data-avatar="2">
+                                            <img class="d-block w-100" src="assets/img/avatar/avatar_2.png"
+                                                alt="Second slide">
+                                        </div>
+                                        <div class="carousel-item" data-avatar="3">
+                                            <img class="d-block w-100" src="assets/img/avatar/avatar_3.png"
+                                                alt="Third slide">
+                                        </div>
+                                        <div class="carousel-item" data-avatar="4">
+                                            <img class="d-block w-100" src="assets/img/avatar/avatar_4.png"
+                                                alt="Forth slide">
+                                        </div>
+                                        <div class="carousel-item" data-avatar="5">
+                                            <img class="d-block w-100" src="assets/img/avatar/avatar_5.png"
+                                                alt="Fifth slide">
+                                        </div>
+                                    </div>
+                                    <a class="carousel-control-prev" href="#" id="prev-avatar" role="button" data-slide="prev">
+                                      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                      <span class="sr-only">Previous</span>
+                                    </a>
+                                    <a class="carousel-control-next" href="#" id="next-avatar" role="button" data-slide="next">
+                                      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                      <span class="sr-only">Next</span>
+                                    </a>
+                                  </div>
+                            </div>
                         </div>
-                    </div>
-        
-                    <div class="card-footer">
-                        <div class="input-group">
-                            <input id="btn-input" type="text" class="message_input form-control input-sm"
-                                placeholder="Type your message here...">
-                            <span class="input-group-btn">
-                                <button class="btn btn-warning send_message" id="btn-chat">Send</button>
-                            </span>
+                        <div class="row row-content align-items-center">
+                            <div class="col-12 d-flex justify-content-center">
+                                <button type="button" id="join-room" class="btn btn-primary btn-sm ml-1">Join</button>
+                                <button type="button" id="create-room" class="btn btn-danger btn-sm ml-1">Create</button>    
+                            </div>
                         </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat">
+        <div class="chat_panel">
+            <div class="card">
+                <div class="card-header">
+                    <span class="pull-left">Chat</span>
+                    <span class="pull-right fa fa-users fa-2" id="usersList"></span>
+                </div>
+                <div class="messages">
+                    <div class="card-body">
+                        <ul class="chat_messages"></ul>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <div class="input-group">
+                        <input id="btn-input" type="text" class="message_input form-control input-sm"
+                            placeholder="Type your message here...">
+                        <span class="input-group-btn">
+                            <button class="btn btn-warning send_message" id="btn-chat">Send</button>
+                        </span>
                     </div>
                 </div>
             </div>
-            <div class="chat_icon">
-                <img src="assets/img/chat_icon.png">
-                <span id="unread-messages">0</span>
-            </div>
+        </div>
+        <div class="chat_icon">
+            <img src="assets/img/chat_icon.png">
+            <span id="unread-messages">0</span>
         </div>
     </div>
 

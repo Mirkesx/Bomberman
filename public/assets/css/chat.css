@@ -91,3 +91,9 @@
     height: 400px;
     overflow-y: auto;
 }
+
+.chat .card-header {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+}
