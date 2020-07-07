@@ -44,35 +44,35 @@ io.on('connection', function (client) {
     })
 
     client.on("create-room", (data) => {
-        if (rooms[data.roomName])
+        if (rooms.hasOwnProperty(data.roomName)) {
             client.emit("room-exists");
+        }
         else {
-            loginUser(data)
+            rooms[data.roomName] = { userList: [] };
+            client.emit("enter-room", data);
         }
 
     });
 
     client.on("login", (data) => {
-        if (rooms[data.roomName] && rooms[data.roomName].userList.length < 4 && rooms[data.roomName].userList.indexOf(data.nickname) < 0) {
+        if (checkValidRoom(data)) {
             loginUser(data);
         } else {
             if (rooms[data.roomName] === undefined)
                 client.emit("room-not-exists");
             else if (rooms[data.roomName].userList.length == 4)
                 client.emit("room-full");
-            else if (rooms[data.roomName].userList.indexOf(data.nickname) >= 0)
+            else if (_.findIndex(rooms[data.roomName].userList, (user) => user.nickname == data.nickname) >= 0)
                 client.emit('nickname-exists');
         }
 
         client.on("send_message", (msg) => {
-            io.sockets.in(client.roomName).emit("message", { nickname: client.nickname, message: msg, avatar: client.avatar, isHost: rooms[client.roomName].host === client.nickname });
+            io.sockets.in(client.roomName).emit("message", { nickname: client.nickname, message: msg, avatar: client.avatar });
         })
     });
 
     const loginUser = (data) => {
         client.join(data.roomName);
-        if (rooms[data.roomName] === undefined)
-            rooms[data.roomName] = { userList: [] };
         rooms[data.roomName].userList.push({ nickname: data.nickname, avatar: data.avatar });
         if (rooms[data.roomName].userList.length === 1) {
             rooms[data.roomName].host = data.nickname;
@@ -81,10 +81,16 @@ io.on('connection', function (client) {
         client.nickname = data.nickname;
         client.roomName = data.roomName;
         client.avatar = data.avatar;
-        console.info("Client Connected", client.roomName, client.nickname, client.avatar);
-        client.emit("user_list", rooms[client.roomName].userList);
+        console.info("Client Connected", client.roomName, client.nickname, client.avatar, rooms[client.roomName].userList.length);
+        client.emit("user_list", rooms[client.roomName].userList, rooms[client.roomName].host);
         io.sockets.in(client.roomName).emit('user_logged', data.nickname);
-    }
+    };
+
+    const checkValidRoom = (data) => {
+        return rooms[data.roomName] &&
+            rooms[data.roomName].userList.length < 4 &&
+            _.findIndex(rooms[data.roomName].userList, (user) => user.nickname == data.nickname) < 0
+    };
 })
 
 http.listen(3000, function () {

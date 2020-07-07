@@ -3,7 +3,7 @@ var userNickname;
 var roomName;
 var avatar;
 var userList = [];
-var isHost = false;
+var host;
 
 $(document).ready(() => {
 
@@ -35,6 +35,16 @@ $(document).ready(() => {
                     }, 500);
                 });
 
+                socket.on("room-exists", () => {
+                    $('.chat').hide();
+                    socket.close();
+                    console.log("This room name is already used");
+                    setTimeout(() => {
+                        $('#loginModal').modal('show');
+                        $('#carouselAvatar').carousel('pause');
+                    }, 500);
+                });
+
                 socket.on("room-full", () => {
                     $('.chat').hide();
                     socket.close();
@@ -45,8 +55,13 @@ $(document).ready(() => {
                     }, 500);
                 });
 
-                socket.on("user_list", (list) => {
+                socket.on('enter-room', (data) => {
+                    socket.emit("login", { nickname: data.nickname, roomName: data.roomName, avatar: data.avatar });
+                });
+
+                socket.on("user_list", (list, h) => {
                     userList = _.map(list, (user) => (user['host'] === user['nickname'] ? "<H> " : "") + user['nickname']);
+                    host = h;
                     setUserList();
                 });
 
@@ -67,21 +82,20 @@ $(document).ready(() => {
                 socket.on("new_host", (nickname) => {
                     serviceMessage('Utente promosso ad host: ' + nickname);
                     if(userNickname === nickname) {
-                        isHost = true;
+                        host = nickname;
                     }
                 });
 
                 if (isCreatingRoom) {
                     socket.emit('create-room', { nickname: userNickname, roomName: roomName, avatar: avatar });
-                    isHost = true;
+                    host = userNickname;
                 }
                 else {
                     socket.emit("login", { nickname: userNickname, roomName: roomName, avatar: avatar });
-                    isHost = false;
                 }
 
                 socket.on("message", (data) => {
-
+                    console.log(data);
                     if (userNickname != data.nickname) {
                         //messaggio degli altri
                         receiveMsg(data.nickname, data.message, data.avatar);
@@ -96,7 +110,7 @@ $(document).ready(() => {
     setUserList = () => {
         let list = "Users online<br>";
         for (let user of userList)
-            list += user + "<br>";
+            list += (host === user ? "Host - " : "") + user + "<br>";
         $("#usersList").attr("data-original-title", list);
     }
 
