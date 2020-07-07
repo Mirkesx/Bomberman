@@ -48,7 +48,7 @@ io.on('connection', function (client) {
             client.emit("room-exists");
         }
         else {
-            rooms[data.roomName] = { userList: [] };
+            rooms[data.roomName] = { userList: [], gameStarted: false };
             client.emit("enter-room", data);
         }
 
@@ -71,6 +71,10 @@ io.on('connection', function (client) {
         })
     });
 
+    client.on("send-input-values", (data) => {
+        io.sockets.in(client.roomName).emit("get-input-values", data);
+    });
+
     const loginUser = (data) => {
         client.join(data.roomName);
         rooms[data.roomName].userList.push({ nickname: data.nickname, avatar: data.avatar });
@@ -84,6 +88,7 @@ io.on('connection', function (client) {
         console.info("Client Connected", client.roomName, client.nickname, client.avatar, rooms[client.roomName].userList.length);
         client.emit("user_list", rooms[client.roomName].userList, rooms[client.roomName].host);
         io.sockets.in(client.roomName).emit('user_logged', data.nickname);
+        io.sockets.in(client.roomName).emit('load_dashboard', rooms[client.roomName].gameStarted);
     };
 
     const checkValidRoom = (data) => {

@@ -1,0 +1,18 @@
+#loginModal .modal-content{
+    border-radius: 25px;
+}
+
+#loginModal .modal-content .modal-header{
+    border-top-left-radius: 25px;
+    border-top-right-radius: 25px;
+}
+
+#carouselAvatar {
+    height: 100px;
+    width: 100px;
+}
+
+#carouselAvatar .carousel-inner img {
+    height: 100px;
+    width: 100px;
+}

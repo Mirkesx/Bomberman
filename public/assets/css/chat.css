@@ -6,6 +6,15 @@
     z-index: 1000;
 }
 
+.chat .card > .card-header {
+    border-top-left-radius: 25px;
+    border-top-right-radius: 25px;
+}
+
+.chat .card {
+    border-radius: 25px;
+}
+
 .chat_icon {
     position: absolute;
     right: 0;

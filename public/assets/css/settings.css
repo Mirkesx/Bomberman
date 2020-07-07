@@ -1,0 +1,15 @@
+#gameSetup .card {
+    margin-top: 50px;
+    border-radius: 25px;
+}
+
+#gameSetup .card-header {
+    border-top-left-radius: 25px;
+    border-top-right-radius: 25px;
+}
+
+#gameSetup .card input {
+    text-align: center;
+    border: 0px;
+    margin-top: 5px;;
+}

@@ -62,22 +62,23 @@
                                                 alt="Fifth slide">
                                         </div>
                                     </div>
-                                    <a class="carousel-control-prev" href="#" id="prev-avatar" role="button" data-slide="prev">
-                                      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                      <span class="sr-only">Previous</span>
+                                    <a class="carousel-control-prev" href="#" id="prev-avatar" role="button"
+                                        data-slide="prev">
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="sr-only">Previous</span>
                                     </a>
-                                    <a class="carousel-control-next" href="#" id="next-avatar" role="button" data-slide="next">
-                                      <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                      <span class="sr-only">Next</span>
+                                    <a class="carousel-control-next" href="#" id="next-avatar" role="button"
+                                        data-slide="next">
+                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                        <span class="sr-only">Next</span>
                                     </a>
-                                  </div>
+                                </div>
                             </div>
                         </div>
                         <div class="row row-content align-items-center">
                             <div class="col-12 d-flex justify-content-center">
-                                <button type="button" id="join-room" class="btn btn-primary btn-sm ml-1">Play!</button>
-                                <!-- <button type="button" id="join-room" class="btn btn-primary btn-sm ml-1">Join</button>     -->
-                                <button type="button" id="create-room" class="btn btn-danger btn-sm ml-1">Create</button>
+                                <button type="button" id="join-room" class="btn btn-primary btn-sm m-1 p-2">Join a room</button>
+                                <button type="button" id="create-room" class="btn btn-danger btn-sm m-1 p-2">Create a room</button>
                             </div>
                         </div>
                     </form>
@@ -116,6 +117,58 @@
         </div>
     </div>
 
+    <div class="container" id="gameSetup">
+        <div class="row">
+            <div class="col-12 col-md-4">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card text-center" id="cardPlayersList">
+                            <div class="card-header bg-primary text-white">
+                                <p class="card-text">Users online</p>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card text-center" id="settingsGame">
+                            <div class="card-header bg-primary text-white">
+                                <p class="card-text">Settings</p>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <span class="col-6">Bombs</span>
+                                    <input class="col-6" type="number" id="numberBombs" value="1" min="1" max="5">
+                                </div>
+                                <div class="row">
+                                    <span class="col-6">Speed</span>
+                                    <input class="col-6" type="number" id="numberspeed" value="1" min="1" max="5">
+                                </div>
+                                <div class="row">
+                                    <span class="col-12">Time</span>
+                                </div>
+                                <div class="row" id="settingsTimer">
+                                    <div class="col-12 col-sm-6">
+                                        Min. <input type="number" id="settingsMinutes" value="1" min="1" max="5">
+                                    </div>
+                                    <div class="col-12 col-sm-6">
+                                        Sec. <input type="number" id="settingsSeconds" value="00" min="0" max="59">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-8 bg-dark">
+
+            </div>
+        </div>
+    </div>
+
     <!-- MODULES -->
     <script src="underscore/underscore-min.js"></script>
     <script src="jquery/dist/jquery.min.js"></script>
@@ -125,9 +178,9 @@
     <script src="/socket.io/socket.io.js"></script>
 
     <!-- COMPONENTS -->
+    <script src="assets/js/index.js"></script>
     <script src="assets/js/chat.js"></script>
     <script src="assets/js/settings.js"></script>
-    <script src="assets/js/index.js"></script>
 </body>
 
 </html>
