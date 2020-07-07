@@ -3,6 +3,7 @@ var userNickname;
 var roomName;
 var avatar;
 var userList = [];
+var isHost = false;
 
 $(document).ready(() => {
 
@@ -45,7 +46,7 @@ $(document).ready(() => {
                 });
 
                 socket.on("user_list", (list) => {
-                    userList = _.map(list, (user) => user['nickname']);
+                    userList = _.map(list, (user) => (user['host'] === user['nickname'] ? "<H> " : "") + user['nickname']);
                     setUserList();
                 });
 
@@ -63,10 +64,21 @@ $(document).ready(() => {
                     setUserList();
                 });
 
-                if (isCreatingRoom)
+                socket.on("new_host", (nickname) => {
+                    serviceMessage('Utente promosso ad host: ' + nickname);
+                    if(userNickname === nickname) {
+                        isHost = true;
+                    }
+                });
+
+                if (isCreatingRoom) {
                     socket.emit('create-room', { nickname: userNickname, roomName: roomName, avatar: avatar });
-                else
+                    isHost = true;
+                }
+                else {
                     socket.emit("login", { nickname: userNickname, roomName: roomName, avatar: avatar });
+                    isHost = false;
+                }
 
                 socket.on("message", (data) => {
 
@@ -132,6 +144,7 @@ $(document).ready(() => {
 function createLoginModal() {
     $('.chat').hide();
     $('#loginModal').modal({ backdrop: 'static', keyboard: false });
+    $('#carouselAvatar').carousel('pause');
     $('#carouselAvatar').carousel();
     $('#prev-avatar').click(() => {
         $('#carouselAvatar').carousel('prev');

@@ -3,6 +3,7 @@
     position: fixed;
     right: 50px;
     bottom: 50px;
+    z-index: 1000;
 }
 
 .chat_icon {
