@@ -4,12 +4,14 @@ var roomName;
 var avatar;
 var userList = [];
 var host;
+var num_players_ready;
 
 $(document).ready(() => {
 
     const loginUser = (isCreatingRoom) => {
         userNickname = $("#nickname").val();
         roomName = $("#roomName").val();
+        num_players_ready = 0;
         if (roomName && roomName.length > 1 && userNickname && userNickname.length > 3) {
             socket = io(window.location.href);
 
@@ -64,7 +66,7 @@ $(document).ready(() => {
                 });
 
                 socket.on("user_list", (list, h) => {
-                    userList = _.map(list, (user) => (user['host'] === user['nickname'] ? "<H> " : "") + user['nickname']);
+                    userList = list;
                     host = h;
                     setUserList();
                 });
@@ -72,21 +74,54 @@ $(document).ready(() => {
                 socket.on("user_logged", (nickname) => {
                     if (nickname !== userNickname) {
                         serviceMessage('Utente connesso: ' + nickname);
-                        userList.push(nickname);
+                        userList.push({nickname: nickname, status: "not-ready"});
                         setUserList();
+                        printUserList();
                     }
                 });
 
-                socket.on("user_disconnected", (nickname) => {
-                    serviceMessage('Utente disconnesso: ' + nickname);
-                    userList.splice(userList.indexOf(nickname), 1);
+                socket.on("user_disconnected", (data) => {
+                    serviceMessage('Utente disconnesso: ' + data.nickname);
+                    userList.splice(_.findIndex(userList, (user) => user.nickname == data.nickname), 1);
+                    //userList.splice(userList.indexOf(data.nickname), 1);
+                    if(data.status == "ready")
+                        num_players_ready--;
                     setUserList();
+                    printUserList();
                 });
 
                 socket.on("new_host", (nickname) => {
                     serviceMessage('Utente promosso ad host: ' + nickname);
                     if(userNickname === nickname) {
                         host = nickname;
+                    }
+                });
+
+                socket.on("set-player-ready", (nickname) => {
+                    let $rowUserList = $('#gameSetup #cardPlayersList .card-body').find('.row');
+                    for(let $div of $rowUserList) {
+                        $user = $($div);
+                        if($user.find('.userName').text() == nickname) {
+                            $user.find('.not-ready').removeClass('fa-times not-ready').addClass("fa-check ready");
+                            num_players_ready++;
+                            if(host == userNickname && num_players_ready == userList.length) {
+                                $('#buttonStart').removeAttr('disabled');
+                            }
+                        }
+                    }
+                });
+
+                socket.on("set-player-not-ready", (nickname) => {
+                    let $rowUserList = $('#gameSetup #cardPlayersList .card-body').find('.row');
+                    for(let $div of $rowUserList) {
+                        $user = $($div);
+                        if($user.find('.userName').text() == nickname) {
+                            $user.find('.ready').removeClass('fa-check ready').addClass("fa-times not-ready");
+                            num_players_ready--;
+                            if(host == userNickname && num_players_ready == userList.length-1) {
+                                $('#buttonStart').prop('disabled','true');
+                            }
+                        }
                     }
                 });
 
@@ -125,11 +160,9 @@ $(document).ready(() => {
 
     setUserList = () => {
         let list = "";
-        let colors = ['grey','black','blue','red'];
         for (let i = 0; i < userList.length; i++)
-            list += "<p style=\"color:"+colors[i]+";\"><strong>"+(host === userList[i] ? "Host - " : "") + userList[i] + "</strong></p>";
+            list += (host === userList[i].nickname ? "Host - " : "") + userList[i].nickname + "<br>";
         $("#usersList").attr("data-original-title", list);
-        $('#cardPlayersList .card-body p').html(list);
     }
 
     /*

@@ -13,3 +13,25 @@
     border: 0px;
     margin-top: 5px;;
 }
+
+#gameSetup .not-ready {
+    color: red;
+}
+
+#gameSetup .ready {
+    color: green;
+}
+
+#gameSetup .kick-user {
+    color: black;
+    cursor: pointer;
+}
+
+#gameSetup .btn {
+    margin-top: 25px;
+    border-radius: 25px;
+}
+
+#gameScreen {
+    margin-top: 50px;
+}

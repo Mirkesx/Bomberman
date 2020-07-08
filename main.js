@@ -34,13 +34,16 @@ io.on('connection', function (client) {
     client.on("disconnect", () => {
         if (client.nickname) {
             leaveRoom(client.roomName, client.nickname);
-            io.sockets.in(client.roomName).emit('user_disconnected', client.nickname);
+            if(client.status == "ready") {
+                rooms[client.roomName].readyPlayers--;
+            }
+            io.sockets.in(client.roomName).emit('user_disconnected', {nickname: client.nickname, status: client.status});
             console.log("Client disconnected", client.roomName, client.nickname);
         }
     })
 
-    client.on("request_user_list", (roomName) => {
-        client.emit("user_list", rooms[roomName].userList);
+    client.on("request_user_list", () => {
+        client.emit("user_list", rooms[client.roomName].userList);
     })
 
     client.on("create-room", (data) => {
@@ -48,7 +51,7 @@ io.on('connection', function (client) {
             client.emit("room-exists");
         }
         else {
-            rooms[data.roomName] = { userList: [], gameStarted: false };
+            rooms[data.roomName] = { userList: [], gameStarted: false, readyPlayers: 0 };
             client.emit("enter-room", data);
         }
 
@@ -75,9 +78,29 @@ io.on('connection', function (client) {
         io.sockets.in(client.roomName).emit("get-input-values", data);
     });
 
+    client.on("player-ready", (nickname) => {
+        client.status = "ready";
+        for(let user of rooms[client.roomName].userList) {
+            if(user.nickname == nickname)
+                user.status = "ready";
+        }
+        rooms[client.roomName].readyPlayers++;
+        io.sockets.in(client.roomName).emit("set-player-ready", nickname);
+    });
+
+    client.on("player-not-ready", (nickname) => {
+        client.status = "not-ready";
+        for(let user of rooms[client.roomName].userList) {
+            if(user.nickname == nickname)
+                user.status = "not-ready";
+        }
+        rooms[client.roomName].readyPlayers--;
+        io.sockets.in(client.roomName).emit("set-player-not-ready", nickname);
+    });
+
     const loginUser = (data) => {
         client.join(data.roomName);
-        rooms[data.roomName].userList.push({ nickname: data.nickname, avatar: data.avatar });
+        rooms[data.roomName].userList.push({ nickname: data.nickname, avatar: data.avatar, status: "not-ready" });
         if (rooms[data.roomName].userList.length === 1) {
             rooms[data.roomName].host = data.nickname;
             console.log("User " + rooms[data.roomName].host + " has created a new room called " + data.roomName);
@@ -85,7 +108,9 @@ io.on('connection', function (client) {
         client.nickname = data.nickname;
         client.roomName = data.roomName;
         client.avatar = data.avatar;
+        client.status = 'not-ready';
         console.info("Client Connected", client.roomName, client.nickname, client.avatar, rooms[client.roomName].userList.length);
+        rooms[client.roomName].readyPlayers++;
         client.emit("user_list", rooms[client.roomName].userList, rooms[client.roomName].host);
         io.sockets.in(client.roomName).emit('user_logged', data.nickname);
         io.sockets.in(client.roomName).emit('load_dashboard', rooms[client.roomName].gameStarted);
