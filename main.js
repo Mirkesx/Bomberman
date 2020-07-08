@@ -51,7 +51,7 @@ io.on('connection', function (client) {
             client.emit("room-exists");
         }
         else {
-            rooms[data.roomName] = { userList: [], gameStarted: false, readyPlayers: 0 };
+            rooms[data.roomName] = { userList: [], gameStarted: false, readyPlayers: 0, stage: 1 };
             client.emit("enter-room", data);
         }
 
@@ -90,6 +90,11 @@ io.on('connection', function (client) {
         rooms[client.roomName].userList[index].status = "not-ready";
         rooms[client.roomName].readyPlayers--;
         io.sockets.in(client.roomName).emit("set-player-not-ready", index);
+    });
+
+    client.on("update-stage", (stage) => {
+        rooms[client.roomName].stage = stage;
+        io.sockets.in(client.roomName).emit("update-stage-carousel", stage);
     });
 
     const loginUser = (data) => {

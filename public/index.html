@@ -62,23 +62,25 @@
                                                 alt="Fifth slide">
                                         </div>
                                     </div>
-                                    <a class="carousel-control-prev" href="#" id="prev-avatar" role="button"
+                                    <span class="carousel-control-prev" id="prev-avatar" role="button"
                                         data-slide="prev">
                                         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                                         <span class="sr-only">Previous</span>
-                                    </a>
-                                    <a class="carousel-control-next" href="#" id="next-avatar" role="button"
+                                    </span>
+                                    <span class="carousel-control-next" id="next-avatar" role="button"
                                         data-slide="next">
                                         <span class="carousel-control-next-icon" aria-hidden="true"></span>
                                         <span class="sr-only">Next</span>
-                                    </a>
+                                </span>
                                 </div>
                             </div>
                         </div>
                         <div class="row row-content align-items-center">
                             <div class="col-12 d-flex justify-content-center">
-                                <button type="button" id="join-room" class="btn btn-primary btn-sm m-1 p-2">Join a room</button>
-                                <button type="button" id="create-room" class="btn btn-danger btn-sm m-1 p-2">Create a room</button>
+                                <button type="button" id="join-room" class="btn btn-primary btn-sm m-1 p-2">Join a
+                                    room</button>
+                                <button type="button" id="create-room" class="btn btn-danger btn-sm m-1 p-2">Create a
+                                    room</button>
                             </div>
                         </div>
                     </form>
@@ -122,36 +124,35 @@
             <div class="col-12 col-md-4">
                 <div class="row">
                     <div class="col-12">
-                        <div class="card text-center" id="cardPlayersList">
-                            <div class="card-header bg-primary text-white">
-                                <p class="card-text"><h4>Users online</h4></p>
-                            </div>
-                            <div class="card-body">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-12">
                         <div class="card text-center" id="settingsGame">
                             <div class="card-header bg-primary text-white">
-                                <p class="card-text"><h4>Settings</h4></p>
+                                <p class="card-text">
+                                <h4>Settings</h4>
+                                </p>
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    <span class="col-6"><h5>Bombs</h5></span>
+                                    <span class="col-6">
+                                        <h5>Bombs</h5>
+                                    </span>
                                     <input class="col-6" type="number" id="numberBombs" value="1" min="1" max="5">
                                 </div>
                                 <div class="row">
-                                    <span class="col-6"><h5>Flames</h5></span>
+                                    <span class="col-6">
+                                        <h5>Flames</h5>
+                                    </span>
                                     <input class="col-6" type="number" id="numberFlames" value="1" min="1" max="5">
                                 </div>
                                 <div class="row">
-                                    <span class="col-6"><h5>Speed</h5></span>
+                                    <span class="col-6">
+                                        <h5>Speed</h5>
+                                    </span>
                                     <input class="col-6" type="number" id="numberspeed" value="1" min="1" max="5">
                                 </div>
                                 <div class="row">
-                                    <span class="col-12"><h5>Time</h5></span>
+                                    <span class="col-12">
+                                        <h5>Time</h5>
+                                    </span>
                                 </div>
                                 <div class="row" id="settingsTimer">
                                     <div class="col-12 col-sm-6">
@@ -167,17 +168,52 @@
                 </div>
                 <div class="row">
                     <div class="col-12 justify-content-center">
-                        <button class="btn btn-danger text-white w-100" id="buttonReady"><h3>Ready</h4></button>
+                        <button class="btn btn-danger text-white w-100" id="buttonReady">
+                            <h3>Ready</h4>
+                        </button>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-12 justify-content-center">
-                        <button class="btn btn-primary text-white w-100" id="buttonStart" disabled><h3>Start</h4></button>
+                        <button class="btn btn-success text-white w-100" id="buttonStart">
+                            <h3>Start</h4>
+                        </button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card text-center" id="cardPlayersList">
+                            <div class="card-header bg-primary text-white">
+                                <p class="card-text">
+                                <h4>Users online</h4>
+                                </p>
+                            </div>
+                            <div class="card-body">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-md-8 bg-dark" id="gameScreen">
-
+            <div class="col-12 col-md-8" id="stageSelector">
+                <label class="sr-only" for="stage">Stage</label>
+                <div id="carouselStage" class="carousel">
+                    <div class="carousel-inner">
+                        <div class="carousel-item active" data-stage="1">
+                            <img class="d-block w-100" src="assets/img/stage/stage_1.png" alt="First slide">
+                        </div>
+                        <div class="carousel-item" data-stage="2">
+                            <img class="d-block w-100" src="assets/img/stage/stage_2.png" alt="Second slide">
+                        </div>
+                    </div>
+                    <span class="carousel-control-prev" id="prev-stage" role="button" data-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Previous</span>
+                    </span>
+                    <span class="carousel-control-next" id="next-stage" role="button" data-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Next</span>
+                    </span>
+                </div>
             </div>
         </div>
     </div>

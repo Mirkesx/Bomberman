@@ -9,6 +9,7 @@ const setupSettings = () => {
     disableInputs();
     setInputListeners();
     setEventsButtons();
+    setCarousel();
 }
 
 const printUserList = () => {
@@ -21,10 +22,18 @@ const printUserList = () => {
             $row.append('<span class="col-1 fa fa-solid:door-closed fa-2 kick-user"></span>')*/
         $('#gameSetup').find('#cardPlayersList').find('.card-body').append($row);
     }
-    if(userList.length == _.filter(userList, (user) => user.status == "ready").length)
-        $('#buttonStart').removeAttr('disabled');
-    else
-        $('#buttonStart').prop('disabled', 'true');
+    if(userNickname == host) {
+        if(userList.length == _.filter(userList, (user) => user.status == "ready").length) {
+            //$('#buttonStart').removeAttr('disabled');
+            $('#buttonReady').hide();
+            $('#buttonStart').show();
+        }
+        else {
+            //$('#buttonStart').prop('disabled', 'true');
+            $('#buttonStart').hide();
+            $('#buttonReady').show();
+        }
+    }
 };
 
 const disableInputs = () => {
@@ -43,8 +52,7 @@ const setInputListeners = () => {
 };
 
 const setEventsButtons = () => {
-    if (userNickname != host)
-        $('#buttonStart').hide();
+    $('#buttonStart').hide();
 
     $('#buttonReady').click(() => {
         let index = _.findIndex(userList, (user) => user.nickname == userNickname);
@@ -64,3 +72,33 @@ const setEventsButtons = () => {
         console.log("Starting a new game");
     });
 };
+
+const setCarousel = () => {
+
+    initCarousel();
+
+    $('#prev-stage').click(() => {
+        $('#carouselStage').carousel('prev');
+        $('#carouselStage').carousel('pause');
+        stageSelected = $('#carouselStage').find('.active').attr('data-stage');
+        socket.emit("update-stage",stageSelected);
+    });
+    $('#next-stage').click(() => {
+        $('#carouselAvatar').carousel();
+        $('#carouselStage').carousel('next');
+        $('#carouselStage').carousel('pause');
+        stageSelected = $('#carouselStage').find('.active').attr('data-stage');
+        socket.emit("update-stage",stageSelected);
+    });
+};
+
+const initCarousel = () => {
+    if(host == userNickname) {
+        $('#carouselStage').carousel();
+        $('#prev-stage').show();
+        $('#next-stage').show();
+    } else {
+        $('#prev-stage').hide();
+        $('#next-stage').hide();
+    }
+}

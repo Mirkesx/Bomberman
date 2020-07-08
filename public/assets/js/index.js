@@ -1,9 +1,10 @@
-var socket = io(window.location.href);
+var socket;
 var userNickname;
 var roomName;
 var avatar;
-var userList = [];
+var userList;
 var host;
+var stageSelected;
 var num_players_ready;
 
 $(document).ready(() => {
@@ -77,7 +78,9 @@ $(document).ready(() => {
                     if (nickname !== userNickname) {
                         serviceMessage('User joined: ' + nickname);
                         socket.emit('request_user_list');
-                        $('#buttonStart').prop('disabled', 'true');
+                        //$('#buttonStart').prop('disabled', 'true');
+                        $('#buttonStart').hide();
+                        $('#buttonReady').show();
                     }
                 });
 
@@ -92,7 +95,8 @@ $(document).ready(() => {
                     serviceMessage('New host: ' + nickname);
                     if (userNickname === nickname) {
                         host = nickname;
-                        $('#buttonStart').show();
+                        //$('#buttonStart').show();
+                        initCarousel();
                     }
                 });
 
@@ -103,7 +107,9 @@ $(document).ready(() => {
                     $user.find('.not-ready').removeClass('fa-times not-ready').addClass("fa-check ready");
                     num_players_ready++;
                     if (host == userNickname && num_players_ready == userList.length) {
-                        $('#buttonStart').removeAttr('disabled');
+                        //$('#buttonStart').removeAttr('disabled');
+                        $('#buttonReady').hide();
+                        $('#buttonStart').show();
                     }
                 });
 
@@ -114,7 +120,9 @@ $(document).ready(() => {
                     $user.find('.ready').removeClass('fa-check ready').addClass("fa-times not-ready");
                     num_players_ready--;
                     if (host == userNickname && num_players_ready < userList.length) {
-                        $('#buttonStart').prop('disabled', 'true');
+                        //$('#buttonStart').prop('disabled', 'true');
+                        $('#buttonStart').hide();
+                        $('#buttonReady').show();
                     }
                 });
 
@@ -146,6 +154,14 @@ $(document).ready(() => {
 
                 socket.on("get-input-values", (data) => {
                     $('#' + data.id).val(data.value);
+                });
+
+                socket.on("update-stage-carousel", (stage) => {
+                    if(host != userNickname) {
+                        $('#carouselStage').carousel(stage-1);
+                        $('#carouselStage').carousel('pause');
+                        stage = stage;
+                    }
                 });
             });
         }
@@ -203,6 +219,8 @@ function createLoginModal() {
     $('.chat').hide();
     $('#gameSetup').hide();
     $('#loginModal').modal({ backdrop: 'static', keyboard: false });
+
+
     $('#carouselAvatar').carousel('pause');
     $('#carouselAvatar').carousel();
     $('#prev-avatar').click(() => {
