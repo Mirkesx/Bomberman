@@ -43,7 +43,7 @@ io.on('connection', function (client) {
     })
 
     client.on("request_user_list", () => {
-        client.emit("user_list", rooms[client.roomName].userList);
+        client.emit("user_list", {list: rooms[client.roomName].userList, h: rooms[client.roomName].host});
     })
 
     client.on("create-room", (data) => {
@@ -78,24 +78,18 @@ io.on('connection', function (client) {
         io.sockets.in(client.roomName).emit("get-input-values", data);
     });
 
-    client.on("player-ready", (nickname) => {
+    client.on("player-ready", (index) => {
         client.status = "ready";
-        for(let user of rooms[client.roomName].userList) {
-            if(user.nickname == nickname)
-                user.status = "ready";
-        }
+        rooms[client.roomName].userList[index].status = "ready";
         rooms[client.roomName].readyPlayers++;
-        io.sockets.in(client.roomName).emit("set-player-ready", nickname);
+        io.sockets.in(client.roomName).emit("set-player-ready", index);
     });
 
-    client.on("player-not-ready", (nickname) => {
+    client.on("player-not-ready", (index) => {
         client.status = "not-ready";
-        for(let user of rooms[client.roomName].userList) {
-            if(user.nickname == nickname)
-                user.status = "not-ready";
-        }
+        rooms[client.roomName].userList[index].status = "not-ready";
         rooms[client.roomName].readyPlayers--;
-        io.sockets.in(client.roomName).emit("set-player-not-ready", nickname);
+        io.sockets.in(client.roomName).emit("set-player-not-ready", index);
     });
 
     const loginUser = (data) => {
@@ -105,15 +99,20 @@ io.on('connection', function (client) {
             rooms[data.roomName].host = data.nickname;
             console.log("User " + rooms[data.roomName].host + " has created a new room called " + data.roomName);
         }
+        
         client.nickname = data.nickname;
         client.roomName = data.roomName;
         client.avatar = data.avatar;
         client.status = 'not-ready';
+
+
         console.info("Client Connected", client.roomName, client.nickname, client.avatar, rooms[client.roomName].userList.length);
         rooms[client.roomName].readyPlayers++;
-        client.emit("user_list", rooms[client.roomName].userList, rooms[client.roomName].host);
+
+
         io.sockets.in(client.roomName).emit('user_logged', data.nickname);
-        io.sockets.in(client.roomName).emit('load_dashboard', rooms[client.roomName].gameStarted);
+        client.emit("user_list", {list: rooms[client.roomName].userList, h: rooms[client.roomName].host});
+        client.emit('load_dashboard', rooms[client.roomName].gameStarted);
     };
 
     const checkValidRoom = (data) => {

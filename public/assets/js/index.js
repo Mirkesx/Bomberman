@@ -9,6 +9,7 @@ var num_players_ready;
 $(document).ready(() => {
 
     const loginUser = (isCreatingRoom) => {
+        userList = [];
         userNickname = $("#nickname").val();
         roomName = $("#roomName").val();
         num_players_ready = 0;
@@ -65,63 +66,55 @@ $(document).ready(() => {
                     socket.emit("login", { nickname: data.nickname, roomName: data.roomName, avatar: data.avatar });
                 });
 
-                socket.on("user_list", (list, h) => {
-                    userList = list;
-                    host = h;
-                    setUserList();
-                });
-
-                socket.on("user_logged", (nickname) => {
-                    if (nickname !== userNickname) {
-                        serviceMessage('Utente connesso: ' + nickname);
-                        userList.push({nickname: nickname, status: "not-ready"});
-                        setUserList();
-                        printUserList();
-                    }
-                });
-
-                socket.on("user_disconnected", (data) => {
-                    serviceMessage('Utente disconnesso: ' + data.nickname);
-                    userList.splice(_.findIndex(userList, (user) => user.nickname == data.nickname), 1);
-                    //userList.splice(userList.indexOf(data.nickname), 1);
-                    if(data.status == "ready")
-                        num_players_ready--;
+                socket.on("user_list", (data) => {
+                    userList = data.list;
+                    host = data.h;
                     setUserList();
                     printUserList();
                 });
 
+                socket.on("user_logged", (nickname) => {
+                    if (nickname !== userNickname) {
+                        serviceMessage('User joined: ' + nickname);
+                        socket.emit('request_user_list');
+                        $('#buttonStart').prop('disabled', 'true');
+                    }
+                });
+
+                socket.on("user_disconnected", (data) => {
+                    serviceMessage('User disconnected: ' + data.nickname);
+                    if (data.status == "ready")
+                        num_players_ready--;
+                    socket.emit('request_user_list');
+                });
+
                 socket.on("new_host", (nickname) => {
-                    serviceMessage('Utente promosso ad host: ' + nickname);
-                    if(userNickname === nickname) {
+                    serviceMessage('New host: ' + nickname);
+                    if (userNickname === nickname) {
                         host = nickname;
+                        $('#buttonStart').show();
                     }
                 });
 
-                socket.on("set-player-ready", (nickname) => {
+                socket.on("set-player-ready", (index) => {
+                    userList[index].status ="ready";
                     let $rowUserList = $('#gameSetup #cardPlayersList .card-body').find('.row');
-                    for(let $div of $rowUserList) {
-                        $user = $($div);
-                        if($user.find('.userName').text() == nickname) {
-                            $user.find('.not-ready').removeClass('fa-times not-ready').addClass("fa-check ready");
-                            num_players_ready++;
-                            if(host == userNickname && num_players_ready == userList.length) {
-                                $('#buttonStart').removeAttr('disabled');
-                            }
-                        }
+                    $user = $($rowUserList[index]);
+                    $user.find('.not-ready').removeClass('fa-times not-ready').addClass("fa-check ready");
+                    num_players_ready++;
+                    if (host == userNickname && num_players_ready == userList.length) {
+                        $('#buttonStart').removeAttr('disabled');
                     }
                 });
 
-                socket.on("set-player-not-ready", (nickname) => {
+                socket.on("set-player-not-ready", (index) => {
+                    userList[index].status ="not-ready";
                     let $rowUserList = $('#gameSetup #cardPlayersList .card-body').find('.row');
-                    for(let $div of $rowUserList) {
-                        $user = $($div);
-                        if($user.find('.userName').text() == nickname) {
-                            $user.find('.ready').removeClass('fa-check ready').addClass("fa-times not-ready");
-                            num_players_ready--;
-                            if(host == userNickname && num_players_ready == userList.length-1) {
-                                $('#buttonStart').prop('disabled','true');
-                            }
-                        }
+                    $user = $($rowUserList[index]);
+                    $user.find('.ready').removeClass('fa-check ready').addClass("fa-times not-ready");
+                    num_players_ready--;
+                    if (host == userNickname && num_players_ready < userList.length - 1) {
+                        $('#buttonStart').prop('disabled', 'true');
                     }
                 });
 
@@ -143,7 +136,7 @@ $(document).ready(() => {
                 socket.on("load_dashboard", (gameStarted) => {
                     $('.chat').show();
 
-                    if(gameStarted) {
+                    if (gameStarted) {
                         console.log("Wait for the game to finish!");
                     } else {
                         console.log("Loading your dashboard. Please Wait.")
@@ -152,7 +145,7 @@ $(document).ready(() => {
                 });
 
                 socket.on("get-input-values", (data) => {
-                    $('#'+data.id).val(data.value);
+                    $('#' + data.id).val(data.value);
                 });
             });
         }
@@ -224,20 +217,7 @@ function createLoginModal() {
 
 function createPopup(text) {
     const popup = $('<div class="popup_scheda"></div>')
-        .css({
-            position: "fixed",
-            display: "block",
-            top: -50,
-            padding: 50,
-            opacity: 0,
-            'margin-left': -$('.popup_scheda').outerWidth() / 2,
-            "color": "white",
-            "font-weight": "strong",
-            "font-size": 15,
-            "border-radius": 50,
-            "z-index": 9999,
-            "text-align": "center"
-        })
+        .css({"margin-left": -$('.popup_scheda').outerWidth() / 2})
         .html(text)
         .appendTo('body')
         .addClass("bg-danger")

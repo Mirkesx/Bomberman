@@ -12,16 +12,19 @@ const setupSettings = () => {
 }
 
 const printUserList = () => {
-    $('#gameSetup #cardPlayersList .card-body').html('');
-    let list = "";
+    $('#gameSetup').find('#cardPlayersList').find('.card-body').html('');
     for (let i = 0; i < userList.length; i++) {
         let $row = $('<div class="row"></div>');
         $row.append('<span class="col-10 userName" style="color:' + colors[i] + ';">' + userList[i].nickname + '</span>');
         $row.append('<span class="col-1 fa ' + (userList[i].status == "ready" ? 'fa-check' : 'fa-times') + ' fa-2 ' + userList[i].status + '"></span>');
         /*if (userNickname == host)
             $row.append('<span class="col-1 fa fa-solid:door-closed fa-2 kick-user"></span>')*/
-        $row.appendTo('#gameSetup #cardPlayersList .card-body');
+        $('#gameSetup').find('#cardPlayersList').find('.card-body').append($row);
     }
+    if(userList.length == _.filter(userList, (user) => user.status == "ready").length)
+        $('#buttonStart').removeAttr('disabled');
+    else
+        $('#buttonStart').prop('disabled', 'true');
 };
 
 const disableInputs = () => {
@@ -44,13 +47,14 @@ const setEventsButtons = () => {
         $('#buttonStart').hide();
 
     $('#buttonReady').click(() => {
-        if ($('#buttonReady').hasClass('btn-danger')) {
+        let index = _.findIndex(userList, (user) => user.nickname == userNickname);
+        if (userList[index].status == "not-ready") {
             console.log("Now ready.")
-            socket.emit('player-ready', userNickname);
+            socket.emit('player-ready', index);
             $('#buttonReady').removeClass('btn-danger').addClass('btn-success');
         } else {
             console.log("Now not ready.")
-            socket.emit('player-not-ready', userNickname);
+            socket.emit('player-not-ready', index);
             $('#buttonReady').removeClass('btn-success').addClass('btn-danger');
         }
     });
@@ -60,20 +64,3 @@ const setEventsButtons = () => {
         console.log("Starting a new game");
     });
 };
-
-const appendUserToList = (nickname) => {
-    let $row = $('<div class="row"></div>');
-    $row.append('<span class="col-10 userName" style="color:' + colors[userList.length - 1] + ';">' + nickname + '</span>');
-    $row.append('<span class="col-1 fa fa-times fa-2 not-ready"></span>')
-    $row.appendTo('#gameSetup #cardPlayersList .card-body');
-}
-
-const removeUserFromList = (nickname) => {
-    let $rowUserList = $('#gameSetup #cardPlayersList .card-body').find('.row');
-    for (let $div of $rowUserList) {
-        $user = $($div);
-        if ($user.find('.userName').text() == nickname) {
-            $user.remove();
-        }
-    }
-}
