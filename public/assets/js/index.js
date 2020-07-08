@@ -26,7 +26,7 @@ $(document).ready(() => {
                     setTimeout(() => {
                         $('#loginModal').modal('show');
                         $('#carouselAvatar').carousel('pause');
-                    }, 500);
+                    }, 1000);
                 });
 
                 socket.on("room-not-exists", () => {
@@ -37,7 +37,7 @@ $(document).ready(() => {
                     setTimeout(() => {
                         $('#loginModal').modal('show');
                         $('#carouselAvatar').carousel('pause');
-                    }, 500);
+                    }, 1000);
                 });
 
                 socket.on("room-exists", () => {
@@ -48,7 +48,7 @@ $(document).ready(() => {
                     setTimeout(() => {
                         $('#loginModal').modal('show');
                         $('#carouselAvatar').carousel('pause');
-                    }, 500);
+                    }, 1000);
                 });
 
                 socket.on("room-full", () => {
@@ -113,7 +113,7 @@ $(document).ready(() => {
                     $user = $($rowUserList[index]);
                     $user.find('.ready').removeClass('fa-check ready').addClass("fa-times not-ready");
                     num_players_ready--;
-                    if (host == userNickname && num_players_ready < userList.length - 1) {
+                    if (host == userNickname && num_players_ready < userList.length) {
                         $('#buttonStart').prop('disabled', 'true');
                     }
                 });
@@ -217,8 +217,21 @@ function createLoginModal() {
 
 function createPopup(text) {
     const popup = $('<div class="popup_scheda"></div>')
-        .css({"margin-left": -$('.popup_scheda').outerWidth() / 2})
-        .html(text)
+        .css({
+            position: "fixed",
+            display: "block",
+            top: -50,
+            padding: 50,
+            opacity: 0,
+            color: "white",
+            "font-weight": "strong",
+            "font-size": 15,
+            "border-radius": 50,
+            "z-index": 9999,
+            "text-align": "center",
+            "margin-left": -$('.popup_scheda').outerWidth() / 2
+        })
+        .html("<h5>"+text+"</h5>")
         .appendTo('body')
         .addClass("bg-danger")
         .animate({
@@ -229,7 +242,7 @@ function createPopup(text) {
 
     popup.css("left", ($(window).width() / 2) - (popup.outerWidth() / 2));
 
-    window.setTimeout(() => deletePopup(popup), 2000);
+    window.setTimeout(() => deletePopup(popup), 1000);
 }
 
 function deletePopup(popup) {
@@ -237,7 +250,7 @@ function deletePopup(popup) {
         top: -50,
         opacity: 0
     },
-        500,
+        250,
         () => {
             $('.popup_scheda').remove();
             popupCreato = false;
