@@ -20,8 +20,10 @@ var config = {
 var game = new Phaser.Game(config);
 var layer;
 var player;
+var bombs;
 var cursors;
 var last_pos;
+var bomb_placed;
 var animated;
 
 function preload() {
@@ -33,6 +35,16 @@ function preload() {
     this.load.spritesheet('white-bm',
         'assets/sprites/snes_white.png',
         { frameWidth: 17, frameHeight: 26 }
+    );
+
+    this.load.spritesheet('white-bomb',
+        'assets/sprites/snes_bombs_white.png',
+        { frameWidth: 16, frameHeight: 16 }
+    );
+
+    this.load.spritesheet('white-flame',
+        'assets/sprites/snes_flames_white.png',
+        { frameWidth: 16, frameHeight: 16 }
     );
 }
 
@@ -47,7 +59,7 @@ function create() {
 
     // PLAYER
     player = this.physics.add.sprite(24, 17, 'white-bm', 7);
-    player.setSize(14, 12, 0, 0).setOffset(2, 14)
+    player.setSize(14, 14, 0, 0).setOffset(2, 12)
     player.setCollideWorldBounds(true);
 
 
@@ -87,15 +99,27 @@ function create() {
         repeat: 0
     });
 
+    this.anims.create({
+        key: 'bomb-ticking',
+        frames: this.anims.generateFrameNumbers('white-bomb', { start: 0, end: 3 }),
+        frameRate: 3,
+        repeat: 1
+    });
+
 
     //CURSORS
     cursors = this.input.keyboard.createCursorKeys();
+
+    //INITIALIZATIONS VARIABLES
+    bomb_placed = false;
+    animated = false;
+    bombs = [];
 }
 
 function update() {
     this.physics.collide(player, layer);
 
-    player.setVelocity(0,0);
+    player.setVelocity(0, 0);
 
     if (cursors.up.isDown) {
         player.body.velocity.y = -150;
@@ -118,9 +142,34 @@ function update() {
         animated = true;
     }
 
-    if(animated && player.body.velocity.x == 0 && player.body.velocity.y == 0) {
+    if (!bomb_placed && cursors.space.isDown) {
+        let bomb = place_bomb(player.x, player.y, this);
+        //bomb_placed = true;
+        this.physics.collide(player,bomb);
+    }
+
+    if (animated && player.body.velocity.x == 0 && player.body.velocity.y == 0) {
         player.anims.setCurrentFrame(player.anims.currentAnim.frames[1]);
         player.anims.stop();
         animated = false;
     }
 }
+
+
+const place_bomb = (x, y, context) => {
+    var bomb;
+    var newX, newY;
+    newX = parseInt(parseInt(x) / 16) * 16 + 8;
+    newY = parseInt(parseInt(y) / 16) * 16 + 8;
+
+    if (_.filter(bombs, (b) => (b.x < newX && b.x+16 > newX) && (b.y < newY && b.y+16 > newY)).length == 0) {
+        bomb = context.add.sprite(newX, newY, 'white-bomb');
+        bomb.anims.play('bomb-ticking', true);
+        bomb.once("animationcomplete", () => { bombs.splice(bombs.indexOf(bomb), 1); bomb.destroy(); });
+        //context.physics.collide(player, bomb);
+        //bomb_placed = false;
+
+        bombs.push(bomb);
+    }
+    return bomb;
+};
