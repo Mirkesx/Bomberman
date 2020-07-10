@@ -25,7 +25,7 @@ app.get('/', function (req, res) {
 });
 
 app.get('/test', function (req, res) {
-    res.sendFile(express.static(__dirname + '/test/index.html'));
+    res.sendFile(__dirname + '/test/index.html');
 });
 
 /**

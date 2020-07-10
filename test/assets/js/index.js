@@ -1,24 +1,126 @@
 var config = {
     type: Phaser.AUTO,
-    width: 800,
-    height: 600,
+    width: 240,
+    height: 208,
+    backgroundColor: "#2E8B57",
     scene: {
         preload: preload,
         create: create,
         update: update
-    }
+    },
+    physics: {
+        default: 'arcade',
+        arcade: {
+            debug: true
+        }
+    },
+    pixelArt: true,
 };
 
 var game = new Phaser.Game(config);
+var layer;
+var player;
+var cursors;
+var last_pos;
+var animated;
 
-function preload ()
-{
+function preload() {
+    //1 hard wall, 2 normal wall, 3 grass, 4 shadowed grass,
+    this.load.image("tiles-stage-1", "assets/tiles/snes_stage_1.png");
+    this.load.tilemapCSV('map', 'assets/tilemaps/stage_1.csv');
+
+
+    this.load.spritesheet('white-bm',
+        'assets/sprites/snes_white.png',
+        { frameWidth: 17, frameHeight: 26 }
+    );
 }
 
-function create ()
-{
+function create() {
+
+    // MAP
+    var map = this.make.tilemap({ key: 'map', tileWidth: 16, tileHeight: 16 });
+    var tileset = map.addTilesetImage('tiles-stage-1');
+    layer = map.createStaticLayer(0, tileset, 0, 0);
+    layer.setCollisionByExclusion([3, 4]);
+
+
+    // PLAYER
+    player = this.physics.add.sprite(24, 17, 'white-bm', 7);
+    player.setSize(14, 12, 0, 0).setOffset(2, 14)
+    player.setCollideWorldBounds(true);
+
+
+    //ANIMATIONS
+    this.anims.create({
+        key: 'left',
+        frames: this.anims.generateFrameNumbers('white-bm', { start: 3, end: 5 }),
+        frameRate: 5,
+        repeat: -1
+    });
+
+    this.anims.create({
+        key: 'right',
+        frames: this.anims.generateFrameNumbers('white-bm', { start: 9, end: 11 }),
+        frameRate: 5,
+        repeat: -1
+    });
+
+    this.anims.create({
+        key: 'up',
+        frames: this.anims.generateFrameNumbers('white-bm', { start: 0, end: 2 }),
+        frameRate: 5,
+        repeat: -1
+    });
+
+    this.anims.create({
+        key: 'down',
+        frames: this.anims.generateFrameNumbers('white-bm', { start: 6, end: 8 }),
+        frameRate: 5,
+        repeat: -1
+    });
+
+    this.anims.create({
+        key: 'death',
+        frames: this.anims.generateFrameNumbers('white-bm', { start: 12, end: 17 }),
+        frameRate: 5,
+        repeat: 0
+    });
+
+
+    //CURSORS
+    cursors = this.input.keyboard.createCursorKeys();
 }
 
-function update ()
-{
+function update() {
+    this.physics.collide(player, layer);
+
+    player.setVelocity(0,0);
+
+    if (cursors.up.isDown) {
+        player.body.velocity.y = -150;
+        player.anims.play('up', true);
+        animated = true;
+    } else if (cursors.down.isDown) {
+        player.body.velocity.y = 150;
+        player.anims.play('down', true);
+        animated = true;
+    }
+
+    if (cursors.left.isDown) {
+        player.body.velocity.x = -150;
+        player.anims.play('left', true);
+        animated = true;
+    }
+    else if (cursors.right.isDown) {
+        player.body.velocity.x = 150;
+        player.anims.play('right', true);
+        animated = true;
+    }
+
+    if(animated && player.body.velocity.x == 0 && player.body.velocity.y == 0) {
+        player.anims.setCurrentFrame(player.anims.currentAnim.frames[1]);
+        player.anims.stop();
+        animated = false;
+    }
 }
