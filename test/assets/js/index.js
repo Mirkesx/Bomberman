@@ -24,11 +24,14 @@ var config = {
 var game = new Phaser.Game(config);
 var layer;
 var player;
+var player_stats;
 var bombs;
 var cursors;
 var last_pos;
 var bomb_placed;
+var flipFlopBomb;
 var animated;
+var map_bombs;
 
 function preload() {
     //1 hard wall, 2 normal wall, 3 grass, 4 shadowed grass,
@@ -50,6 +53,10 @@ function preload() {
         'assets/sprites/snes_flames_white.png',
         { frameWidth: 16, frameHeight: 16 }
     );
+
+    this.bombsGroup = this.physics.add.group({
+        allowGravity: false
+    })
 }
 
 function create() {
@@ -63,7 +70,7 @@ function create() {
 
     // PLAYER
     player = this.physics.add.sprite(24, 17, 'white-bm', 7);
-    player.setSize(14, 14, 0, 0).setOffset(2, 12)
+    player.setSize(14, 13, 0, 0).setOffset(2, 13);
     player.setCollideWorldBounds(true);
 
 
@@ -115,41 +122,65 @@ function create() {
     cursors = this.input.keyboard.createCursorKeys();
 
     //INITIALIZATIONS VARIABLES
-    bomb_placed = false;
     animated = false;
     bombs = [];
+    player_stats = {};
+    flipFlopBomb = false;
 }
+
+var scene;
+
 
 function update() {
     this.physics.collide(player, layer);
+    scene = this;
 
     player.setVelocity(0, 0);
 
     if (cursors.up.isDown) {
-        player.body.velocity.y = -150;
+        player.body.velocity.y = -100;
+        if (cursors.left.isDown) {
+            player.body.velocity.x = -100;
+        } else if (cursors.right.isDown) {
+            player.body.velocity.x = +100;
+        }
+
         player.anims.play('up', true);
         animated = true;
+
     } else if (cursors.down.isDown) {
-        player.body.velocity.y = 150;
+        player.body.velocity.y = 100;
+        if (cursors.left.isDown) {
+            player.body.velocity.x = -100;
+        } else if (cursors.right.isDown) {
+            player.body.velocity.x = +100;
+        }
+
         player.anims.play('down', true);
         animated = true;
-    }
 
-    if (cursors.left.isDown) {
-        player.body.velocity.x = -150;
+    } else if (cursors.left.isDown) {
+        player.body.velocity.x = -100;
+
         player.anims.play('left', true);
         animated = true;
+
     }
     else if (cursors.right.isDown) {
-        player.body.velocity.x = 150;
+        player.body.velocity.x = 100;
+
         player.anims.play('right', true);
         animated = true;
+
     }
 
-    if (!bomb_placed && cursors.space.isDown) {
-        let bomb = place_bomb(player.x, player.y, this);
-        //bomb_placed = true;
-        this.physics.collide(player,bomb);
+    if (!flipFlopBomb && cursors.space.isDown) {
+        place_bomb(player.x, player.y, this);
+        flipFlopBomb = true;
+    }
+
+    if (flipFlopBomb && cursors.space.isUp) {
+        flipFlopBomb = false;
     }
 
     if (animated && player.body.velocity.x == 0 && player.body.velocity.y == 0) {
@@ -160,20 +191,33 @@ function update() {
 }
 
 
-const place_bomb = (x, y, context) => {
+const place_bomb = (x, y, scene) => {
     var bomb;
-    var newX, newY;
-    newX = parseInt(parseInt(x) / 16) * 16 + 8;
-    newY = parseInt(parseInt(y) / 16) * 16 + 8;
+    var newX, newY, i, j;
+    i = Math.floor(Math.floor(x) / 16);
+    j = Math.floor(Math.floor(y) / 16);
 
-    if (_.filter(bombs, (b) => (b.x < newX && b.x+16 > newX) && (b.y < newY && b.y+16 > newY)).length == 0) {
-        bomb = context.add.sprite(newX, newY, 'white-bomb');
-        bomb.anims.play('bomb-ticking', true);
-        bomb.once("animationcomplete", () => { bombs.splice(bombs.indexOf(bomb), 1); bomb.destroy(); });
-        //context.physics.collide(player, bomb);
-        //bomb_placed = false;
+    newX = (i + 1) * 16;
+    newY = (j + 1) * 16;
 
+    if (_.filter(bombs, (b) => Math.floor(b.x / 16) == i && Math.floor(b.y / 16) == j).length == 0) {
+        bomb = scene.bombsGroup.create(0, 0, 'white-bomb').setPosition(newX,newY);
+        /*if(scene.physics.overlap(bomb,layer)) {
+            bomb.x -= 8;
+            bomb.y -= 8;
+        }*/
+
+        //bomb.anims.play('bomb-ticking', true);
+        bomb.once("animationcomplete", () => {
+            bombs.splice(bombs.indexOf(bomb), 1);
+            bomb.destroy();
+        });
+        bomb.setInteractive();
+        bomb.setImmovable();
+        scene.physics.add.collider(player,bomb);
+        bomb_placed = bomb;
         bombs.push(bomb);
+        return bomb;
     }
     return bomb;
 };
