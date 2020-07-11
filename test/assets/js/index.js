@@ -2,6 +2,10 @@ var config = {
     type: Phaser.AUTO,
     width: 240,
     height: 208,
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH
+    },
     backgroundColor: "#2E8B57",
     scene: {
         preload: preload,
