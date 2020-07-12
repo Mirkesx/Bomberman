@@ -131,7 +131,7 @@ function create() {
     animated = false;
     bombs = [];
     player.speed = 1;
-    player.bombs = 1;
+    player.bombs = 3;
     player.flames = 2;
     player.status = 'alive';
     player.godlike = false;
@@ -235,15 +235,9 @@ const generateWalls = () => {
             console.log()
             if (players_start.indexOf(i + "," + j) === -1 && map.getTileAtWorldXY(i * 16, j * 16, layer).index !== 1) {
                 if (Math.random() < 0.85) {
-                    let wall = scene.wallsGroup.create(i * 16, j * 16, 'walls', 2).setOrigin(0, 0).setSize(12, 12).setOffset(2, 2);
+                    let wall = scene.wallsGroup.create(i * 16, j * 16, 'walls', 2).setOrigin(0, 0);
                     wall.setImmovable();
                     wall.setDepth(1001);
-                    scene.physics.add.overlap(wall, scene.flamesGroup, (wall) => {
-                        wall.anims.play("wall-destroyed", true);
-                        wall.once("animationcomplete", () => {
-                            wall.destroy();
-                        });
-                    });
                     scene.physics.add.collider(player, wall);
                     walls.push(wall);
                 }
@@ -252,41 +246,45 @@ const generateWalls = () => {
     }
 }
 
+const destroyWall = (wall) => {
+    wall.anims.play("wall-destroyed", true);
+    wall.once("animationcomplete", () => {
+        wall.destroy();
+    });
+}
+
 const generateItems = () => {
     items = [];
     for (let wall of walls) {
-        if (Math.random() < 0.20) {
+        if (Math.random() < 0.25) {
             index = items_list[Math.floor(Math.random() * items_list.length)];
-            item = scene.itemsGroup.create(wall.x, wall.y, 'items', index).setOrigin(0, 0).setSize(8, 8).setOffset(4, 4);
+            item = scene.itemsGroup.create(wall.x, wall.y, 'items', index).setOrigin(0, 0);
             item.setImmovable();
             item.index = index;
-            player_collider = scene.physics.add.overlap(item, player, (item) => {
+            item.player_collider = scene.physics.add.overlap(item, player, (item) => {
                 if (item.index == 0 && player.bombs < 10) {
                     player.bombs++
-                } else if (item.index  == 1 && player.bombs < 13) {
+                } else if (item.index == 1 && player.bombs < 13) {
                     player.flames++;
-                } else if (item.index  == 3) {
+                } else if (item.index == 3) {
                     player.flames = 13;
-                } else if (item.index  == 9 && player.speed < 6) {
+                } else if (item.index == 9 && player.speed < 6) {
                     player.speed++;
-                } else if (item.index  == 23 & player.speed > 0) {
+                } else if (item.index == 23 & player.speed > 0) {
                     player.speed--;
                 }
                 item.destroy();
             });
-            /*scene.physics.add.overlap(item, scene.flamesGroup, (item, player_collider) => {
-                if (!scene.physics.overlap(item, scene.wallsGroup)) {
-                    if (player_collider)
-                        player_collider.destroy();
-                    item.anims.play('item-destroyed', true);
-                    item.once('animationcomplete', () => {
-                        item.destroy();
-                    });
-                }
-            });*/
         }
     }
 
+}
+
+const destroyItem = (item) => {
+    item.anims.play('item-destroyed', true);
+    item.once('animationcomplete', () => {
+        item.destroy();
+    });
 }
 
 
@@ -318,13 +316,11 @@ const place_bomb = (x, y, scene) => {
         }, 50);
 
         bomb.once("animationcomplete", () => {
-            explosion(bomb);
+            explosion(bomb, 0);
         });
         scene.physics.add.collider(player, bomb);
         scene.physics.add.collider(scene.flamesGroup, bomb, () => {
-            bomb.x += 8;
-            bomb.y += 8;
-            explosion(bomb);
+            explosion(bomb, -0.5);
         });
 
         bombs.push(bomb);
@@ -333,9 +329,9 @@ const place_bomb = (x, y, scene) => {
     return bomb;
 };
 
-const explosion = (bomb) => {
+const explosion = (bomb, origin) => {
     bombs.splice(bombs.indexOf(bomb), 1);
-    createFlames(bomb.x, bomb.y);
+    createFlames(bomb.x, bomb.y, origin);
     bomb.destroy();
 }
 
@@ -346,26 +342,27 @@ const bombOverlapWall = (bomb) => {
         map.getTileAtWorldXY(bomb.x + 15, bomb.y + 15, layer).index === 1;
 }
 
-const createFlames = (x, y) => {
-    var u = d = l = r = true;
+const createFlames = (x, y, origin) => {
+    u = d = l = r = true;
 
-    var flames = [];
+    flames = [];
 
-    flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 5).setOrigin(0, 0));
+    flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 5).setOrigin(origin, origin));
     flames[flames.length - 1].animation = "bomb-exploding-center";
 
     for (let i = 0; i < player.flames; i++) {
         if (u)
-            u = addFlameUp(flames, x, y, i, player.flames);
+            u = addFlameUp(flames, x, y, i, player.flames, origin);
         if (d)
-            d = addFlameDown(flames, x, y, i, player.flames);
+            d = addFlameDown(flames, x, y, i, player.flames, origin);
         if (l)
-            l = addFlameLR(flames, x, y, i, player.flames, true);
+            l = addFlameLR(flames, x, y, i, player.flames, origin, true);
         if (r)
-            r = addFlameLR(flames, x, y, i, player.flames, false);
+            r = addFlameLR(flames, x, y, i, player.flames, origin, false);
     }
 
     _.each(flames, (f) => {
+        f.setImmovable();
         f.anims.play(f.animation, 'play');
         f.once("animationcomplete", () => {
             f.destroy();
@@ -373,77 +370,95 @@ const createFlames = (x, y) => {
     });
 }
 
-const addFlameUp = (flames, x, y, i, length) => {
+const addFlameUp = (flames, x, y, i, length, origin) => {
     if (map.getTileAtWorldXY(x, y - 16 * (i + 1), layer).index !== 1) {
         y = y - 16 * (i + 1);
+        if (checkAndDestroyObjects(x,y)) {
+            return false;
+        }
+
         if (i == length - 1) {
-            flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 20).setOrigin(0, 0).setSize(10, 16).setOffset(3, 0));
+            flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 20).setOrigin(origin, origin).setSize(10, 16).setOffset(3, 0));
             flames[flames.length - 1].animation = "bomb-exploding-up-head";
         }
         else {
-            flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 10).setOrigin(0, 0).setSize(10, 16).setOffset(3, 0));
+            flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 10).setOrigin(origin, origin).setSize(10, 16).setOffset(3, 0));
             flames[flames.length - 1].animation = "bomb-exploding-ud-body";
         }
-        if (scene.physics.overlap(flames[flames.length - 1], scene.wallsGroup))
-            return false;
-        else
-            return true;
+        return true;
     }
     return false;
 }
 
-const addFlameDown = (flames, x, y, i, length) => {
+const addFlameDown = (flames, x, y, i, length, origin) => {
     if (map.getTileAtWorldXY(x, y + 16 * (i + 1), layer).index !== 1) {
         y = y + 16 * (i + 1);
+        if (checkAndDestroyObjects(x,y)) {
+            return false;
+        }
+
         if (i == length - 1) {
-            flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 25).setOrigin(0, 0).setSize(10, 16).setOffset(3, 0));
+            flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 25).setOrigin(origin, origin).setSize(10, 16).setOffset(3, 0));
             flames[flames.length - 1].animation = "bomb-exploding-down-head";
         }
         else {
-            flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 10).setOrigin(0, 0).setSize(10, 16).setOffset(3, 0));
+            flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 10).setOrigin(origin, origin).setSize(10, 16).setOffset(3, 0));
             flames[flames.length - 1].animation = "bomb-exploding-ud-body";
         }
-        if (scene.physics.overlap(flames[flames.length - 1], scene.wallsGroup))
-            return false;
-        else
-            return true;
+        return true;
     }
     return false;
 }
 
-const addFlameLR = (flames, x, y, i, length, isL) => {
+const addFlameLR = (flames, x, y, i, length, origin, isL) => {
     if (isL) {
         if (map.getTileAtWorldXY(x - 16 * (i + 1), y, layer).index !== 1) {
             x = x - 16 * (i + 1);
+            if (checkAndDestroyObjects(x,y)) {
+                return false;
+            }
+
             if (i == length - 1) {
-                flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 35).setOrigin(0, 0).setSize(16, 10).setOffset(0, 3));
+                flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 35).setOrigin(origin, origin).setSize(16, 10).setOffset(0, 3));
                 flames[flames.length - 1].animation = "bomb-exploding-left-head";
             }
             else {
-                flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 15).setOrigin(0, 0).setSize(16, 10).setOffset(0, 3));
+                flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 15).setOrigin(origin, origin).setSize(16, 10).setOffset(0, 3));
                 flames[flames.length - 1].animation = "bomb-exploding-lr-body";
             }
-            if (scene.physics.overlap(flames[flames.length - 1], scene.wallsGroup))
-                return false;
-            else
-                return true;
+            return true;
         }
     } else {
         if (map.getTileAtWorldXY(x + 16 * (i + 1), y, layer).index !== 1) {
             x = x + 16 * (i + 1);
+            if (checkAndDestroyObjects(x,y)) {
+                return false;
+            }
+
             if (i == length - 1) {
-                flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 30).setOrigin(0, 0).setSize(16, 10).setOffset(0, 3));
+                flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 30).setOrigin(origin, origin).setSize(16, 10).setOffset(0, 3));
                 flames[flames.length - 1].animation = "bomb-exploding-right-head";
             }
             else {
-                flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 15).setOrigin(0, 0).setSize(16, 10).setOffset(0, 3));
+                flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 15).setOrigin(origin, origin).setSize(16, 10).setOffset(0, 3));
                 flames[flames.length - 1].animation = "bomb-exploding-lr-body";
             }
-            if (scene.physics.overlap(flames[flames.length - 1], scene.wallsGroup))
-                return false;
-            else
-                return true;
+            return true;
         }
+    }
+    return false;
+}
+
+const checkAndDestroyObjects = (x, y) => { //used to stop the flames at the first wall/item
+    walls_hit = _.filter(scene.wallsGroup.children.entries, (w) => w.x === x && w.y === y);
+    if (walls_hit.length > 0) {
+        _.each(walls_hit, (w) => destroyWall(w));
+        return true;
+    }
+    items_hit = _.filter(scene.itemsGroup.children.entries, (i) => i.x === x && i.y === y);
+    if (items_hit.length > 0) {
+        _.each(items_hit, (i) => destroyItem(i));
+        return true;
     }
     return false;
 }
