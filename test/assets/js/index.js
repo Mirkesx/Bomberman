@@ -16,16 +16,18 @@ var config = {
         default: 'arcade',
         arcade: {
             debug: true
-        }
+        },
     },
     pixelArt: true,
 };
 
 var game = new Phaser.Game(config);
 var map, tileset, layer, scene;
-var player, player_stats;
+var player;
 var bombs, flipFlopBomb;
 var cursors, animated; //animated is used to show the right animation with the player sprite
+var walls, items;
+const items_list = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 3, 3, 9, 9, 9, 9, 9, 23, 23, 23];
 
 function preload() {
     //1 hard wall, 2 normal wall, 3 grass, 4 shadowed grass,
@@ -43,8 +45,23 @@ function preload() {
         { frameWidth: 16, frameHeight: 16 }
     );
 
-    this.load.spritesheet('white-flame',
-        'assets/sprites/snes_flames_white.png',
+    this.load.spritesheet('bomb-flame',
+        'assets/sprites/bomb_flames.png',
+        { frameWidth: 16, frameHeight: 16 }
+    );
+
+    this.load.spritesheet('walls',
+        'assets/tiles/snes_stage_1.png',
+        { frameWidth: 16, frameHeight: 16 }
+    );
+
+    this.load.spritesheet('wall-destroyed',
+        'assets/sprites/wall_destroyed.png',
+        { frameWidth: 16, frameHeight: 16 }
+    );
+
+    this.load.spritesheet('items',
+        'assets/sprites/snes_items.png',
         { frameWidth: 16, frameHeight: 16 }
     );
 
@@ -52,6 +69,12 @@ function preload() {
         allowGravity: false
     });
     this.flamesGroup = this.physics.add.group({
+        allowGravity: false
+    });
+    this.wallsGroup = this.physics.add.group({
+        allowGravity: false
+    });
+    this.itemsGroup = this.physics.add.group({
         allowGravity: false
     });
     scene = this;
@@ -68,10 +91,14 @@ function create() {
 
     // PLAYER
     player = this.physics.add.sprite(24, 24, 'white-bm', 7);
-    player.setSize(7, 9, 0, 0).setOffset(5, 15).setOrigin(0.5, 0.75);
-    player.setDepth(1000);
+    player.setSize(11, 9, 0, 0).setOffset(3, 15).setOrigin(0.5, 0.75);
+    player.setDepth(2000);
     player.setCollideWorldBounds(true);
 
+
+    // WALLS and ITEMS
+    generateWalls();
+    generateItems();
 
     //ANIMATIONS
     playerAnimation();
@@ -82,6 +109,18 @@ function create() {
         frameRate: 3,
         repeat: 1
     });
+    this.anims.create({
+        key: 'wall-destroyed',
+        frames: this.anims.generateFrameNumbers('wall-destroyed', { start: 0, end: 5 }),
+        frameRate: 8,
+        repeat: 0
+    });
+    this.anims.create({
+        key: 'item-destroyed',
+        frames: this.anims.generateFrameNumbers('bomb-flame', { start: 0, end: 4 }),
+        frameRate: 10,
+        repeat: 0
+    });
     this.physics.add.collider(player, layer);
 
 
@@ -91,54 +130,59 @@ function create() {
     //INITIALIZATIONS VARIABLES
     animated = false;
     bombs = [];
-    player_stats = { speed: 1, bombs: 1, flames: 12, status: 'alive' };
+    player.speed = 1;
+    player.bombs = 1;
+    player.flames = 2;
+    player.status = 'alive';
+    player.godlike = false;
     flipFlopBomb = false;
 }
 
 
 function update() {
 
-    if (player_stats.status === 'alive') {
+    if (player.status === 'alive') {
         player.setVelocity(0, 0);
+        speed = 50 + player.speed * 15;
 
         if (cursors.up.isDown) {
-            player.body.velocity.y = -100;
+            player.body.velocity.y = -speed;
             if (cursors.left.isDown) {
-                player.body.velocity.x = -100;
+                player.body.velocity.x = -speed;
             } else if (cursors.right.isDown) {
-                player.body.velocity.x = +100;
+                player.body.velocity.x = speed;
             }
 
             player.anims.play('up', true);
             animated = true;
 
         } else if (cursors.down.isDown) {
-            player.body.velocity.y = 100;
+            player.body.velocity.y = speed;
             if (cursors.left.isDown) {
-                player.body.velocity.x = -100;
+                player.body.velocity.x = -speed;
             } else if (cursors.right.isDown) {
-                player.body.velocity.x = +100;
+                player.body.velocity.x = speed;
             }
 
             player.anims.play('down', true);
             animated = true;
 
         } else if (cursors.left.isDown) {
-            player.body.velocity.x = -100;
+            player.body.velocity.x = -speed;
 
             player.anims.play('left', true);
             animated = true;
 
         }
         else if (cursors.right.isDown) {
-            player.body.velocity.x = 100;
+            player.body.velocity.x = speed;
 
             player.anims.play('right', true);
             animated = true;
 
         }
 
-        if (!flipFlopBomb && cursors.space.isDown) {
+        if (!flipFlopBomb && player.bombs > bombs.length && cursors.space.isDown) {
             place_bomb(player.x, player.y, this);
             flipFlopBomb = true;
         }
@@ -153,14 +197,14 @@ function update() {
             animated = false;
         }
 
-        if (scene.physics.collide(player, scene.flamesGroup)) {
+        if (!player.godlike && scene.physics.collide(player, scene.flamesGroup)) {
             death(player);
         }
     }
 }
 
 const death = (player) => {
-    player_stats.status = "dead";
+    player.status = "dead";
     player.anims.play('death', true);
     player.once("animationcomplete", () => {
         setTimeout(() => {
@@ -168,6 +212,82 @@ const death = (player) => {
         }, 1000);
     });
 };
+
+const generateWalls = () => {
+    const players_start = [
+        "1,1",
+        "1,2",
+        "2,1",
+        "13,1",
+        "12,1",
+        "13,2",
+        "1,11",
+        "1,10",
+        "2,11",
+        "13,11",
+        "13,10",
+        "12,11",
+    ];
+
+    walls = [];
+    for (let i = 1; i < 14; i++) {
+        for (let j = 1; j < 12; j++) {
+            console.log()
+            if (players_start.indexOf(i + "," + j) === -1 && map.getTileAtWorldXY(i * 16, j * 16, layer).index !== 1) {
+                if (Math.random() < 0.85) {
+                    let wall = scene.wallsGroup.create(i * 16, j * 16, 'walls', 2).setOrigin(0, 0).setSize(12, 12).setOffset(2, 2);
+                    wall.setImmovable();
+                    wall.setDepth(1001);
+                    scene.physics.add.overlap(wall, scene.flamesGroup, (wall) => {
+                        wall.anims.play("wall-destroyed", true);
+                        wall.once("animationcomplete", () => {
+                            wall.destroy();
+                        });
+                    });
+                    scene.physics.add.collider(player, wall);
+                    walls.push(wall);
+                }
+            }
+        }
+    }
+}
+
+const generateItems = () => {
+    items = [];
+    for (let wall of walls) {
+        if (Math.random() < 0.20) {
+            index = items_list[Math.floor(Math.random() * items_list.length)];
+            item = scene.itemsGroup.create(wall.x, wall.y, 'items', index).setOrigin(0, 0).setSize(8, 8).setOffset(4, 4);
+            item.setImmovable();
+            item.index = index;
+            player_collider = scene.physics.add.overlap(item, player, (item) => {
+                if (item.index == 0 && player.bombs < 10) {
+                    player.bombs++
+                } else if (item.index  == 1 && player.bombs < 13) {
+                    player.flames++;
+                } else if (item.index  == 3) {
+                    player.flames = 13;
+                } else if (item.index  == 9 && player.speed < 6) {
+                    player.speed++;
+                } else if (item.index  == 23 & player.speed > 0) {
+                    player.speed--;
+                }
+                item.destroy();
+            });
+            /*scene.physics.add.overlap(item, scene.flamesGroup, (item, player_collider) => {
+                if (!scene.physics.overlap(item, scene.wallsGroup)) {
+                    if (player_collider)
+                        player_collider.destroy();
+                    item.anims.play('item-destroyed', true);
+                    item.once('animationcomplete', () => {
+                        item.destroy();
+                    });
+                }
+            });*/
+        }
+    }
+
+}
 
 
 const place_bomb = (x, y, scene) => {
@@ -231,18 +351,18 @@ const createFlames = (x, y) => {
 
     var flames = [];
 
-    flames.push(scene.flamesGroup.create(x, y, 'white-flame', 5).setOrigin(0, 0));
+    flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 5).setOrigin(0, 0));
     flames[flames.length - 1].animation = "bomb-exploding-center";
 
-    for (let i = 0; i < player_stats.flames; i++) {
+    for (let i = 0; i < player.flames; i++) {
         if (u)
-            u = addFlameUp(flames, x, y, i, player_stats.flames);
+            u = addFlameUp(flames, x, y, i, player.flames);
         if (d)
-            d = addFlameDown(flames, x, y, i, player_stats.flames);
+            d = addFlameDown(flames, x, y, i, player.flames);
         if (l)
-            l = addFlameLR(flames, x, y, i, player_stats.flames, true);
+            l = addFlameLR(flames, x, y, i, player.flames, true);
         if (r)
-            r = addFlameLR(flames, x, y, i, player_stats.flames, false);
+            r = addFlameLR(flames, x, y, i, player.flames, false);
     }
 
     _.each(flames, (f) => {
@@ -257,34 +377,38 @@ const addFlameUp = (flames, x, y, i, length) => {
     if (map.getTileAtWorldXY(x, y - 16 * (i + 1), layer).index !== 1) {
         y = y - 16 * (i + 1);
         if (i == length - 1) {
-            flames.push(scene.flamesGroup.create(x, y, 'white-flame', 20).setOrigin(0, 0).setSize(10, 16).setOffset(3, 0));
+            flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 20).setOrigin(0, 0).setSize(10, 16).setOffset(3, 0));
             flames[flames.length - 1].animation = "bomb-exploding-up-head";
         }
         else {
-            flames.push(scene.flamesGroup.create(x, y, 'white-flame', 10).setOrigin(0, 0).setSize(10, 16).setOffset(3, 0));
+            flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 10).setOrigin(0, 0).setSize(10, 16).setOffset(3, 0));
             flames[flames.length - 1].animation = "bomb-exploding-ud-body";
         }
-        return true;
-    } else {
-        return false;
+        if (scene.physics.overlap(flames[flames.length - 1], scene.wallsGroup))
+            return false;
+        else
+            return true;
     }
+    return false;
 }
 
 const addFlameDown = (flames, x, y, i, length) => {
     if (map.getTileAtWorldXY(x, y + 16 * (i + 1), layer).index !== 1) {
         y = y + 16 * (i + 1);
         if (i == length - 1) {
-            flames.push(scene.flamesGroup.create(x, y, 'white-flame', 25).setOrigin(0, 0).setSize(10, 16).setOffset(3, 0));
+            flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 25).setOrigin(0, 0).setSize(10, 16).setOffset(3, 0));
             flames[flames.length - 1].animation = "bomb-exploding-down-head";
         }
         else {
-            flames.push(scene.flamesGroup.create(x, y, 'white-flame', 10).setOrigin(0, 0).setSize(10, 16).setOffset(3, 0));
+            flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 10).setOrigin(0, 0).setSize(10, 16).setOffset(3, 0));
             flames[flames.length - 1].animation = "bomb-exploding-ud-body";
         }
-        return true;
-    } else {
-        return false;
+        if (scene.physics.overlap(flames[flames.length - 1], scene.wallsGroup))
+            return false;
+        else
+            return true;
     }
+    return false;
 }
 
 const addFlameLR = (flames, x, y, i, length, isL) => {
@@ -292,27 +416,33 @@ const addFlameLR = (flames, x, y, i, length, isL) => {
         if (map.getTileAtWorldXY(x - 16 * (i + 1), y, layer).index !== 1) {
             x = x - 16 * (i + 1);
             if (i == length - 1) {
-                flames.push(scene.flamesGroup.create(x, y, 'white-flame', 35).setOrigin(0, 0).setSize(16, 10).setOffset(0, 3));
+                flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 35).setOrigin(0, 0).setSize(16, 10).setOffset(0, 3));
                 flames[flames.length - 1].animation = "bomb-exploding-left-head";
             }
             else {
-                flames.push(scene.flamesGroup.create(x, y, 'white-flame', 15).setOrigin(0, 0).setSize(16, 10).setOffset(0, 3));
+                flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 15).setOrigin(0, 0).setSize(16, 10).setOffset(0, 3));
                 flames[flames.length - 1].animation = "bomb-exploding-lr-body";
             }
-            return true;
+            if (scene.physics.overlap(flames[flames.length - 1], scene.wallsGroup))
+                return false;
+            else
+                return true;
         }
     } else {
         if (map.getTileAtWorldXY(x + 16 * (i + 1), y, layer).index !== 1) {
             x = x + 16 * (i + 1);
             if (i == length - 1) {
-                flames.push(scene.flamesGroup.create(x, y, 'white-flame', 30).setOrigin(0, 0).setSize(16, 10).setOffset(0, 3));
+                flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 30).setOrigin(0, 0).setSize(16, 10).setOffset(0, 3));
                 flames[flames.length - 1].animation = "bomb-exploding-right-head";
             }
             else {
-                flames.push(scene.flamesGroup.create(x, y, 'white-flame', 15).setOrigin(0, 0).setSize(16, 10).setOffset(0, 3));
+                flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 15).setOrigin(0, 0).setSize(16, 10).setOffset(0, 3));
                 flames[flames.length - 1].animation = "bomb-exploding-lr-body";
             }
-            return true;
+            if (scene.physics.overlap(flames[flames.length - 1], scene.wallsGroup))
+                return false;
+            else
+                return true;
         }
     }
     return false;
@@ -361,49 +491,49 @@ const playerAnimation = () => {
 const flamesAnimation = () => {
     scene.anims.create({
         key: 'bomb-exploding-center',
-        frames: scene.anims.generateFrameNumbers('white-flame', { frames: [5, 6, 7, 8, 9, 8, 7, 6, 5] }),
+        frames: scene.anims.generateFrameNumbers('bomb-flame', { frames: [5, 6, 7, 8, 9, 8, 7, 6, 5] }),
         frameRate: 18,
         repeat: 0
     });
 
     scene.anims.create({
         key: 'bomb-exploding-ud-body',
-        frames: scene.anims.generateFrameNumbers('white-flame', { frames: [10, 11, 12, 13, 14, 13, 12, 11, 10] }),
+        frames: scene.anims.generateFrameNumbers('bomb-flame', { frames: [10, 11, 12, 13, 14, 13, 12, 11, 10] }),
         frameRate: 18,
         repeat: 0
     });
 
     scene.anims.create({
         key: 'bomb-exploding-lr-body',
-        frames: scene.anims.generateFrameNumbers('white-flame', { frames: [15, 16, 17, 18, 19, 18, 17, 16, 15] }),
+        frames: scene.anims.generateFrameNumbers('bomb-flame', { frames: [15, 16, 17, 18, 19, 18, 17, 16, 15] }),
         frameRate: 18,
         repeat: 0
     });
 
     scene.anims.create({
         key: 'bomb-exploding-up-head',
-        frames: scene.anims.generateFrameNumbers('white-flame', { frames: [20, 21, 22, 23, 24, 23, 22, 21, 20] }),
+        frames: scene.anims.generateFrameNumbers('bomb-flame', { frames: [20, 21, 22, 23, 24, 23, 22, 21, 20] }),
         frameRate: 18,
         repeat: 0
     });
 
     scene.anims.create({
         key: 'bomb-exploding-down-head',
-        frames: scene.anims.generateFrameNumbers('white-flame', { frames: [25, 26, 27, 28, 29, 28, 27, 26, 25] }),
+        frames: scene.anims.generateFrameNumbers('bomb-flame', { frames: [25, 26, 27, 28, 29, 28, 27, 26, 25] }),
         frameRate: 18,
         repeat: 0
     });
 
     scene.anims.create({
         key: 'bomb-exploding-right-head',
-        frames: scene.anims.generateFrameNumbers('white-flame', { frames: [30, 31, 32, 33, 34, 33, 32, 31, 30] }),
+        frames: scene.anims.generateFrameNumbers('bomb-flame', { frames: [30, 31, 32, 33, 34, 33, 32, 31, 30] }),
         frameRate: 18,
         repeat: 0
     });
 
     scene.anims.create({
         key: 'bomb-exploding-left-head',
-        frames: scene.anims.generateFrameNumbers('white-flame', { frames: [35, 36, 37, 38, 39, 38, 37, 36, 35] }),
+        frames: scene.anims.generateFrameNumbers('bomb-flame', { frames: [35, 36, 37, 38, 39, 38, 37, 36, 35] }),
         frameRate: 18,
         repeat: 0
     });
