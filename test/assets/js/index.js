@@ -22,6 +22,8 @@ var config = {
 };
 
 var game = new Phaser.Game(config);
+var map;
+var tileset;
 var layer;
 var player;
 var player_stats;
@@ -62,19 +64,23 @@ function preload() {
 function create() {
 
     // MAP
-    var map = this.make.tilemap({ key: 'map', tileWidth: 16, tileHeight: 16 });
-    var tileset = map.addTilesetImage('tiles-stage-1');
+    map = this.make.tilemap({ key: 'map', tileWidth: 16, tileHeight: 16 });
+    tileset = map.addTilesetImage('tiles-stage-1');
     layer = map.createStaticLayer(0, tileset, 0, 0);
     layer.setCollisionByExclusion([3, 4]);
 
 
     // PLAYER
-    player = this.physics.add.sprite(24, 17, 'white-bm', 7);
-    player.setSize(14, 13, 0, 0).setOffset(2, 13);
+    player = this.physics.add.sprite(24, 24, 'white-bm', 7);
+    player.setSize(11, 10, 0, 0).setOffset(3, 15).setOrigin(0.5, 0.75);
+    player.setDepth(1000);
     player.setCollideWorldBounds(true);
 
 
     //ANIMATIONS
+    this.physics.add.collider(player, layer);
+
+
     this.anims.create({
         key: 'left',
         frames: this.anims.generateFrameNumbers('white-bm', { start: 3, end: 5 }),
@@ -132,7 +138,6 @@ var scene;
 
 
 function update() {
-    this.physics.collide(player, layer);
     scene = this;
 
     player.setVelocity(0, 0);
@@ -176,7 +181,7 @@ function update() {
 
     if (!flipFlopBomb && cursors.space.isDown) {
         place_bomb(player.x, player.y, this);
-        flipFlopBomb = true;
+        //flipFlopBomb = true;
     }
 
     if (flipFlopBomb && cursors.space.isUp) {
@@ -197,27 +202,42 @@ const place_bomb = (x, y, scene) => {
     i = Math.floor(Math.floor(x) / 16);
     j = Math.floor(Math.floor(y) / 16);
 
-    newX = (i + 1) * 16;
-    newY = (j + 1) * 16;
+    newX = Math.floor(x) - (Math.floor(x) % 16) + 8//(i+1) * 16;
+    newY = Math.floor(y) - (Math.floor(y) % 16) + 8//(j+1) * 16;
 
     if (_.filter(bombs, (b) => Math.floor(b.x / 16) == i && Math.floor(b.y / 16) == j).length == 0) {
-        bomb = scene.bombsGroup.create(0, 0, 'white-bomb').setPosition(newX,newY);
-        /*if(scene.physics.overlap(bomb,layer)) {
-            bomb.x -= 8;
-            bomb.y -= 8;
-        }*/
+        bomb = scene.bombsGroup.create(-128, -128, 'white-bomb').setOrigin(0,0).disableBody(true,true);
+        //bomb.setPosition(newX,newY);
+        bomb.x = newX;
+        bomb.y = newY;
+        bomb.setSize(13, 13).setOffset(2, 2);
 
-        //bomb.anims.play('bomb-ticking', true);
+        setTimeout(() => { //fixed the bug when the bomb is misplaced on top of an undestructable wall
+            if (bombOverlapWall(bomb)) { //bomb misplaced
+                bomb.x -= 8;
+                bomb.y -= 8;
+            }
+            bomb.enableBody(false,0,0,true,true);
+            bomb.anims.play('bomb-ticking', true);
+        }, 50);
+
         bomb.once("animationcomplete", () => {
             bombs.splice(bombs.indexOf(bomb), 1);
             bomb.destroy();
         });
         bomb.setInteractive();
         bomb.setImmovable();
-        scene.physics.add.collider(player,bomb);
+        scene.physics.add.collider(player, bomb);
         bomb_placed = bomb;
         bombs.push(bomb);
         return bomb;
     }
     return bomb;
 };
+
+const bombOverlapWall = (bomb) => {
+    return map.getTileAtWorldXY(bomb.x + 1, bomb.y+ 1, layer).index === 1 ||
+        map.getTileAtWorldXY(bomb.x + 1, bomb.y + 15, layer).index === 1 ||
+        map.getTileAtWorldXY(bomb.x + 15, bomb.y + 1, layer).index === 1 ||
+        map.getTileAtWorldXY(bomb.x + 15, bomb.y + 15, layer).index === 1;
+}

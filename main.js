@@ -12,16 +12,16 @@ var express = require('express'),
  * Static files
  */
 
-app.use(express.static('test'));
-app.use(express.static('public'));
-app.use(express.static('node_modules'));
+app.use('/test', express.static('test'));
+app.use('/public', express.static('public'));
+app.use('/node_modules',express.static('node_modules'));
 
 /**
  * Routes definitions
  */
 
 app.get('/', function (req, res) {
-    res.sendFile(express.static(__dirname + '/public/index.html'));
+    res.sendFile(__dirname + '/public/index.html');
 });
 
 app.get('/test', function (req, res) {

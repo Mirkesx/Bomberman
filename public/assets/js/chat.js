@@ -14,7 +14,7 @@ $('document').ready(() => {
                 const $message = $('\
                     <li class="left clearfix">\
                         <span class="chat-img pull-left">\
-                            <img src="assets/img/avatar/avatar_'+avatar+'.png" alt="User Avatar" class="rounded-circle">\
+                            <img src="/public/assets/img/avatar/avatar_'+avatar+'.png" alt="User Avatar" class="rounded-circle">\
                         </span>\
                         <div class="chat-body clearfix">\
                             <div class="header">\
@@ -40,7 +40,7 @@ $('document').ready(() => {
                 const $message = $('\
                     <li class="left clearfix">\
                         <span class="chat-img pull-left">\
-                            <img src="assets/img/avatar/avatar_'+avatarUser+'.png" alt="User Avatar" class="rounded-circle">\
+                            <img src="/public/assets/img/avatar/avatar_'+avatarUser+'.png" alt="User Avatar" class="rounded-circle">\
                         </span>\
                         <div class="chat-body clearfix">\
                             <div class="header">\

@@ -97,6 +97,7 @@ const initCarousel = () => {
         $('#carouselStage').carousel();
         $('#prev-stage').show();
         $('#next-stage').show();
+        $('#carouselStage').carousel('pause');
     } else {
         $('#prev-stage').hide();
         $('#next-stage').hide();

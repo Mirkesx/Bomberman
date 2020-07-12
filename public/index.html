@@ -5,18 +5,18 @@
     <title>Bomberman</title>
 
     <!-- COMPONENTS CSS-->
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/chat.css">
-    <link rel="stylesheet" href="assets/css/settings.css">
+    <link rel="stylesheet" href="/public/assets/css/style.css">
+    <link rel="stylesheet" href="/public/assets/css/chat.css">
+    <link rel="stylesheet" href="/public/assets/css/settings.css">
 
     <!-- MODULES CSS -->
-    <link rel="stylesheet" href="jquery-ui-css/jquery-ui.min.css">
-    <link rel="stylesheet" href="bootstrap/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="bootstrap/dist/css/bootstrap-grid.min.css">
-    <link rel="stylesheet" href="font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/node_modules/jquery-ui-css/jquery-ui.min.css">
+    <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap-grid.min.css">
+    <link rel="stylesheet" href="/node_modules/font-awesome/css/font-awesome.min.css">
 </head>
 
-<body background="assets/img/background_bomberman.png" style="background-position: center top;">
+<body background="/public/assets/img/background_bomberman.png" style="background-position: center top;">
 
     <div id="loginModal" class="modal fade" role="dialog">
         <div class="modal-dialog modal-lg" role="content">
@@ -42,23 +42,23 @@
                                 <div id="carouselAvatar" class="carousel">
                                     <div class="carousel-inner">
                                         <div class="carousel-item active" data-avatar="1">
-                                            <img class="d-block w-100" src="assets/img/avatar/avatar_1.png"
+                                            <img class="d-block w-100" src="/public/assets/img/avatar/avatar_1.png"
                                                 alt="First slide">
                                         </div>
                                         <div class="carousel-item" data-avatar="2">
-                                            <img class="d-block w-100" src="assets/img/avatar/avatar_2.png"
+                                            <img class="d-block w-100" src="/public/assets/img/avatar/avatar_2.png"
                                                 alt="Second slide">
                                         </div>
                                         <div class="carousel-item" data-avatar="3">
-                                            <img class="d-block w-100" src="assets/img/avatar/avatar_3.png"
+                                            <img class="d-block w-100" src="/public/assets/img/avatar/avatar_3.png"
                                                 alt="Third slide">
                                         </div>
                                         <div class="carousel-item" data-avatar="4">
-                                            <img class="d-block w-100" src="assets/img/avatar/avatar_4.png"
+                                            <img class="d-block w-100" src="/public/assets/img/avatar/avatar_4.png"
                                                 alt="Forth slide">
                                         </div>
                                         <div class="carousel-item" data-avatar="5">
-                                            <img class="d-block w-100" src="assets/img/avatar/avatar_5.png"
+                                            <img class="d-block w-100" src="/public/assets/img/avatar/avatar_5.png"
                                                 alt="Fifth slide">
                                         </div>
                                     </div>
@@ -71,7 +71,7 @@
                                         data-slide="next">
                                         <span class="carousel-control-next-icon" aria-hidden="true"></span>
                                         <span class="sr-only">Next</span>
-                                </span>
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -114,7 +114,7 @@
             </div>
         </div>
         <div class="chat_icon">
-            <img src="assets/img/chat_icon.png">
+            <img src="/public/assets/img/chat_icon.png">
             <span id="unread-messages">0</span>
         </div>
     </div>
@@ -199,10 +199,10 @@
                 <div id="carouselStage" class="carousel">
                     <div class="carousel-inner">
                         <div class="carousel-item active" data-stage="1">
-                            <img class="d-block w-100" src="assets/img/stage/stage_1.png" alt="First slide">
+                            <img class="d-block w-100" src="/public/assets/img/stage/stage_1.png" alt="First slide">
                         </div>
                         <div class="carousel-item" data-stage="2">
-                            <img class="d-block w-100" src="assets/img/stage/stage_2.png" alt="Second slide">
+                            <img class="d-block w-100" src="/public/assets/img/stage/stage_2.png" alt="Second slide">
                         </div>
                     </div>
                     <span class="carousel-control-prev" id="prev-stage" role="button" data-slide="prev">
@@ -219,17 +219,17 @@
     </div>
 
     <!-- MODULES -->
-    <script src="underscore/underscore-min.js"></script>
-    <script src="jquery/dist/jquery.min.js"></script>
-    <script src="jquery-ui-css/jquery-ui.min.js"></script>
-    <script src="popper.js/dist/umd/popper.min.js"></script>
-    <script src="bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="/node_modules/underscore/underscore-min.js"></script>
+    <script src="/node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="/node_modules/jquery-ui-css/jquery-ui.min.js"></script>
+    <script src="/node_modules/popper.js/dist/umd/popper.min.js"></script>
+    <script src="/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
 
     <!-- COMPONENTS -->
-    <script src="assets/js/index.js"></script>
-    <script src="assets/js/chat.js"></script>
-    <script src="assets/js/settings.js"></script>
+    <script src="/public/assets/js/index.js"></script>
+    <script src="/public/assets/js/chat.js"></script>
+    <script src="/public/assets/js/settings.js"></script>
 </body>
 
 </html>
