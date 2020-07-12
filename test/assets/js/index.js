@@ -68,7 +68,7 @@ function create() {
 
     // PLAYER
     player = this.physics.add.sprite(24, 24, 'white-bm', 7);
-    player.setSize(11, 10, 0, 0).setOffset(3, 15).setOrigin(0.5, 0.75);
+    player.setSize(7, 9, 0, 0).setOffset(5, 15).setOrigin(0.5, 0.75);
     player.setDepth(1000);
     player.setCollideWorldBounds(true);
 
@@ -140,7 +140,7 @@ function update() {
 
         if (!flipFlopBomb && cursors.space.isDown) {
             place_bomb(player.x, player.y, this);
-            //flipFlopBomb = true;
+            flipFlopBomb = true;
         }
 
         if (flipFlopBomb && cursors.space.isUp) {
@@ -257,11 +257,11 @@ const addFlameUp = (flames, x, y, i, length) => {
     if (map.getTileAtWorldXY(x, y - 16 * (i + 1), layer).index !== 1) {
         y = y - 16 * (i + 1);
         if (i == length - 1) {
-            flames.push(scene.flamesGroup.create(x, y, 'white-flame', 20).setOrigin(0, 0));
+            flames.push(scene.flamesGroup.create(x, y, 'white-flame', 20).setOrigin(0, 0).setSize(10, 16).setOffset(3, 0));
             flames[flames.length - 1].animation = "bomb-exploding-up-head";
         }
         else {
-            flames.push(scene.flamesGroup.create(x, y, 'white-flame', 10).setOrigin(0, 0));
+            flames.push(scene.flamesGroup.create(x, y, 'white-flame', 10).setOrigin(0, 0).setSize(10, 16).setOffset(3, 0));
             flames[flames.length - 1].animation = "bomb-exploding-ud-body";
         }
         return true;
@@ -274,11 +274,11 @@ const addFlameDown = (flames, x, y, i, length) => {
     if (map.getTileAtWorldXY(x, y + 16 * (i + 1), layer).index !== 1) {
         y = y + 16 * (i + 1);
         if (i == length - 1) {
-            flames.push(scene.flamesGroup.create(x, y, 'white-flame', 25).setOrigin(0, 0));
+            flames.push(scene.flamesGroup.create(x, y, 'white-flame', 25).setOrigin(0, 0).setSize(10, 16).setOffset(3, 0));
             flames[flames.length - 1].animation = "bomb-exploding-down-head";
         }
         else {
-            flames.push(scene.flamesGroup.create(x, y, 'white-flame', 10).setOrigin(0, 0));
+            flames.push(scene.flamesGroup.create(x, y, 'white-flame', 10).setOrigin(0, 0).setSize(10, 16).setOffset(3, 0));
             flames[flames.length - 1].animation = "bomb-exploding-ud-body";
         }
         return true;
@@ -292,11 +292,11 @@ const addFlameLR = (flames, x, y, i, length, isL) => {
         if (map.getTileAtWorldXY(x - 16 * (i + 1), y, layer).index !== 1) {
             x = x - 16 * (i + 1);
             if (i == length - 1) {
-                flames.push(scene.flamesGroup.create(x, y, 'white-flame', 35).setOrigin(0, 0));
+                flames.push(scene.flamesGroup.create(x, y, 'white-flame', 35).setOrigin(0, 0).setSize(16, 10).setOffset(0, 3));
                 flames[flames.length - 1].animation = "bomb-exploding-left-head";
             }
             else {
-                flames.push(scene.flamesGroup.create(x, y, 'white-flame', 15).setOrigin(0, 0));
+                flames.push(scene.flamesGroup.create(x, y, 'white-flame', 15).setOrigin(0, 0).setSize(16, 10).setOffset(0, 3));
                 flames[flames.length - 1].animation = "bomb-exploding-lr-body";
             }
             return true;
@@ -305,11 +305,11 @@ const addFlameLR = (flames, x, y, i, length, isL) => {
         if (map.getTileAtWorldXY(x + 16 * (i + 1), y, layer).index !== 1) {
             x = x + 16 * (i + 1);
             if (i == length - 1) {
-                flames.push(scene.flamesGroup.create(x, y, 'white-flame', 30).setOrigin(0, 0));
+                flames.push(scene.flamesGroup.create(x, y, 'white-flame', 30).setOrigin(0, 0).setSize(16, 10).setOffset(0, 3));
                 flames[flames.length - 1].animation = "bomb-exploding-right-head";
             }
             else {
-                flames.push(scene.flamesGroup.create(x, y, 'white-flame', 15).setOrigin(0, 0));
+                flames.push(scene.flamesGroup.create(x, y, 'white-flame', 15).setOrigin(0, 0).setSize(16, 10).setOffset(0, 3));
                 flames[flames.length - 1].animation = "bomb-exploding-lr-body";
             }
             return true;
