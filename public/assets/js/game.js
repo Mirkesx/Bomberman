@@ -1,5 +1,8 @@
+var game;
+
 function startGame() {
     $('.lobby').hide();
+    $('.game').show();
     $('.canvasContainer').html("");
 
 
@@ -35,7 +38,7 @@ function startGame() {
         delay: 0,
     }
 
-    var game = new Phaser.Game(config);
+    game = new Phaser.Game(config);
     var map, tileset, layer, scene, notWall;
     var player;
     var bombs, flipFlopBomb;
@@ -151,14 +154,17 @@ function startGame() {
         animated = false;
         bombs = [];
         player.speed = 1;
-        player.bombs = 3;
+        player.bombs = 1;
         player.flames = 2;
         player.status = 'alive';
         player.godlike = false;
-        player.items_collected = [0, 0];
+        player.items_collected = [1];
         flipFlopBomb = false;
 
         this.backgroundSong.play(musicConfig);
+
+
+        console.log("ready");
     }
 
 

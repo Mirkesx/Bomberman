@@ -212,6 +212,16 @@ $(document).ready(() => {
      */
 
     createLoginModal();
+
+    $('.icon-volume').click(() => {
+        if($('.icon-volume').hasClass('fa-volume-up')) {
+            $('.icon-volume').removeClass('fa-volume-up').addClass('fa-volume-off');
+            game.scene.scenes[0].sound.mute = true;
+        } else {
+            $('.icon-volume').removeClass('fa-volume-off').addClass('fa-volume-up');
+            game.scene.scenes[0].sound.mute = false;
+        }
+    })
 });
 
 
