@@ -65,6 +65,8 @@ function preload() {
         { frameWidth: 16, frameHeight: 16 }
     );
 
+    this.load.audio("music", "assets/audio/snes_battle_music.mp3");
+
     this.bombsGroup = this.physics.add.group({
         allowGravity: false
     });
@@ -123,6 +125,9 @@ function create() {
     });
     this.physics.add.collider(player, layer);
 
+    //AUDIO
+    this.backgroundSong = this.sound.add("music");
+
 
     //CURSORS
     cursors = this.input.keyboard.createCursorKeys();
@@ -137,6 +142,8 @@ function create() {
     player.status = 'alive';
     player.godlike = false;
     flipFlopBomb = false;
+
+    this.backgroundSong.play();
 }
 
 

@@ -25,6 +25,15 @@ function startGame() {
         },
         pixelArt: true,
     };
+    var musicConfig = {
+        mute: false,
+        volume: 1,
+        rate: 1,
+        detune: 0,
+        seek: 0,
+        loop: true,
+        delay: 0,
+    }
 
     var game = new Phaser.Game(config);
     var map, tileset, layer, scene, notWall;
@@ -69,6 +78,9 @@ function startGame() {
             '/public/assets/sprites/snes_items.png',
             { frameWidth: 16, frameHeight: 16 }
         );
+
+        this.load.audio("music", "/public/assets/audio/snes_battle_music.mp3");
+        this.load.audio("explosion", "/public/assets/audio/explosion.mp3");
 
         this.bombsGroup = this.physics.add.group({
             allowGravity: false
@@ -128,6 +140,9 @@ function startGame() {
         });
         this.physics.add.collider(player, layer);
 
+        //AUDIO
+        this.backgroundSong = this.sound.add("music");
+        this.explosion = this.sound.add("explosion");
 
         //CURSORS
         cursors = this.input.keyboard.createCursorKeys();
@@ -142,6 +157,8 @@ function startGame() {
         player.godlike = false;
         player.items_collected = [0, 0];
         flipFlopBomb = false;
+
+        this.backgroundSong.play(musicConfig);
     }
 
 
@@ -364,6 +381,7 @@ function startGame() {
         createFlames(bomb.x, bomb.y, origin);
         if (notWall.indexOf(Math.floor(bomb.x / 16) + ',' + Math.floor(bomb.y / 16)) < 0)
             notWall.push(Math.floor(bomb.x / 16) + ',' + Math.floor(bomb.y / 16));
+        scene.explosion.play();
         bomb.destroy();
     }
 
@@ -590,21 +608,21 @@ function startGame() {
     $('.canvasContainer').html($canvas);
     resize();
     window.addEventListener("resize", resize, false);
-}
 
-function resize() {
-    var canvas = document.querySelector("canvas");
-    var windowWidth = window.innerWidth;
-    var windowHeight = window.innerHeight;
-    var windowRatio = windowWidth / windowHeight;
-    var gameRatio = game.config.width / game.config.height;
+    function resize() {
+        var canvas = document.querySelector("canvas");
+        var windowWidth = window.innerWidth;
+        var windowHeight = window.innerHeight;
+        var windowRatio = windowWidth / windowHeight;
+        var gameRatio = game.config.width / game.config.height;
 
-    if (windowRatio < gameRatio) {
-        canvas.style.width = windowWidth + "px";
-        canvas.style.height = (windowWidth / gameRatio) + "px";
-    }
-    else {
-        canvas.style.width = (windowHeight * gameRatio) + "px";
-        canvas.style.height = windowHeight + "px";
+        if (windowRatio < gameRatio) {
+            canvas.style.width = windowWidth + "px";
+            canvas.style.height = (windowWidth / gameRatio) + "px";
+        }
+        else {
+            canvas.style.width = (windowHeight * gameRatio) + "px";
+            canvas.style.height = windowHeight + "px";
+        }
     }
 }
