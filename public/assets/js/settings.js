@@ -70,7 +70,7 @@ const setEventsButtons = () => {
     $('#buttonStart').click(() => {
         socket.emit('start-game', userNickname);
         console.log("Starting a new game");
-        startGame();
+        setupGame();
     });
 };
 

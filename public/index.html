@@ -91,36 +91,6 @@
             </div>
         </div>
 
-        <div class="chat">
-            <div class="chat_panel">
-                <div class="card">
-                    <div class="card-header">
-                        <span class="pull-left">Chat</span>
-                        <span class="pull-right fa fa-users fa-2" id="usersList"></span>
-                    </div>
-                    <div class="messages">
-                        <div class="card-body">
-                            <ul class="chat_messages"></ul>
-                        </div>
-                    </div>
-
-                    <div class="card-footer">
-                        <div class="input-group">
-                            <input id="btn-input" type="text" class="message_input form-control input-sm"
-                                placeholder="Type your message here...">
-                            <span class="input-group-btn">
-                                <button class="btn btn-warning send_message" id="btn-chat">Send</button>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="chat_icon">
-                <img src="/public/assets/img/chat_icon.png">
-                <span id="unread-messages">0</span>
-            </div>
-        </div>
-
         <div class="container" id="gameSetup">
             <div class="row">
                 <div class="col-12 col-md-4">
@@ -149,7 +119,7 @@
                                         <span class="col-6">
                                             <h5>Speed</h5>
                                         </span>
-                                        <input class="col-6" type="number" id="numberspeed" value="1" min="1" max="5">
+                                        <input class="col-6" type="number" id="numberSpeed" value="1" min="1" max="5">
                                     </div>
                                     <div class="row">
                                         <span class="col-12">
@@ -223,7 +193,38 @@
 
     <div class="game">
         <div class="fa fa-4 fa-volume-up icon-volume"></div>
+        <div class="fa fa-4 fa-sign-out icon-exit"></div>
         <div class=" canvasContainer">
+        </div>
+    </div>
+
+    <div class="chat">
+        <div class="chat_panel">
+            <div class="card">
+                <div class="card-header">
+                    <span class="pull-left">Chat</span>
+                    <span class="pull-right fa fa-users fa-2" id="usersList"></span>
+                </div>
+                <div class="messages">
+                    <div class="card-body">
+                        <ul class="chat_messages"></ul>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <div class="input-group">
+                        <input id="btn-input" type="text" class="message_input form-control input-sm"
+                            placeholder="Type your message here...">
+                        <span class="input-group-btn">
+                            <button class="btn btn-warning send_message" id="btn-chat">Send</button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="chat_icon">
+            <img src="/public/assets/img/chat_icon.png">
+            <span id="unread-messages">0</span>
         </div>
     </div>
 

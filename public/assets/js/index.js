@@ -163,6 +163,15 @@ $(document).ready(() => {
                         stage = stage;
                     }
                 });
+
+
+
+                // GAME EVENTS
+                socket.on('walls-items-ready', (data) => {
+                    console.log("Items received");
+                    setupStage(data.stage, data.items);
+                });
+
             });
         }
     }
@@ -213,6 +222,10 @@ $(document).ready(() => {
 
     createLoginModal();
 
+    /*
+     * Game Commands
+     */
+
     $('.icon-volume').click(() => {
         if($('.icon-volume').hasClass('fa-volume-up')) {
             $('.icon-volume').removeClass('fa-volume-up').addClass('fa-volume-off');
@@ -221,7 +234,13 @@ $(document).ready(() => {
             $('.icon-volume').removeClass('fa-volume-off').addClass('fa-volume-up');
             game.scene.scenes[0].sound.mute = false;
         }
-    })
+    });
+
+    $('.icon-exit').click(() => {
+        game.destroy();
+        $('.game').hide();
+        $('.lobby').show();
+    });
 });
 
 

@@ -1,6 +1,14 @@
 var game;
+var setupStage;
 
-function startGame() {
+function setupGame() {
+    bombs = $('#numberBombs').val();
+    flames = $('#numberFlames').val();
+    speed = $('#numberSpeed').val();
+    startGame(bombs, flames, speed);
+}
+
+function startGame(b, f, s) {
     $('.lobby').hide();
     $('.game').show();
     $('.canvasContainer').html("");
@@ -117,8 +125,8 @@ function startGame() {
 
 
         // WALLS and ITEMS
-        generateWalls();
-        generateItems();
+        //generateWalls();
+        //generateItems();
 
         //ANIMATIONS
         playerAnimation();
@@ -153,18 +161,18 @@ function startGame() {
         //INITIALIZATIONS VARIABLES
         animated = false;
         bombs = [];
-        player.speed = 1;
-        player.bombs = 1;
-        player.flames = 2;
+        player.speed = s;
+        player.bombs = b;
+        player.flames = f;
         player.status = 'alive';
         player.godlike = false;
-        player.items_collected = [1];
+        player.items_collected = [];
         flipFlopBomb = false;
 
         this.backgroundSong.play(musicConfig);
 
 
-        console.log("ready");
+        socket.emit('gameStart');
     }
 
 
@@ -246,12 +254,12 @@ function startGame() {
 
     const replaceItems = (items_collected) => {
         let i = 0;
-        while (i < items_collected.length && notWall.length > 0) {
+        while (i < items_collected.length /*&& notWall.length > 0*/) {
             index = Math.floor(Math.random() * notWall.length);
             x = parseInt(notWall[index].split(',')[0]);
             y = parseInt(notWall[index].split(',')[1]);
             createNewItem(items_collected[i], x * 16, y * 16);
-            notWall.splice(index, 1);
+            //notWall.splice(index, 1);
             i++;
         }
     }
@@ -295,11 +303,30 @@ function startGame() {
     const destroyWall = (wall) => {
         wall.anims.play("wall-destroyed", true);
         wall.once("animationcomplete", () => {
-            if (notWall.indexOf(Math.floor(wall.x / 16) + ',' + Math.floor(wall.y / 16)) < 0 && _.filter(scene.itemsGroup.children.entries, (item) => item.x == wall.x && item.y == wall.y).length == 0)
-                notWall.push(Math.floor(wall.x / 16) + ',' + Math.floor(wall.y / 16));
+            /*if (notWall.indexOf(Math.floor(wall.x / 16) + ',' + Math.floor(wall.y / 16)) < 0 && _.filter(scene.itemsGroup.children.entries, (item) => item.x == wall.x && item.y == wall.y).length == 0)
+                notWall.push(Math.floor(wall.x / 16) + ',' + Math.floor(wall.y / 16));*/
             wall.destroy();
         });
     }
+
+    setupStage = (stage, items) => {
+        walls = [];
+        for (let i = 1; i < 14; i++) {
+            for (let j = 1; j < 12; j++) {
+                if (stage[j][i] === 2) {
+                    let wall = scene.wallsGroup.create(i * 16, j * 16, 'walls', 2).setOrigin(0, 0);
+                    wall.setImmovable();
+                    wall.setDepth(1001);
+                    scene.physics.add.collider(player, wall);
+                    walls.push(wall);
+                }
+            }
+        }
+
+        for (let item of items) {
+            createNewItem(item[0], item[1], item[2]);
+        }
+    };
 
     const generateItems = () => {
         items = [];
@@ -327,8 +354,8 @@ function startGame() {
             } else if (item.index == 23 & player.speed > 0) {
                 player.speed--;
             }
-            if (notWall.indexOf(Math.floor(item.x / 16) + ',' + Math.floor(item.y / 16)) < 0)
-                notWall.push(Math.floor(item.x / 16) + ',' + Math.floor(item.y / 16));
+            /*if (notWall.indexOf(Math.floor(item.x / 16) + ',' + Math.floor(item.y / 16)) < 0)
+                notWall.push(Math.floor(item.x / 16) + ',' + Math.floor(item.y / 16));*/
             item.destroy();
         });
     }
@@ -385,8 +412,8 @@ function startGame() {
     const explosion = (bomb, origin) => {
         bombs.splice(bombs.indexOf(bomb), 1);
         createFlames(bomb.x, bomb.y, origin);
-        if (notWall.indexOf(Math.floor(bomb.x / 16) + ',' + Math.floor(bomb.y / 16)) < 0)
-            notWall.push(Math.floor(bomb.x / 16) + ',' + Math.floor(bomb.y / 16));
+        /*if (notWall.indexOf(Math.floor(bomb.x / 16) + ',' + Math.floor(bomb.y / 16)) < 0)
+            notWall.push(Math.floor(bomb.x / 16) + ',' + Math.floor(bomb.y / 16));*/
         scene.explosion.play();
         bomb.destroy();
     }

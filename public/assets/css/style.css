@@ -43,3 +43,12 @@ canvas {
     width: 40px;
     cursor: pointer;
 }
+
+.icon-exit {
+    position: fixed;
+    left: 20px;
+    top: 20px;
+    height: 40px;
+    width: 40px;
+    cursor: pointer;
+}

@@ -14,7 +14,7 @@ var express = require('express'),
 
 app.use('/test', express.static('test'));
 app.use('/public', express.static('public'));
-app.use('/node_modules',express.static('node_modules'));
+app.use('/node_modules', express.static('node_modules'));
 
 /**
  * Routes definitions
@@ -39,16 +39,16 @@ io.on('connection', function (client) {
     client.on("disconnect", () => {
         if (client.nickname) {
             leaveRoom(client.roomName, client.nickname);
-            if(client.status == "ready") {
+            if (client.status == "ready") {
                 rooms[client.roomName].readyPlayers--;
             }
-            io.sockets.in(client.roomName).emit('user_disconnected', {nickname: client.nickname, status: client.status});
+            io.sockets.in(client.roomName).emit('user_disconnected', { nickname: client.nickname, status: client.status });
             console.log("Client disconnected", client.roomName, client.nickname);
         }
     })
 
     client.on("request_user_list", () => {
-        client.emit("user_list", {list: rooms[client.roomName].userList, h: rooms[client.roomName].host});
+        client.emit("user_list", { list: rooms[client.roomName].userList, h: rooms[client.roomName].host });
     })
 
     client.on("create-room", (data) => {
@@ -109,7 +109,7 @@ io.on('connection', function (client) {
             rooms[data.roomName].host = data.nickname;
             console.log("User " + rooms[data.roomName].host + " has created a new room called " + data.roomName);
         }
-        
+
         client.nickname = data.nickname;
         client.roomName = data.roomName;
         client.avatar = data.avatar;
@@ -121,7 +121,7 @@ io.on('connection', function (client) {
 
 
         io.sockets.in(client.roomName).emit('user_logged', data.nickname);
-        client.emit("user_list", {list: rooms[client.roomName].userList, h: rooms[client.roomName].host});
+        client.emit("user_list", { list: rooms[client.roomName].userList, h: rooms[client.roomName].host });
         client.emit('load_dashboard', rooms[client.roomName].gameStarted);
     };
 
@@ -130,11 +130,34 @@ io.on('connection', function (client) {
             rooms[data.roomName].userList.length < 4 &&
             _.findIndex(rooms[data.roomName].userList, (user) => user.nickname == data.nickname) < 0
     };
-})
+
+
+    // GAME EVENTS
+    client.on('gameStart', () => {
+        rooms[client.roomName].map = generateWalls(empty_stage);
+        rooms[client.roomName].items = generateItems(rooms[client.roomName].map);
+        io.sockets.in(client.roomName)
+            .emit('walls-items-ready',
+                    {
+                        stage: rooms[client.roomName].map,
+                        items: rooms[client.roomName].items
+                    }
+        );
+        console.log("A game started");
+    });
+
+});
+
+
+
+
 
 http.listen(3000, function () {
     console.log('listening on localhost:3000');
 });
+
+
+
 
 /**
  *  METHODS DEFINITIONS 
@@ -151,4 +174,69 @@ function leaveRoom(room, nickname) {
             io.sockets.in(room).emit('new_host', rooms[room].host);
         }
     }
+}
+
+const empty_stage = [ //0 grass, 1 unbreakable wall, 2 wall, 3 item-inside wall, 4 item outside wall
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+];
+
+
+const generateWalls = () => {
+    const players_start = [
+        "1,1",
+        "1,2",
+        "2,1",
+        "13,1",
+        "12,1",
+        "13,2",
+        "1,11",
+        "1,10",
+        "2,11",
+        "13,11",
+        "13,10",
+        "12,11",
+    ];
+
+    stage = empty_stage;
+
+    for (let i = 1; i < 14; i++) {
+        for (let j = 1; j < 12; j++) {
+            if (players_start.indexOf(i + "," + j) === -1 && stage[j][i] === 0) {
+                if (Math.random() < 0.85) {
+                   stage[j][i] = 2;
+                } else {
+                    stage[j][i] = 3;
+                }
+            }
+        }
+    }
+    return stage;
+}
+
+const items_list = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 3, 3, 9, 9, 9, 9, 9, 23, 23, 23];
+
+const generateItems = (stage) => {
+    items = [];
+    for (let i = 1; i < 14; i++) {
+        for (let j = 1; j < 12; j++) {
+            if (stage[j][i] === 3) {
+                if (Math.random() < 0.25) {
+                    items.push(items_list[Math.floor(Math.random() * items_list.length)],i*16,j*16);
+                }
+            }
+        }
+    }
+    return items;
 }
