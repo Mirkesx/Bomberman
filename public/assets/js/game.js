@@ -1,14 +1,14 @@
 var game;
-var setupStage;
+var setupStage, replaceItems, placeBomb, moveEnemy, stopEnemy;
 
 function setupGame() {
     bombs = $('#numberBombs').val();
     flames = $('#numberFlames').val();
     speed = $('#numberSpeed').val();
-    startGame(bombs, flames, speed);
+    startGame(bombs, flames, speed, num_players_ready, id);
 }
 
-function startGame(b, f, s) {
+function startGame(b, f, s, n_players, your_id) {
     $('.lobby').hide();
     $('.game').show();
     $('.canvasContainer').html("");
@@ -47,11 +47,11 @@ function startGame(b, f, s) {
     }
 
     game = new Phaser.Game(config);
-    var map, tileset, layer, scene, notWall;
-    var player;
+    var map, tileset, layer, scene, stage;
+    var players;
     var bombs, flipFlopBomb;
     var cursors, animated; //animated is used to show the right animation with the player sprite
-    var walls, items;
+    var walls;
     const items_list = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 3, 3, 9, 9, 9, 9, 9, 23, 23, 23];
 
     function preload() {
@@ -105,6 +105,9 @@ function startGame(b, f, s) {
         this.itemsGroup = this.physics.add.group({
             allowGravity: false
         });
+        this.playersGroup = this.physics.add.group({
+            allowGravity: false
+        });
         scene = this;
     }
 
@@ -117,16 +120,20 @@ function startGame(b, f, s) {
         layer.setCollisionByExclusion([3, 4]);
 
 
-        // PLAYER
-        player = this.physics.add.sprite(24, 24, 'white-bm', 7);
-        player.setSize(11, 9, 0, 0).setOffset(3, 15).setOrigin(0.5, 0.75);
-        player.setDepth(2000);
-        player.setCollideWorldBounds(true);
+        // PLAYERS
+        players = [];
 
+        players.push(createPlayer(24, 24, 'white-bm', 0));
+        if (n_players > 1)
+            players.push(createPlayer(216, 24, 'white-bm', 1));
+        if (n_players > 2)
+            players.push(createPlayer(24, 184, 'white-bm', 2));
+        if (n_players > 3)
+            players.push(createPlayer(216, 216, 'white-bm', 3));
 
-        // WALLS and ITEMS
-        //generateWalls();
-        //generateItems();
+        scene.physics.add.collider(scene.playersGroup, scene.flamesGroup, (player) => {
+            death(player.id);
+        }, null, this);
 
         //ANIMATIONS
         playerAnimation();
@@ -149,7 +156,7 @@ function startGame(b, f, s) {
             frameRate: 10,
             repeat: 0
         });
-        this.physics.add.collider(player, layer);
+        this.physics.add.collider(scene.playersGroup, layer);
 
         //AUDIO
         this.backgroundSong = this.sound.add("music");
@@ -161,66 +168,87 @@ function startGame(b, f, s) {
         //INITIALIZATIONS VARIABLES
         animated = false;
         bombs = [];
+
+        this.backgroundSong.play(musicConfig);
+
+
+        socket.emit('request-stage');
+    }
+
+    const createPlayer = (x, y, sprites, id) => {
+        player = scene.playersGroup.create(x, y, sprites, 7);
+        player.setSize(11, 9, 0, 0).setOffset(3, 15).setOrigin(0.5, 0.75);
+        player.setDepth(2000);
+        player.setCollideWorldBounds(true);
         player.speed = s;
+        player.countDeathCollider = 0;
         player.bombs = b;
+        player.id = id;
         player.flames = f;
         player.status = 'alive';
         player.godlike = false;
         player.items_collected = [];
         flipFlopBomb = false;
 
-        this.backgroundSong.play(musicConfig);
+        _.times(player.bombs, () => player.items_collected.push(0));
+        _.times(player.flames, () => player.items_collected.push(1));
+        _.times(player.speed, () => player.items_collected.push(9));
 
-
-        socket.emit('gameStart');
+        return player;
     }
 
 
     function update() {
 
-        if (player.status === 'alive') {
-            player.setVelocity(0, 0);
-            speed = 50 + player.speed * 15;
+        if (players[your_id].status === 'alive') {
+            let anim = '';
+            players[your_id].setVelocity(0, 0);
+            speed = 50 + players[your_id].speed * 15;
 
             if (cursors.up.isDown) {
-                player.body.velocity.y = -speed;
+                players[your_id].body.velocity.y = -speed;
                 if (cursors.left.isDown) {
-                    player.body.velocity.x = -speed;
+                    players[your_id].body.velocity.x = -speed;
                 } else if (cursors.right.isDown) {
-                    player.body.velocity.x = speed;
+                    players[your_id].body.velocity.x = speed;
                 }
 
-                player.anims.play('up', true);
+                players[your_id].anims.play('up', true);
+                anim = 'up';
                 animated = true;
 
             } else if (cursors.down.isDown) {
-                player.body.velocity.y = speed;
+                players[your_id].body.velocity.y = speed;
                 if (cursors.left.isDown) {
-                    player.body.velocity.x = -speed;
+                    players[your_id].body.velocity.x = -speed;
                 } else if (cursors.right.isDown) {
-                    player.body.velocity.x = speed;
+                    players[your_id].body.velocity.x = speed;
                 }
 
-                player.anims.play('down', true);
+                players[your_id].anims.play('down', true);
+                anim = 'down';
                 animated = true;
 
             } else if (cursors.left.isDown) {
-                player.body.velocity.x = -speed;
+                players[your_id].body.velocity.x = -speed;
 
-                player.anims.play('left', true);
+                players[your_id].anims.play('left', true);
+                anim = 'left';
                 animated = true;
 
             }
             else if (cursors.right.isDown) {
-                player.body.velocity.x = speed;
+                players[your_id].body.velocity.x = speed;
 
-                player.anims.play('right', true);
+                players[your_id].anims.play('right', true);
+                anim = 'right';
                 animated = true;
 
             }
 
-            if (!flipFlopBomb && player.bombs > bombs.length && cursors.space.isDown) {
-                place_bomb(player.x, player.y, this);
+            if (!flipFlopBomb && players[your_id].bombs > _.filter(bombs, (b) => b.player_id === your_id).length && cursors.space.isDown) {
+                placeBomb(players[your_id].x, players[your_id].y, your_id, players[your_id].flames);
+                socket.emit('placed-bomb', { x: players[your_id].x, y: players[your_id].y, player_id: your_id, flames_len: players[your_id].flames });
                 flipFlopBomb = true;
             }
 
@@ -228,123 +256,109 @@ function startGame(b, f, s) {
                 flipFlopBomb = false;
             }
 
-            if (animated && player.body.velocity.x == 0 && player.body.velocity.y == 0) {
-                player.anims.setCurrentFrame(player.anims.currentAnim.frames[1]);
-                player.anims.stop();
+            if (animated && players[your_id].body.velocity.x == 0 && players[your_id].body.velocity.y == 0) {
+                players[your_id].anims.setCurrentFrame(players[your_id].anims.currentAnim.frames[1]);
+                players[your_id].anims.stop();
+                anim = 'stop';
                 animated = false;
             }
 
-            if (!player.godlike && scene.physics.collide(player, scene.flamesGroup)) {
-                death(player);
-            }
+            socket.emit('move-player', {
+                player_id: players[your_id].id,
+                x: players[your_id].body.velocity.x,
+                y: players[your_id].body.velocity.y,
+                animation: anim,
+            });
         }
     }
 
-    const death = (player) => {
-        player.status = "dead";
-        player.anims.play('death', true);
-        player.once("animationcomplete", () => {
-            setTimeout(() => {
-                items_collected = player.items_collected;
-                player.destroy();
-                replaceItems(items_collected);
-            }, 1000);
-        });
+    moveEnemy = (x, y, id, animation) => {
+        if (id != your_id) {
+            if (animation == "stop") {
+                players[id].anims.setCurrentFrame(players[id].anims.currentAnim.frames[1]);
+                players[id].anims.stop();
+                players[id].setVelocity(0, 0);
+            }
+            else {
+                players[id].body.velocity.x = x;
+                players[id].body.velocity.y = y;
+                players[id].anims.play(animation, true);
+            }
+        }
     };
 
-    const replaceItems = (items_collected) => {
-        let i = 0;
-        while (i < items_collected.length /*&& notWall.length > 0*/) {
-            index = Math.floor(Math.random() * notWall.length);
-            x = parseInt(notWall[index].split(',')[0]);
-            y = parseInt(notWall[index].split(',')[1]);
-            createNewItem(items_collected[i], x * 16, y * 16);
-            //notWall.splice(index, 1);
-            i++;
+    stopEnemy = (id) => {
+        if (id != your_id) {
+            players[id].anims.setCurrentFrame(players[id].anims.currentAnim.frames[1]);
+            players[id].anims.stop();
+            players[id].setVelocity(0, 0);
         }
-    }
+    };
 
-    const generateWalls = () => {
-        const players_start = [
-            "1,1",
-            "1,2",
-            "2,1",
-            "13,1",
-            "12,1",
-            "13,2",
-            "1,11",
-            "1,10",
-            "2,11",
-            "13,11",
-            "13,10",
-            "12,11",
-        ];
 
-        notWall = players_start;
-        walls = [];
-        for (let i = 1; i < 14; i++) {
-            for (let j = 1; j < 12; j++) {
-                console.log()
-                if (players_start.indexOf(i + "," + j) === -1 && map.getTileAtWorldXY(i * 16, j * 16, layer).index !== 1) {
-                    if (Math.random() < 0.85) {
-                        let wall = scene.wallsGroup.create(i * 16, j * 16, 'walls', 2).setOrigin(0, 0);
-                        wall.setImmovable();
-                        wall.setDepth(1001);
-                        scene.physics.add.collider(player, wall);
-                        walls.push(wall);
-                    } else {
-                        notWall.push(i + "," + j);
-                    }
-                }
-            }
+
+    const death = (id) => {
+        if (players[id].countDeathCollider == 0) {
+            players[id].countDeathCollider++;
+            players[id].status = "dead";
+            players[id].anims.play('death', true);
+            players[id].once("animationcomplete", () => {
+                setTimeout(() => {
+                    players[id].destroy();
+                }, 1000);
+                if (id === your_id)
+                    socket.emit('dead-items', { stage: stage, items: players[id].items_collected });
+            });
         }
+    };
+
+    replaceItems = (items_collected) => {
+        _.each(items_collected, (item) => createNewItem(item[0], item[1][0], item[1][1]));
     }
 
     const destroyWall = (wall) => {
         wall.anims.play("wall-destroyed", true);
         wall.once("animationcomplete", () => {
-            /*if (notWall.indexOf(Math.floor(wall.x / 16) + ',' + Math.floor(wall.y / 16)) < 0 && _.filter(scene.itemsGroup.children.entries, (item) => item.x == wall.x && item.y == wall.y).length == 0)
-                notWall.push(Math.floor(wall.x / 16) + ',' + Math.floor(wall.y / 16));*/
+            x = Math.floor(wall.x / 16);
+            y = Math.floor(wall.y / 16);
+            if (stage[y][x] === 2) {
+                stage[y][x] = 0;
+            }
             wall.destroy();
         });
     }
 
-    setupStage = (stage, items) => {
-        walls = [];
-        for (let i = 1; i < 14; i++) {
-            for (let j = 1; j < 12; j++) {
-                if (stage[j][i] === 2) {
-                    let wall = scene.wallsGroup.create(i * 16, j * 16, 'walls', 2).setOrigin(0, 0);
-                    wall.setImmovable();
-                    wall.setDepth(1001);
-                    scene.physics.add.collider(player, wall);
-                    walls.push(wall);
+    setupStage = (s, items) => {
+        if (!stage) {
+            stage = s;
+            walls = [];
+            for (let i = 1; i < 14; i++) {
+                for (let j = 1; j < 12; j++) {
+                    if (stage[j][i] === 2 || stage[j][i] == 3) {
+                        let wall = scene.wallsGroup.create(i * 16, j * 16, 'walls', 2).setOrigin(0, 0);
+                        wall.setImmovable();
+                        wall.setDepth(1001);
+                        scene.physics.add.collider(scene.playersGroup, wall);
+                        walls.push(wall);
+                    }
                 }
             }
-        }
 
-        for (let item of items) {
-            createNewItem(item[0], item[1], item[2]);
+            for (let item of items) {
+                createNewItem(item[0], item[1], item[2]);
+            }
+            console.log("Walls/Items loaded");
         }
     };
-
-    const generateItems = () => {
-        items = [];
-        for (let wall of walls) {
-            if (Math.random() < 0.25) {
-                createNewItem(items_list[Math.floor(Math.random() * items_list.length)], wall.x, wall.y);
-            }
-        }
-    }
 
     const createNewItem = (item_index, item_x, item_y) => {
         item = scene.itemsGroup.create(item_x, item_y, 'items', item_index).setOrigin(0, 0);
         item.setImmovable();
         item.index = item_index;
-        item.player_collider = scene.physics.add.overlap(item, player, (item) => {
+        item.player_collider = scene.physics.add.overlap(item, scene.playersGroup, (item, player) => {
             player.items_collected.push(item.index);
             if (item.index == 0 && player.bombs < 10) {
-                player.bombs++
+                player.bombs++;
             } else if (item.index == 1 && player.bombs < 13) {
                 player.flames++;
             } else if (item.index == 3) {
@@ -354,8 +368,10 @@ function startGame(b, f, s) {
             } else if (item.index == 23 & player.speed > 0) {
                 player.speed--;
             }
-            /*if (notWall.indexOf(Math.floor(item.x / 16) + ',' + Math.floor(item.y / 16)) < 0)
-                notWall.push(Math.floor(item.x / 16) + ',' + Math.floor(item.y / 16));*/
+
+            x = Math.floor(item.x / 16);
+            y = Math.floor(item.y / 16);
+            stage[y][x] = 0;
             item.destroy();
         });
     }
@@ -363,12 +379,15 @@ function startGame(b, f, s) {
     const destroyItem = (item) => {
         item.anims.play('item-destroyed', true);
         item.once('animationcomplete', () => {
+            x = Math.floor(item.x / 16);
+            y = Math.floor(item.y / 16);
+            stage[y][x] = 0;
             item.destroy();
         });
     }
 
 
-    const place_bomb = (x, y, scene) => {
+    placeBomb = (x, y, id, flames_len) => {
         var bomb;
         var newX, newY, i, j; //i,j are the coordinates of the 16x16 squares of the stage map
         i = Math.floor(Math.floor(x) / 16);
@@ -381,6 +400,8 @@ function startGame(b, f, s) {
             bomb = scene.bombsGroup.create(-128, -128, 'white-bomb').setOrigin(0, 0).disableBody(true, true);
             bomb.x = newX;
             bomb.y = newY;
+            bomb.player_id = id;
+            bomb.flames = flames_len;
             bomb.setSize(13, 13).setOffset(2, 2);
 
             bomb.setInteractive();
@@ -398,7 +419,7 @@ function startGame(b, f, s) {
             bomb.once("animationcomplete", () => {
                 explosion(bomb, 0);
             });
-            scene.physics.add.collider(player, bomb);
+            scene.physics.add.collider(scene.playersGroup, bomb);
             scene.physics.add.collider(scene.flamesGroup, bomb, () => {
                 explosion(bomb, -0.5);
             });
@@ -411,9 +432,7 @@ function startGame(b, f, s) {
 
     const explosion = (bomb, origin) => {
         bombs.splice(bombs.indexOf(bomb), 1);
-        createFlames(bomb.x, bomb.y, origin);
-        /*if (notWall.indexOf(Math.floor(bomb.x / 16) + ',' + Math.floor(bomb.y / 16)) < 0)
-            notWall.push(Math.floor(bomb.x / 16) + ',' + Math.floor(bomb.y / 16));*/
+        createFlames(bomb.x, bomb.y, origin, bomb.flames);
         scene.explosion.play();
         bomb.destroy();
     }
@@ -425,7 +444,7 @@ function startGame(b, f, s) {
             map.getTileAtWorldXY(bomb.x + 15, bomb.y + 15, layer).index === 1;
     }
 
-    const createFlames = (x, y, origin) => {
+    const createFlames = (x, y, origin, flames_len) => {
         u = d = l = r = true;
 
         flames = [];
@@ -433,15 +452,15 @@ function startGame(b, f, s) {
         flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 5).setOrigin(origin, origin));
         flames[flames.length - 1].animation = "bomb-exploding-center";
 
-        for (let i = 0; i < player.flames; i++) {
+        for (let i = 0; i < flames_len; i++) {
             if (u)
-                u = addFlameUp(flames, x, y, i, player.flames, origin);
+                u = addFlameUp(flames, x, y, i, flames_len, origin);
             if (d)
-                d = addFlameDown(flames, x, y, i, player.flames, origin);
+                d = addFlameDown(flames, x, y, i, flames_len, origin);
             if (l)
-                l = addFlameLR(flames, x, y, i, player.flames, origin, true);
+                l = addFlameLR(flames, x, y, i, flames_len, origin, true);
             if (r)
-                r = addFlameLR(flames, x, y, i, player.flames, origin, false);
+                r = addFlameLR(flames, x, y, i, flames_len, origin, false);
         }
 
         _.each(flames, (f) => {

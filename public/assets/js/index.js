@@ -4,6 +4,7 @@ var roomName;
 var avatar;
 var userList;
 var host;
+var id;
 var stageSelected;
 var num_players_ready;
 
@@ -69,6 +70,8 @@ $(document).ready(() => {
 
                 socket.on("user_list", (data) => {
                     userList = data.list;
+                    let nicknames = _.map(userList, (user) => user.nickname);
+                    id = nicknames.indexOf(userNickname);
                     host = data.h;
                     setUserList();
                     printUserList();
@@ -167,9 +170,40 @@ $(document).ready(() => {
 
 
                 // GAME EVENTS
+                socket.on('load-game', () => {
+                    if(id != 0) {
+                        setupGame();
+                    }
+                });
+
                 socket.on('walls-items-ready', (data) => {
-                    console.log("Items received");
                     setupStage(data.stage, data.items);
+                });
+
+                socket.on('move-enemy', (data) => {
+                    try {
+                        moveEnemy(data.x, data.y, data.player_id, data.animation);
+                    } catch {
+                        //console.log("Error! Moving a died enemy!");
+                    }
+                    
+                });
+
+                socket.on('stop-enemy', (id) => {
+                    try {
+                        stopEnemy(id);
+                    } catch {
+                        console.log("Error! Moving a died enemy!");
+                    }
+                    
+                });
+
+                socket.on('place-enemy-bomb', (data) => {
+                    placeBomb(data.x, data.y, data.player_id, data.flames_len);
+                })
+
+                socket.on('replace-items', (data) => {
+                    replaceItems(data);
                 });
 
             });
