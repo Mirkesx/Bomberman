@@ -1,11 +1,13 @@
 var game;
-var setupStage, replaceItems, placeBomb, moveEnemy, stopEnemy;
+var setupStage, replaceItems, placeBomb, moveEnemy, stopEnemy, killEnemy;
 
 function setupGame() {
     bombs = $('#numberBombs').val();
     flames = $('#numberFlames').val();
     speed = $('#numberSpeed').val();
-    startGame(bombs, flames, speed, num_players_ready, id);
+    n_players = userList.length;
+    socket.emit('start-game', {b: bombs, f: flames, s: speed, n_p: n_players});
+    startGame(bombs, flames, speed, userList.length, userId);
 }
 
 function startGame(b, f, s, n_players, your_id) {
@@ -38,7 +40,7 @@ function startGame(b, f, s, n_players, your_id) {
     };
     var musicConfig = {
         mute: false,
-        volume: 1,
+        volume: 0.5,
         rate: 1,
         detune: 0,
         seek: 0,
@@ -131,8 +133,8 @@ function startGame(b, f, s, n_players, your_id) {
         if (n_players > 3)
             players.push(createPlayer(216, 216, 'white-bm', 3));
 
-        scene.physics.add.collider(scene.playersGroup, scene.flamesGroup, (player) => {
-            death(player.id);
+        scene.physics.add.collider(players[your_id], scene.flamesGroup, () => {
+            death(your_id);
         }, null, this);
 
         //ANIMATIONS
@@ -173,6 +175,7 @@ function startGame(b, f, s, n_players, your_id) {
 
 
         socket.emit('request-stage');
+        //game.scene.pause("default");
     }
 
     const createPlayer = (x, y, sprites, id) => {
@@ -200,8 +203,8 @@ function startGame(b, f, s, n_players, your_id) {
 
     function update() {
 
-        if (players[your_id].status === 'alive') {
-            let anim = '';
+        if (players[your_id] && players[your_id].status === 'alive') {
+            let anim = 'stop';
             players[your_id].setVelocity(0, 0);
             speed = 50 + players[your_id].speed * 15;
 
@@ -265,23 +268,26 @@ function startGame(b, f, s, n_players, your_id) {
 
             socket.emit('move-player', {
                 player_id: players[your_id].id,
-                x: players[your_id].body.velocity.x,
-                y: players[your_id].body.velocity.y,
+                vel_x: players[your_id].body.velocity.x,
+                vel_y: players[your_id].body.velocity.y,
+                x: players[your_id].x,
+                y: players[your_id].y,
                 animation: anim,
             });
         }
     }
 
-    moveEnemy = (x, y, id, animation) => {
+    moveEnemy = (x, y, velX, velY, id, animation) => {
         if (id != your_id) {
+            players[id].x = x;
+            players[id].y = y;
             if (animation == "stop") {
                 players[id].anims.setCurrentFrame(players[id].anims.currentAnim.frames[1]);
                 players[id].anims.stop();
-                players[id].setVelocity(0, 0);
+                //players[id].setVelocity(0, 0);
             }
             else {
-                players[id].body.velocity.x = x;
-                players[id].body.velocity.y = y;
+                //players[id].setVelocity(velX, velY);
                 players[id].anims.play(animation, true);
             }
         }
@@ -298,7 +304,7 @@ function startGame(b, f, s, n_players, your_id) {
 
 
     const death = (id) => {
-        if (players[id].countDeathCollider == 0) {
+        if (id === your_id && players[id].countDeathCollider == 0) {
             players[id].countDeathCollider++;
             players[id].status = "dead";
             players[id].anims.play('death', true);
@@ -306,11 +312,20 @@ function startGame(b, f, s, n_players, your_id) {
                 setTimeout(() => {
                     players[id].destroy();
                 }, 1000);
-                if (id === your_id)
-                    socket.emit('dead-items', { stage: stage, items: players[id].items_collected });
+                socket.emit('dead-items', { stage: stage, items: players[id].items_collected, id: your_id });
             });
         }
     };
+
+    killEnemy = (id) => {
+        players[id].status = "dead";
+            players[id].anims.play('death', true);
+            players[id].once("animationcomplete", () => {
+                setTimeout(() => {
+                    players[id].destroy();
+                }, 1000);
+            });
+    }
 
     replaceItems = (items_collected) => {
         _.each(items_collected, (item) => createNewItem(item[0], item[1][0], item[1][1]));

@@ -133,14 +133,18 @@ io.on('connection', function (client) {
 
 
     // GAME EVENTS
-    client.on('start-game', () => {
-        console.log("Started a game in room "+client.roomName);
-        io.sockets.emit('load-game');
+    client.on('start-game', (data) => {
+        console.log("Started a game in room " + client.roomName);
+        rooms[client.roomName].map = generateWalls(empty_stage);
+        rooms[client.roomName].items = generateItems(rooms[client.roomName].map);
+        io.sockets.emit('load-game', data);
+    });
+
+    client.on('close-game', () => {
+        io.sockets.emit('exit-game');
     });
 
     client.on('request-stage', () => {
-        rooms[client.roomName].map = generateWalls(empty_stage);
-        rooms[client.roomName].items = generateItems(rooms[client.roomName].map);
         io.sockets.in(client.roomName)
             .emit('walls-items-ready',
                 {
@@ -152,11 +156,11 @@ io.on('connection', function (client) {
     });
 
     client.on('move-player', (data) => {
-        io.sockets.in(client.roomName).emit('move-enemy',data);
+        io.sockets.in(client.roomName).emit('move-enemy', data);
     });
 
     client.on('stop-player', (id) => {
-        io.sockets.in(client.roomName).emit('stop-enemy',id);
+        io.sockets.in(client.roomName).emit('stop-enemy', id);
     });
 
     client.on('placed-bomb', (data) => {
@@ -167,7 +171,8 @@ io.on('connection', function (client) {
     client.on('dead-items', (data) => {
         client.status = 'dead';
         rooms[client.roomName].map = data.stage;
-        locations = replaceItems(data.stage, data.items)
+        locations = replaceItems(data.stage, data.items);
+        io.sockets.in(client.roomName).emit('kill-player', data.id);
         io.sockets.in(client.roomName).emit('replace-items', locations);
     });
 });
@@ -247,14 +252,14 @@ const generateWalls = () => {
     return stage;
 }
 
-const items_list = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 3, 3, 9, 9, 9, 9, 9, 23, 23, 23];
+const items_list = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 3, 9, 9, 9, 9, 9, 9, 9, 23, 23, 23];
 
 const generateItems = (stage) => {
     items = [];
     for (let i = 1; i < 14; i++) {
         for (let j = 1; j < 12; j++) {
             if (stage[j][i] === 2) {
-                if (Math.random() < 0.25) {
+                if (Math.random() < 0.20) {
                     items.push([items_list[Math.floor(Math.random() * items_list.length)], i * 16, j * 16]);
                 }
             }
@@ -276,7 +281,7 @@ const replaceItems = (stage, items) => {
     locations = [];
     while (i < items.length && notWalls.length > 0) {
         index = Math.floor(Math.random() * notWalls.length);
-        locations.push([items[i],notWalls[index]]);
+        locations.push([items[i], notWalls[index]]);
         notWalls.splice(index, 1);
         i++;
     }

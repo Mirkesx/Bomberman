@@ -71,7 +71,7 @@ $(document).ready(() => {
                 socket.on("user_list", (data) => {
                     userList = data.list;
                     let nicknames = _.map(userList, (user) => user.nickname);
-                    id = nicknames.indexOf(userNickname);
+                    userId = nicknames.indexOf(userNickname);
                     host = data.h;
                     setUserList();
                     printUserList();
@@ -104,7 +104,7 @@ $(document).ready(() => {
                 });
 
                 socket.on("set-player-ready", (index) => {
-                    userList[index].status ="ready";
+                    userList[index].status = "ready";
                     let $rowUserList = $('#gameSetup #cardPlayersList .card-body').find('.row');
                     $user = $($rowUserList[index]);
                     $user.find('.not-ready').removeClass('fa-times not-ready').addClass("fa-check ready");
@@ -117,7 +117,7 @@ $(document).ready(() => {
                 });
 
                 socket.on("set-player-not-ready", (index) => {
-                    userList[index].status ="not-ready";
+                    userList[index].status = "not-ready";
                     let $rowUserList = $('#gameSetup #cardPlayersList .card-body').find('.row');
                     $user = $($rowUserList[index]);
                     $user.find('.ready').removeClass('fa-check ready').addClass("fa-times not-ready");
@@ -160,8 +160,8 @@ $(document).ready(() => {
                 });
 
                 socket.on("update-stage-carousel", (stage) => {
-                    if(host != userNickname) {
-                        $('#carouselStage').carousel(stage-1);
+                    if (host != userNickname) {
+                        $('#carouselStage').carousel(stage - 1);
                         $('#carouselStage').carousel('pause');
                         stage = stage;
                     }
@@ -170,23 +170,28 @@ $(document).ready(() => {
 
 
                 // GAME EVENTS
-                socket.on('load-game', () => {
-                    if(id != 0) {
-                        setupGame();
+                socket.on('load-game', (data) => {
+                    if (userId != 0) {
+                        startGame(data.b, data.f, data.s, data.n_p, userId);
                     }
+                });
+
+                socket.on('exit-game', () => {
+                    exitGame();
                 });
 
                 socket.on('walls-items-ready', (data) => {
                     setupStage(data.stage, data.items);
+                    //game.scene.resume("default");
                 });
 
                 socket.on('move-enemy', (data) => {
                     try {
-                        moveEnemy(data.x, data.y, data.player_id, data.animation);
+                        moveEnemy(data.x, data.y, data.velX, data.velY, data.player_id, data.animation);
                     } catch {
                         //console.log("Error! Moving a died enemy!");
                     }
-                    
+
                 });
 
                 socket.on('stop-enemy', (id) => {
@@ -195,7 +200,7 @@ $(document).ready(() => {
                     } catch {
                         console.log("Error! Moving a died enemy!");
                     }
-                    
+
                 });
 
                 socket.on('place-enemy-bomb', (data) => {
@@ -206,6 +211,9 @@ $(document).ready(() => {
                     replaceItems(data);
                 });
 
+                socket.on('kill-player', (id) => {
+                    killEnemy(id);
+                });
             });
         }
     }
@@ -261,7 +269,7 @@ $(document).ready(() => {
      */
 
     $('.icon-volume').click(() => {
-        if($('.icon-volume').hasClass('fa-volume-up')) {
+        if ($('.icon-volume').hasClass('fa-volume-up')) {
             $('.icon-volume').removeClass('fa-volume-up').addClass('fa-volume-off');
             game.scene.scenes[0].sound.mute = true;
         } else {
@@ -271,11 +279,19 @@ $(document).ready(() => {
     });
 
     $('.icon-exit').click(() => {
-        game.destroy();
-        $('.game').hide();
-        $('.lobby').show();
+        if(userId == 0) {
+            socket.emit('close-game');
+        } else {
+            exitGame();
+        }
     });
 });
+
+function exitGame() {
+    game.destroy();
+    $('.game').hide();
+    $('.lobby').show();
+}
 
 
 function createLoginModal() {
@@ -312,7 +328,7 @@ function createPopup(text) {
             "text-align": "center",
             "margin-left": -$('.popup_scheda').outerWidth() / 2
         })
-        .html("<h5>"+text+"</h5>")
+        .html("<h5>" + text + "</h5>")
         .appendTo('body')
         .addClass("bg-danger")
         .animate({
