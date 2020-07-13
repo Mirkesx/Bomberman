@@ -27,7 +27,7 @@ function startGame() {
     };
 
     var game = new Phaser.Game(config);
-    var map, tileset, layer, scene;
+    var map, tileset, layer, scene, notWall;
     var player;
     var bombs, flipFlopBomb;
     var cursors, animated; //animated is used to show the right animation with the player sprite
@@ -140,6 +140,7 @@ function startGame() {
         player.flames = 2;
         player.status = 'alive';
         player.godlike = false;
+        player.items_collected = [0, 0];
         flipFlopBomb = false;
     }
 
@@ -213,10 +214,24 @@ function startGame() {
         player.anims.play('death', true);
         player.once("animationcomplete", () => {
             setTimeout(() => {
+                items_collected = player.items_collected;
                 player.destroy();
+                replaceItems(items_collected);
             }, 1000);
         });
     };
+
+    const replaceItems = (items_collected) => {
+        let i = 0;
+        while (i < items_collected.length && notWall.length > 0) {
+            index = Math.floor(Math.random() * notWall.length);
+            x = parseInt(notWall[index].split(',')[0]);
+            y = parseInt(notWall[index].split(',')[1]);
+            createNewItem(items_collected[i], x * 16, y * 16);
+            notWall.splice(index, 1);
+            i++;
+        }
+    }
 
     const generateWalls = () => {
         const players_start = [
@@ -234,6 +249,7 @@ function startGame() {
             "12,11",
         ];
 
+        notWall = players_start;
         walls = [];
         for (let i = 1; i < 14; i++) {
             for (let j = 1; j < 12; j++) {
@@ -245,6 +261,8 @@ function startGame() {
                         wall.setDepth(1001);
                         scene.physics.add.collider(player, wall);
                         walls.push(wall);
+                    } else {
+                        notWall.push(i + "," + j);
                     }
                 }
             }
@@ -254,6 +272,8 @@ function startGame() {
     const destroyWall = (wall) => {
         wall.anims.play("wall-destroyed", true);
         wall.once("animationcomplete", () => {
+            if (notWall.indexOf(Math.floor(wall.x / 16) + ',' + Math.floor(wall.y / 16)) < 0 && _.filter(scene.itemsGroup.children.entries, (item) => item.x == wall.x && item.y == wall.y).length == 0)
+                notWall.push(Math.floor(wall.x / 16) + ',' + Math.floor(wall.y / 16));
             wall.destroy();
         });
     }
@@ -262,27 +282,32 @@ function startGame() {
         items = [];
         for (let wall of walls) {
             if (Math.random() < 0.25) {
-                index = items_list[Math.floor(Math.random() * items_list.length)];
-                item = scene.itemsGroup.create(wall.x, wall.y, 'items', index).setOrigin(0, 0);
-                item.setImmovable();
-                item.index = index;
-                item.player_collider = scene.physics.add.overlap(item, player, (item) => {
-                    if (item.index == 0 && player.bombs < 10) {
-                        player.bombs++
-                    } else if (item.index == 1 && player.bombs < 13) {
-                        player.flames++;
-                    } else if (item.index == 3) {
-                        player.flames = 13;
-                    } else if (item.index == 9 && player.speed < 6) {
-                        player.speed++;
-                    } else if (item.index == 23 & player.speed > 0) {
-                        player.speed--;
-                    }
-                    item.destroy();
-                });
+                createNewItem(items_list[Math.floor(Math.random() * items_list.length)], wall.x, wall.y);
             }
         }
+    }
 
+    const createNewItem = (item_index, item_x, item_y) => {
+        item = scene.itemsGroup.create(item_x, item_y, 'items', item_index).setOrigin(0, 0);
+        item.setImmovable();
+        item.index = item_index;
+        item.player_collider = scene.physics.add.overlap(item, player, (item) => {
+            player.items_collected.push(item.index);
+            if (item.index == 0 && player.bombs < 10) {
+                player.bombs++
+            } else if (item.index == 1 && player.bombs < 13) {
+                player.flames++;
+            } else if (item.index == 3) {
+                player.flames = 13;
+            } else if (item.index == 9 && player.speed < 6) {
+                player.speed++;
+            } else if (item.index == 23 & player.speed > 0) {
+                player.speed--;
+            }
+            if (notWall.indexOf(Math.floor(item.x / 16) + ',' + Math.floor(item.y / 16)) < 0)
+                notWall.push(Math.floor(item.x / 16) + ',' + Math.floor(item.y / 16));
+            item.destroy();
+        });
     }
 
     const destroyItem = (item) => {
@@ -337,6 +362,8 @@ function startGame() {
     const explosion = (bomb, origin) => {
         bombs.splice(bombs.indexOf(bomb), 1);
         createFlames(bomb.x, bomb.y, origin);
+        if (notWall.indexOf(Math.floor(bomb.x / 16) + ',' + Math.floor(bomb.y / 16)) < 0)
+            notWall.push(Math.floor(bomb.x / 16) + ',' + Math.floor(bomb.y / 16));
         bomb.destroy();
     }
 
