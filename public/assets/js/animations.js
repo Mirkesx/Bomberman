@@ -1,36 +1,71 @@
 const playerAnimation = () => {
     let scene = game.scene.scenes[0];
     scene.anims.create({
-        key: 'left',
+        key: 'white-left',
         frames: scene.anims.generateFrameNumbers('white-bm', { start: 3, end: 5 }),
         frameRate: 5,
         repeat: -1
     });
 
     scene.anims.create({
-        key: 'right',
+        key: 'white-right',
         frames: scene.anims.generateFrameNumbers('white-bm', { start: 9, end: 11 }),
         frameRate: 5,
         repeat: -1
     });
 
     scene.anims.create({
-        key: 'up',
+        key: 'white-up',
         frames: scene.anims.generateFrameNumbers('white-bm', { start: 0, end: 2 }),
         frameRate: 5,
         repeat: -1
     });
 
     scene.anims.create({
-        key: 'down',
+        key: 'white-down',
         frames: scene.anims.generateFrameNumbers('white-bm', { start: 6, end: 8 }),
         frameRate: 5,
         repeat: -1
     });
 
     scene.anims.create({
-        key: 'death',
+        key: 'white-death',
         frames: scene.anims.generateFrameNumbers('white-bm', { start: 12, end: 17 }),
+        frameRate: 5,
+        repeat: 0
+    });
+
+    scene.anims.create({
+        key: 'black-left',
+        frames: scene.anims.generateFrameNumbers('black-bm', { start: 3, end: 5 }),
+        frameRate: 5,
+        repeat: -1
+    });
+
+    scene.anims.create({
+        key: 'black-right',
+        frames: scene.anims.generateFrameNumbers('black-bm', { start: 9, end: 11 }),
+        frameRate: 5,
+        repeat: -1
+    });
+
+    scene.anims.create({
+        key: 'black-up',
+        frames: scene.anims.generateFrameNumbers('black-bm', { start: 0, end: 2 }),
+        frameRate: 5,
+        repeat: -1
+    });
+
+    scene.anims.create({
+        key: 'black-down',
+        frames: scene.anims.generateFrameNumbers('black-bm', { start: 6, end: 8 }),
+        frameRate: 5,
+        repeat: -1
+    });
+
+    scene.anims.create({
+        key: 'black-death',
+        frames: scene.anims.generateFrameNumbers('black-bm', { start: 12, end: 17 }),
         frameRate: 5,
         repeat: 0
     });

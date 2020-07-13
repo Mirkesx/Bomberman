@@ -187,7 +187,7 @@ $(document).ready(() => {
 
                 socket.on('move-enemy', (data) => {
                     try {
-                        moveEnemy(data.x, data.y, data.velX, data.velY, data.player_id, data.animation);
+                        moveEnemy(data.x, data.y, data.player_id, data.animation);
                     } catch {
                         //console.log("Error! Moving a died enemy!");
                     }

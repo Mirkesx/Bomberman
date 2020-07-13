@@ -1,12 +1,13 @@
 var game;
 var setupStage, replaceItems, placeBomb, moveEnemy, stopEnemy, killEnemy;
+const game_colors = ['white', 'black', 'blue', 'red'];
 
 function setupGame() {
     bombs = $('#numberBombs').val();
     flames = $('#numberFlames').val();
     speed = $('#numberSpeed').val();
     n_players = userList.length;
-    socket.emit('start-game', {b: bombs, f: flames, s: speed, n_p: n_players});
+    socket.emit('start-game', { b: bombs, f: flames, s: speed, n_p: n_players });
     startGame(bombs, flames, speed, userList.length, userId);
 }
 
@@ -59,38 +60,8 @@ function startGame(b, f, s, n_players, your_id) {
     function preload() {
         //1 hard wall, 2 normal wall, 3 grass, 4 shadowed grass,
         this.load.image("tiles-stage-1", "/public/assets/tiles/snes_stage_1.png");
-        this.load.tilemapCSV('map', '/public/assets/tilemaps/stage_1.csv');
-
-
-        this.load.spritesheet('white-bm',
-            '/public/assets/sprites/snes_white.png',
-            { frameWidth: 17, frameHeight: 26 }
-        );
-
-        this.load.spritesheet('white-bomb',
-            '/public/assets/sprites/snes_bombs_white.png',
-            { frameWidth: 16, frameHeight: 16 }
-        );
-
-        this.load.spritesheet('bomb-flame',
-            '/public/assets/sprites/bomb_flames.png',
-            { frameWidth: 16, frameHeight: 16 }
-        );
-
-        this.load.spritesheet('walls',
-            '/public/assets/tiles/snes_stage_1.png',
-            { frameWidth: 16, frameHeight: 16 }
-        );
-
-        this.load.spritesheet('wall-destroyed',
-            '/public/assets/sprites/wall_destroyed.png',
-            { frameWidth: 16, frameHeight: 16 }
-        );
-
-        this.load.spritesheet('items',
-            '/public/assets/sprites/snes_items.png',
-            { frameWidth: 16, frameHeight: 16 }
-        );
+        this.load.tilemapCSV('map', '/public/assets/tilemaps/stage_1.csv')
+        loadSprites(this);
 
         this.load.audio("music", "/public/assets/audio/snes_battle_music.mp3");
         this.load.audio("explosion", "/public/assets/audio/explosion.mp3");
@@ -125,13 +96,13 @@ function startGame(b, f, s, n_players, your_id) {
         // PLAYERS
         players = [];
 
-        players.push(createPlayer(24, 24, 'white-bm', 0));
+        players.push(createPlayer(24, 24, game_colors[0]+'-bm', 0));
         if (n_players > 1)
-            players.push(createPlayer(216, 24, 'white-bm', 1));
+            players.push(createPlayer(216, 24, game_colors[1]+'-bm', 1));
         if (n_players > 2)
-            players.push(createPlayer(24, 184, 'white-bm', 2));
+            players.push(createPlayer(24, 184, game_colors[2]+'-bm', 2));
         if (n_players > 3)
-            players.push(createPlayer(216, 216, 'white-bm', 3));
+            players.push(createPlayer(216, 216, game_colors[3]+'-bm', 3));
 
         scene.physics.add.collider(players[your_id], scene.flamesGroup, () => {
             death(your_id);
@@ -199,8 +170,8 @@ function startGame(b, f, s, n_players, your_id) {
                     players[your_id].body.velocity.x = speed;
                 }
 
-                players[your_id].anims.play('up', true);
-                anim = 'up';
+                players[your_id].anims.play(game_colors[your_id]+'-up', true);
+                anim = game_colors[your_id]+'-up';
                 animated = true;
 
             } else if (cursors.down.isDown) {
@@ -211,23 +182,23 @@ function startGame(b, f, s, n_players, your_id) {
                     players[your_id].body.velocity.x = speed;
                 }
 
-                players[your_id].anims.play('down', true);
-                anim = 'down';
+                players[your_id].anims.play(game_colors[your_id]+'-down', true);
+                anim = game_colors[your_id]+'-down';
                 animated = true;
 
             } else if (cursors.left.isDown) {
                 players[your_id].body.velocity.x = -speed;
 
-                players[your_id].anims.play('left', true);
-                anim = 'left';
+                players[your_id].anims.play(game_colors[your_id]+'-left', true);
+                anim = game_colors[your_id]+'-left';
                 animated = true;
 
             }
             else if (cursors.right.isDown) {
                 players[your_id].body.velocity.x = speed;
 
-                players[your_id].anims.play('right', true);
-                anim = 'right';
+                players[your_id].anims.play(game_colors[your_id]+'-right', true);
+                anim = game_colors[your_id]+'-right';
                 animated = true;
 
             }
@@ -260,17 +231,15 @@ function startGame(b, f, s, n_players, your_id) {
         }
     }
 
-    moveEnemy = (x, y, velX, velY, id, animation) => {
+    moveEnemy = (x, y, id, animation) => {
         if (id != your_id) {
             players[id].x = x;
             players[id].y = y;
             if (animation == "stop") {
                 players[id].anims.setCurrentFrame(players[id].anims.currentAnim.frames[1]);
                 players[id].anims.stop();
-                //players[id].setVelocity(0, 0);
             }
             else {
-                //players[id].setVelocity(velX, velY);
                 players[id].anims.play(animation, true);
             }
         }
@@ -302,12 +271,12 @@ function startGame(b, f, s, n_players, your_id) {
 
     killEnemy = (id) => {
         players[id].status = "dead";
-            players[id].anims.play('death', true);
-            players[id].once("animationcomplete", () => {
-                setTimeout(() => {
-                    players[id].destroy();
-                }, 1000);
-            });
+        players[id].anims.play('death', true);
+        players[id].once("animationcomplete", () => {
+            setTimeout(() => {
+                players[id].destroy();
+            }, 1000);
+        });
     }
 
     replaceItems = (items_collected) => {
@@ -350,7 +319,7 @@ function startGame(b, f, s, n_players, your_id) {
     };
 
     const createNewItem = (item_index, item_x, item_y) => {
-        item = scene.itemsGroup.create(item_x, item_y, 'items', item_index).setOrigin(0, 0).setSize(12,12).setOffset(2,2);
+        item = scene.itemsGroup.create(item_x, item_y, 'items', item_index).setOrigin(0, 0).setSize(12, 12).setOffset(2, 2);
         item.setImmovable();
         item.index = item_index;
         item.player_collider = scene.physics.add.overlap(item, scene.playersGroup, (item, player) => {
@@ -584,4 +553,62 @@ function startGame(b, f, s, n_players, your_id) {
             canvas.style.height = windowHeight + "px";
         }
     }
-}
+
+    const loadSprites = (context) => {
+
+        // BOMBERMAN
+        context.load.spritesheet('white-bm',
+            '/public/assets/sprites/snes_white.png',
+            { frameWidth: 17, frameHeight: 26 }
+        );
+
+        context.load.spritesheet('black-bm',
+            '/public/assets/sprites/snes_black.png',
+            { frameWidth: 17, frameHeight: 26 }
+        );
+
+
+        //BOMBS
+        context.load.spritesheet('bomb-flame',
+            '/public/assets/sprites/snes_flames_red.png',
+            { frameWidth: 16, frameHeight: 16 }
+        );
+
+        context.load.spritesheet('white-bomb',
+            '/public/assets/sprites/snes_bombs_white.png',
+            { frameWidth: 16, frameHeight: 16 }
+        );
+
+        context.load.spritesheet('black-bomb',
+            '/public/assets/sprites/snes_bombs_black.png',
+            { frameWidth: 16, frameHeight: 16 }
+        );
+
+        context.load.spritesheet('white-flame',
+            '/public/assets/sprites/snes_flames_white.png',
+            { frameWidth: 16, frameHeight: 16 }
+        );
+
+        context.load.spritesheet('black-flame',
+            '/public/assets/sprites/snes_flames_black.png',
+            { frameWidth: 16, frameHeight: 16 }
+        );
+
+        //WALLS
+        context.load.spritesheet('walls',
+            '/public/assets/tiles/snes_stage_1.png',
+            { frameWidth: 16, frameHeight: 16 }
+        );
+
+        context.load.spritesheet('wall-destroyed',
+            '/public/assets/sprites/wall_destroyed.png',
+            { frameWidth: 16, frameHeight: 16 }
+        );
+
+        //ITEMS
+        context.load.spritesheet('items',
+            '/public/assets/sprites/snes_items.png',
+            { frameWidth: 16, frameHeight: 16 }
+        );
+    }
+};
