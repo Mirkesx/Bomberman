@@ -42,6 +42,7 @@ canvas {
     height: 40px;
     width: 40px;
     cursor: pointer;
+    z-index: 9999;
 }
 
 .icon-exit {
@@ -51,4 +52,5 @@ canvas {
     height: 40px;
     width: 40px;
     cursor: pointer;
+    z-index: 9999;
 }

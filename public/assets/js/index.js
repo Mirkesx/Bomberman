@@ -15,7 +15,7 @@ $(document).ready(() => {
         userNickname = $("#nickname").val();
         roomName = $("#roomName").val();
         num_players_ready = 0;
-        if (roomName && roomName.length > 1 && userNickname && userNickname.length > 3) {
+        if (roomName && roomName.length > 2 && userNickname && userNickname.length > 3) {
             socket = io(window.location.href);
 
             socket.on('connect', () => {
@@ -24,7 +24,7 @@ $(document).ready(() => {
                     $('.chat').hide();
                     socket.close();
                     //console.log("Nickname exists");
-                    createPopup("Nickname already exists in this room");
+                    createPopup("Nickname already exists in this room",500,50);
                     setTimeout(() => {
                         $('#loginModal').modal('show');
                         $('#carouselAvatar').carousel('pause');
@@ -35,7 +35,7 @@ $(document).ready(() => {
                     $('.chat').hide();
                     socket.close();
                     //console.log("Doesn't exists a room with this name");
-                    createPopup("Doesn't exists a room with this name");
+                    createPopup("Doesn't exists a room with this name",500,50);
                     setTimeout(() => {
                         $('#loginModal').modal('show');
                         $('#carouselAvatar').carousel('pause');
@@ -46,7 +46,7 @@ $(document).ready(() => {
                     $('.chat').hide();
                     socket.close();
                     //console.log("This room name is already used");
-                    createPopup("This room name is already used");
+                    createPopup("This room name is already used",500,50);
                     setTimeout(() => {
                         $('#loginModal').modal('show');
                         $('#carouselAvatar').carousel('pause');
@@ -57,7 +57,7 @@ $(document).ready(() => {
                     $('.chat').hide();
                     socket.close();
                     //console.log("This room is full");
-                    createPopup("This room is full");
+                    createPopup("This room is full",500,50);
                     setTimeout(() => {
                         $('#loginModal').modal('show');
                         $('#carouselAvatar').carousel('pause');
@@ -214,7 +214,22 @@ $(document).ready(() => {
                 socket.on('kill-player', (id) => {
                     killEnemy(id);
                 });
+
+                socket.on('end-game', (winner) => {
+                    let result;
+                    if(game.scene.scenes[0].your_id === winner) {
+                        result = "You won!";
+                    } else{
+                        result = "You lost! Player "+(winner+1)+" won!";
+                    }
+                    createPopup(result,2000,150);
+                    setTimeout(() => game.destroy(false,false), 2000);
+                    setTimeout(() => $('.icon-exit').trigger('click'), 10000);
+                });
             });
+        } else {
+            createPopup("Type a proper nickname/roomName",500,50);
+            setTimeout(() => $('#loginModal').modal('toggle'), 1000);
         }
     }
 
@@ -230,15 +245,17 @@ $(document).ready(() => {
     */
 
     $("#join-room").on('click', () => {
-        avatar = $('#carouselAvatar').find('.active').attr('data-avatar');
-        $('#loginModal').modal('hide');
-        loginUser(false);
-    });
-    $("#create-room").on('click', () => {
+        $("#nickname").val($("#nickname").val().replace(/ /g,""));
+        $("#roomName").val($("#roomName").val().replace(/ /g,""));
         avatar = $('#carouselAvatar').find('.active').attr('data-avatar');
         $('#loginModal').modal('hide');
         loginUser(true);
     });
+    /*$("#create-room").on('click', () => {
+        avatar = $('#carouselAvatar').find('.active').attr('data-avatar');
+        $('#loginModal').modal('hide');
+        loginUser(true);
+    });*/
 
     /*
      * Chat commands
@@ -312,7 +329,7 @@ function createLoginModal() {
     });
 }
 
-function createPopup(text) {
+function createPopup(text,time=500,top=50) {
     const popup = $('<div class="popup_scheda"></div>')
         .css({
             position: "fixed",
@@ -332,22 +349,22 @@ function createPopup(text) {
         .appendTo('body')
         .addClass("bg-danger")
         .animate({
-            top: 50,
+            top: top,
             opacity: 1
         },
-            500);
+            time);
 
     popup.css("left", ($(window).width() / 2) - (popup.outerWidth() / 2));
 
-    window.setTimeout(() => deletePopup(popup), 1000);
+    window.setTimeout(() => deletePopup(popup,time,top), time*2);
 }
 
-function deletePopup(popup) {
+function deletePopup(popup,time,top) {
     popup.animate({
-        top: -50,
+        top: -top,
         opacity: 0
     },
-        250,
+        time/2,
         () => {
             $('.popup_scheda').remove();
             popupCreato = false;

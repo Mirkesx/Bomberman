@@ -63,9 +63,15 @@ function startGame(b, f, s, n_players, your_id) {
         this.load.tilemapCSV('map', '/public/assets/tilemaps/stage_1.csv')
         loadSprites(this);
 
+
+
+        //AUDIO
         this.load.audio("music", "/public/assets/audio/snes_battle_music.mp3");
         this.load.audio("explosion", "/public/assets/audio/explosion.mp3");
 
+
+
+        // GROUPS
         this.bombsGroup = this.physics.add.group({
             allowGravity: false
         });
@@ -76,12 +82,14 @@ function startGame(b, f, s, n_players, your_id) {
             allowGravity: false
         });
         this.itemsGroup = this.physics.add.group({
-            allowGravity: false
+            allowGravity: false,
+            visible: true
         });
         this.playersGroup = this.physics.add.group({
             allowGravity: false
         });
         scene = this;
+        scene.your_id = your_id;
     }
 
     function create() {
@@ -96,13 +104,13 @@ function startGame(b, f, s, n_players, your_id) {
         // PLAYERS
         players = [];
 
-        players.push(createPlayer(24, 24, game_colors[0]+'-bm', 0));
+        players.push(createPlayer(24, 24, game_colors[0] + '-bm', 0));
         if (n_players > 1)
-            players.push(createPlayer(216, 24, game_colors[1]+'-bm', 1));
+            players.push(createPlayer(216, 24, game_colors[1] + '-bm', 1));
         if (n_players > 2)
-            players.push(createPlayer(24, 184, game_colors[2]+'-bm', 2));
+            players.push(createPlayer(24, 184, game_colors[2] + '-bm', 2));
         if (n_players > 3)
-            players.push(createPlayer(216, 216, game_colors[3]+'-bm', 3));
+            players.push(createPlayer(216, 184, game_colors[3] + '-bm', 3));
 
         scene.physics.add.collider(players[your_id], scene.flamesGroup, () => {
             death(your_id);
@@ -170,8 +178,8 @@ function startGame(b, f, s, n_players, your_id) {
                     players[your_id].body.velocity.x = speed;
                 }
 
-                players[your_id].anims.play(game_colors[your_id]+'-up', true);
-                anim = game_colors[your_id]+'-up';
+                players[your_id].anims.play(game_colors[your_id] + '-up', true);
+                anim = game_colors[your_id] + '-up';
                 animated = true;
 
             } else if (cursors.down.isDown) {
@@ -182,23 +190,23 @@ function startGame(b, f, s, n_players, your_id) {
                     players[your_id].body.velocity.x = speed;
                 }
 
-                players[your_id].anims.play(game_colors[your_id]+'-down', true);
-                anim = game_colors[your_id]+'-down';
+                players[your_id].anims.play(game_colors[your_id] + '-down', true);
+                anim = game_colors[your_id] + '-down';
                 animated = true;
 
             } else if (cursors.left.isDown) {
                 players[your_id].body.velocity.x = -speed;
 
-                players[your_id].anims.play(game_colors[your_id]+'-left', true);
-                anim = game_colors[your_id]+'-left';
+                players[your_id].anims.play(game_colors[your_id] + '-left', true);
+                anim = game_colors[your_id] + '-left';
                 animated = true;
 
             }
             else if (cursors.right.isDown) {
                 players[your_id].body.velocity.x = speed;
 
-                players[your_id].anims.play(game_colors[your_id]+'-right', true);
-                anim = game_colors[your_id]+'-right';
+                players[your_id].anims.play(game_colors[your_id] + '-right', true);
+                anim = game_colors[your_id] + '-right';
                 animated = true;
 
             }
@@ -260,7 +268,7 @@ function startGame(b, f, s, n_players, your_id) {
             socket.emit('dead-items', { stage: stage, items: players[id].items_collected, id: your_id });
             players[id].countDeathCollider++;
             players[id].status = "dead";
-            players[id].anims.play('death', true);
+            players[id].anims.play(game_colors[id] + '-death', true);
             players[id].once("animationcomplete", () => {
                 setTimeout(() => {
                     players[id].destroy();
@@ -270,13 +278,15 @@ function startGame(b, f, s, n_players, your_id) {
     };
 
     killEnemy = (id) => {
-        players[id].status = "dead";
-        players[id].anims.play('death', true);
-        players[id].once("animationcomplete", () => {
-            setTimeout(() => {
-                players[id].destroy();
-            }, 1000);
-        });
+        if (your_id != id) {
+            players[id].status = "dead";
+            players[id].anims.play(game_colors[id] + '-death', true);
+            players[id].once("animationcomplete", () => {
+                setTimeout(() => {
+                    players[id].destroy();
+                }, 1000);
+            });
+        }
     }
 
     replaceItems = (items_collected) => {
@@ -400,7 +410,7 @@ function startGame(b, f, s, n_players, your_id) {
     const explosion = (bomb, origin) => {
         bombs.splice(bombs.indexOf(bomb), 1);
         createFlames(bomb.x, bomb.y, origin, bomb.flames);
-        scene.explosion.play();
+        //scene.explosion.play();
         bomb.destroy();
     }
 
@@ -567,12 +577,19 @@ function startGame(b, f, s, n_players, your_id) {
             { frameWidth: 17, frameHeight: 26 }
         );
 
+        context.load.spritesheet('blue-bm',
+            '/public/assets/sprites/snes_blue.png',
+            { frameWidth: 17, frameHeight: 26 }
+        );
+
+        context.load.spritesheet('red-bm',
+            '/public/assets/sprites/snes_red.png',
+            { frameWidth: 17, frameHeight: 26 }
+        );
+
 
         //BOMBS
-        context.load.spritesheet('bomb-flame',
-            '/public/assets/sprites/snes_flames_red.png',
-            { frameWidth: 16, frameHeight: 16 }
-        );
+        
 
         context.load.spritesheet('white-bomb',
             '/public/assets/sprites/snes_bombs_white.png',
@@ -584,6 +601,24 @@ function startGame(b, f, s, n_players, your_id) {
             { frameWidth: 16, frameHeight: 16 }
         );
 
+        context.load.spritesheet('red-bomb',
+            '/public/assets/sprites/snes_bombs_red.png',
+            { frameWidth: 16, frameHeight: 16 }
+        );
+
+        context.load.spritesheet('blue-bomb',
+            '/public/assets/sprites/snes_bombs_blue.png',
+            { frameWidth: 16, frameHeight: 16 }
+        );
+
+
+        // FLAMES
+
+        context.load.spritesheet('bomb-flame',
+            '/public/assets/sprites/snes_flames_red.png',
+            { frameWidth: 16, frameHeight: 16 }
+        );
+
         context.load.spritesheet('white-flame',
             '/public/assets/sprites/snes_flames_white.png',
             { frameWidth: 16, frameHeight: 16 }
@@ -591,6 +626,16 @@ function startGame(b, f, s, n_players, your_id) {
 
         context.load.spritesheet('black-flame',
             '/public/assets/sprites/snes_flames_black.png',
+            { frameWidth: 16, frameHeight: 16 }
+        );
+
+        context.load.spritesheet('red-flame',
+            '/public/assets/sprites/snes_flames_red.png',
+            { frameWidth: 16, frameHeight: 16 }
+        );
+
+        context.load.spritesheet('blue-flame',
+            '/public/assets/sprites/snes_flames_blue.png',
             { frameWidth: 16, frameHeight: 16 }
         );
 

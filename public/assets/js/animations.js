@@ -1,6 +1,7 @@
 const playerAnimation = () => {
     let scene = game.scene.scenes[0];
-    scene.anims.create({
+
+    /*scene.anims.create({
         key: 'white-left',
         frames: scene.anims.generateFrameNumbers('white-bm', { start: 3, end: 5 }),
         frameRate: 5,
@@ -68,7 +69,44 @@ const playerAnimation = () => {
         frames: scene.anims.generateFrameNumbers('black-bm', { start: 12, end: 17 }),
         frameRate: 5,
         repeat: 0
-    });
+    });*/
+
+    for(let color of game_colors) {
+        scene.anims.create({
+            key: color+'-left',
+            frames: scene.anims.generateFrameNumbers(color+'-bm', { start: 3, end: 5 }),
+            frameRate: 5,
+            repeat: -1
+        });
+    
+        scene.anims.create({
+            key: color+'-right',
+            frames: scene.anims.generateFrameNumbers(color+'-bm', { start: 9, end: 11 }),
+            frameRate: 5,
+            repeat: -1
+        });
+    
+        scene.anims.create({
+            key: color+'-up',
+            frames: scene.anims.generateFrameNumbers(color+'-bm', { start: 0, end: 2 }),
+            frameRate: 5,
+            repeat: -1
+        });
+    
+        scene.anims.create({
+            key: color+'-down',
+            frames: scene.anims.generateFrameNumbers(color+'-bm', { start: 6, end: 8 }),
+            frameRate: 5,
+            repeat: -1
+        });
+    
+        scene.anims.create({
+            key: color+'-death',
+            frames: scene.anims.generateFrameNumbers(color+'-bm', { start: 12, end: 17 }),
+            frameRate: 5,
+            repeat: 0
+        });
+    }
 };
 
 

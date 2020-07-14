@@ -52,14 +52,14 @@ io.on('connection', function (client) {
     })
 
     client.on("create-room", (data) => {
-        if (rooms.hasOwnProperty(data.roomName)) {
-            client.emit("room-exists");
-        }
-        else {
+        if (!rooms.hasOwnProperty(data.roomName)) {
             rooms[data.roomName] = { userList: [], gameStarted: false, readyPlayers: 0, stage: 1 };
-            client.emit("enter-room", data);
+            //client.emit("enter-room", data);
         }
-
+        /*else {
+            client.emit("room-exists");
+        }*/
+        client.emit("enter-room", data);
     });
 
     client.on("login", (data) => {
@@ -135,6 +135,7 @@ io.on('connection', function (client) {
     // GAME EVENTS
     client.on('start-game', (data) => {
         console.log("Started a game in room " + client.roomName);
+        rooms[client.roomName].players = _.range(data.n_p);
         rooms[client.roomName].map = generateWalls(empty_stage);
         rooms[client.roomName].items = generateItems(rooms[client.roomName].map);
         io.sockets.emit('load-game', data);
@@ -170,10 +171,15 @@ io.on('connection', function (client) {
 
     client.on('dead-items', (data) => {
         client.status = 'dead';
-        rooms[client.roomName].map = data.stage;
+        console.log('Player '+(data.id+1)+" died");
         locations = replaceItems(data.stage, data.items);
+        rooms[client.roomName].map = locations[1];
         io.sockets.in(client.roomName).emit('kill-player', data.id);
-        io.sockets.in(client.roomName).emit('replace-items', locations);
+        io.sockets.in(client.roomName).emit('replace-items', locations[0]);
+        rooms[client.roomName].players = _.filter(rooms[client.roomName].players, (p) => p != data.id);
+        if(rooms[client.roomName].players.length == 1) {
+            io.sockets.in(client.roomName).emit('end-game',rooms[client.roomName].players[0]);
+        }
     });
 });
 
@@ -284,8 +290,9 @@ const replaceItems = (stage, items) => {
     while (i < items.length && notWalls.length > 0) {
         index = Math.floor(Math.random() * notWalls.length);
         locations.push([items[i], notWalls[index]]);
+        stage[notWalls[index][1]/16][notWalls[index][0]/16] = 3;
         notWalls.splice(index, 1);
         i++;
     }
-    return locations;
+    return [locations,stage];
 };
