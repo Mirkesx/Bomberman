@@ -107,7 +107,7 @@ io.on('connection', function (client) {
         rooms[data.roomName].userList.push({ nickname: data.nickname, avatar: data.avatar, status: "not-ready" });
         if (rooms[data.roomName].userList.length === 1) {
             rooms[data.roomName].host = data.nickname;
-            console.log("User " + rooms[data.roomName].host + " has created a new room called " + data.roomName);
+            console.log("[ROOM CREATED] - User " + rooms[data.roomName].host + " has created a new room called " + data.roomName);
         }
 
         client.nickname = data.nickname;
@@ -116,7 +116,7 @@ io.on('connection', function (client) {
         client.status = 'not-ready';
 
 
-        console.info("Client Connected", client.roomName, client.nickname, client.avatar, rooms[client.roomName].userList.length);
+        console.info("[ROOM " + client.roomName + "] User " + client.nickname + " connected");
         rooms[client.roomName].readyPlayers++;
 
 
@@ -134,7 +134,7 @@ io.on('connection', function (client) {
 
     // GAME EVENTS
     client.on('start-game', (data) => {
-        console.log("Started a game in room " + client.roomName);
+        console.log("[ROOM " + client.roomName + "] - Started a new game");
         rooms[client.roomName].players = _.range(data.n_p);
         rooms[client.roomName].map = generateWalls(empty_stage);
         rooms[client.roomName].items = generateItems(rooms[client.roomName].map);
@@ -153,7 +153,6 @@ io.on('connection', function (client) {
                     items: rooms[client.roomName].items
                 }
             );
-        console.log("A game started");
     });
 
     client.on('move-player', (data) => {
@@ -171,14 +170,14 @@ io.on('connection', function (client) {
 
     client.on('dead-items', (data) => {
         client.status = 'dead';
-        console.log('Player '+(data.id+1)+" died");
+        console.log('[ROOM '+client.roomName+'] Player ' + (data.id + 1) + " died");
         locations = replaceItems(data.stage, data.items);
         rooms[client.roomName].map = locations[1];
         io.sockets.in(client.roomName).emit('kill-player', data.id);
         io.sockets.in(client.roomName).emit('replace-items', locations[0]);
         rooms[client.roomName].players = _.filter(rooms[client.roomName].players, (p) => p != data.id);
-        if(rooms[client.roomName].players.length == 1) {
-            io.sockets.in(client.roomName).emit('end-game',rooms[client.roomName].players[0]);
+        if (rooms[client.roomName].players.length == 1) {
+            io.sockets.in(client.roomName).emit('end-game', rooms[client.roomName].players[0]);
         }
     });
 });
@@ -200,12 +199,11 @@ http.listen(3000, function () {
 
 function leaveRoom(room, nickname) {
     let index = _.findIndex(rooms[room].userList, (user) => user.nickname === nickname);
-    //console.log("The user is at the position n. "+index);
     if (rooms[room] && index >= -1) {
         rooms[room].userList.splice(index, 1);
         if (rooms[room].userList.length > 0 && nickname === rooms[room].host) {
             rooms[room].host = rooms[room].userList[0].nickname;
-            console.log("User " + rooms[room].host + " is now the host of the room called " + room);
+            console.log("[ROOM "+room+"] - User " + rooms[room].host + " is now the host");
             io.sockets.in(room).emit('new_host', rooms[room].host);
         }
     }
@@ -244,7 +242,7 @@ const generateWalls = () => {
         "12,11",
     ];
 
-    let stage = [[],[],[],[],[],[],[],[],[],[],[],[],[]];
+    let stage = [[], [], [], [], [], [], [], [], [], [], [], [], []];
 
     for (let i = 0; i < 15; i++) {
         for (let j = 0; j < 13; j++) {
@@ -256,7 +254,7 @@ const generateWalls = () => {
             }
         }
     }
-    
+
     return stage;
 }
 
@@ -290,9 +288,9 @@ const replaceItems = (stage, items) => {
     while (i < items.length && notWalls.length > 0) {
         index = Math.floor(Math.random() * notWalls.length);
         locations.push([items[i], notWalls[index]]);
-        stage[notWalls[index][1]/16][notWalls[index][0]/16] = 3;
+        stage[notWalls[index][1] / 16][notWalls[index][0] / 16] = 3;
         notWalls.splice(index, 1);
         i++;
     }
-    return [locations,stage];
+    return [locations, stage];
 };

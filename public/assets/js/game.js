@@ -34,7 +34,7 @@ function startGame(b, f, s, n_players, your_id) {
         physics: {
             default: 'arcade',
             arcade: {
-                debug: true
+                debug: false
             },
         },
         pixelArt: true,
@@ -293,8 +293,8 @@ function startGame(b, f, s, n_players, your_id) {
         _.each(items_collected, (item) => createNewItem(item[0], item[1][0], item[1][1]));
     }
 
-    const destroyWall = (wall) => {
-        wall.anims.play("wall-destroyed", true);
+    const destroyWall = (wall, color) => {
+        wall.anims.play(color + "-wall-destroyed", true);
         wall.once("animationcomplete", () => {
             x = Math.floor(wall.x / 16);
             y = Math.floor(wall.y / 16);
@@ -353,8 +353,8 @@ function startGame(b, f, s, n_players, your_id) {
         });
     }
 
-    const destroyItem = (item) => {
-        item.anims.play('item-destroyed', true);
+    const destroyItem = (item, color) => {
+        item.anims.play(color + '-item-destroyed', true);
         item.once('animationcomplete', () => {
             x = Math.floor(item.x / 16);
             y = Math.floor(item.y / 16);
@@ -379,6 +379,7 @@ function startGame(b, f, s, n_players, your_id) {
             bomb.y = newY;
             bomb.player_id = id;
             bomb.flames = flames_len;
+            bomb.color = game_colors[id];
             bomb.setSize(13, 13).setOffset(2, 2);
 
             bomb.setInteractive();
@@ -390,7 +391,7 @@ function startGame(b, f, s, n_players, your_id) {
                     bomb.y -= 8;
                 }
                 bomb.enableBody(false, 0, 0, true, true);
-                bomb.anims.play('bomb-ticking', true);
+                bomb.anims.play(bomb.color + '-bomb-ticking', true);
             }, 50);
 
             bomb.once("animationcomplete", () => {
@@ -409,7 +410,7 @@ function startGame(b, f, s, n_players, your_id) {
 
     const explosion = (bomb, origin) => {
         bombs.splice(bombs.indexOf(bomb), 1);
-        createFlames(bomb.x, bomb.y, origin, bomb.flames);
+        createFlames(bomb.x, bomb.y, origin, bomb.flames, bomb.color);
         //scene.explosion.play();
         bomb.destroy();
     }
@@ -421,23 +422,23 @@ function startGame(b, f, s, n_players, your_id) {
             map.getTileAtWorldXY(bomb.x + 15, bomb.y + 15, layer).index === 1;
     }
 
-    const createFlames = (x, y, origin, flames_len) => {
+    const createFlames = (x, y, origin, flames_len, color) => {
         u = d = l = r = true;
 
         flames = [];
 
-        flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 5).setOrigin(origin, origin));
-        flames[flames.length - 1].animation = "bomb-exploding-center";
+        flames.push(scene.flamesGroup.create(x, y, color + '-flame', 5).setOrigin(origin, origin));
+        flames[flames.length - 1].animation = color + "-bomb-exploding-center";
 
         for (let i = 0; i < flames_len; i++) {
             if (u)
-                u = addFlameUp(flames, x, y, i, flames_len, origin);
+                u = addFlameUp(flames, x, y, i, flames_len, origin, color);
             if (d)
-                d = addFlameDown(flames, x, y, i, flames_len, origin);
+                d = addFlameDown(flames, x, y, i, flames_len, origin, color);
             if (l)
-                l = addFlameLR(flames, x, y, i, flames_len, origin, true);
+                l = addFlameLR(flames, x, y, i, flames_len, origin, color, true);
             if (r)
-                r = addFlameLR(flames, x, y, i, flames_len, origin, false);
+                r = addFlameLR(flames, x, y, i, flames_len, origin, color, false);
         }
 
         _.each(flames, (f) => {
@@ -449,78 +450,78 @@ function startGame(b, f, s, n_players, your_id) {
         });
     }
 
-    const addFlameUp = (flames, x, y, i, length, origin) => {
+    const addFlameUp = (flames, x, y, i, length, origin, color) => {
         if (map.getTileAtWorldXY(x, y - 16 * (i + 1), layer).index !== 1) {
             y = y - 16 * (i + 1);
-            if (checkAndDestroyObjects(x, y)) {
+            if (checkAndDestroyObjects(x, y, color)) {
                 return false;
             }
 
             if (i == length - 1) {
-                flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 20).setOrigin(origin, origin).setSize(10, 16).setOffset(3, 0));
-                flames[flames.length - 1].animation = "bomb-exploding-up-head";
+                flames.push(scene.flamesGroup.create(x, y, color + '-flame', 20).setOrigin(origin, origin).setSize(10, 16).setOffset(3, 0));
+                flames[flames.length - 1].animation = color + "-bomb-exploding-up-head";
             }
             else {
-                flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 10).setOrigin(origin, origin).setSize(10, 16).setOffset(3, 0));
-                flames[flames.length - 1].animation = "bomb-exploding-ud-body";
+                flames.push(scene.flamesGroup.create(x, y, color + '-bomb-flame', 10).setOrigin(origin, origin).setSize(10, 16).setOffset(3, 0));
+                flames[flames.length - 1].animation = color + "-bomb-exploding-ud-body";
             }
             return true;
         }
         return false;
     }
 
-    const addFlameDown = (flames, x, y, i, length, origin) => {
+    const addFlameDown = (flames, x, y, i, length, origin, color) => {
         if (map.getTileAtWorldXY(x, y + 16 * (i + 1), layer).index !== 1) {
             y = y + 16 * (i + 1);
-            if (checkAndDestroyObjects(x, y)) {
+            if (checkAndDestroyObjects(x, y, color)) {
                 return false;
             }
 
             if (i == length - 1) {
-                flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 25).setOrigin(origin, origin).setSize(10, 16).setOffset(3, 0));
-                flames[flames.length - 1].animation = "bomb-exploding-down-head";
+                flames.push(scene.flamesGroup.create(x, y, color + '-flame', 25).setOrigin(origin, origin).setSize(10, 16).setOffset(3, 0));
+                flames[flames.length - 1].animation = color + "-bomb-exploding-down-head";
             }
             else {
-                flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 10).setOrigin(origin, origin).setSize(10, 16).setOffset(3, 0));
-                flames[flames.length - 1].animation = "bomb-exploding-ud-body";
+                flames.push(scene.flamesGroup.create(x, y, color + '-flame', 10).setOrigin(origin, origin).setSize(10, 16).setOffset(3, 0));
+                flames[flames.length - 1].animation = color + "-bomb-exploding-ud-body";
             }
             return true;
         }
         return false;
     }
 
-    const addFlameLR = (flames, x, y, i, length, origin, isL) => {
+    const addFlameLR = (flames, x, y, i, length, origin, color, isL) => {
         if (isL) {
             if (map.getTileAtWorldXY(x - 16 * (i + 1), y, layer).index !== 1) {
                 x = x - 16 * (i + 1);
-                if (checkAndDestroyObjects(x, y)) {
+                if (checkAndDestroyObjects(x, y, color)) {
                     return false;
                 }
 
                 if (i == length - 1) {
-                    flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 35).setOrigin(origin, origin).setSize(16, 10).setOffset(0, 3));
-                    flames[flames.length - 1].animation = "bomb-exploding-left-head";
+                    flames.push(scene.flamesGroup.create(x, y, color + '-flame', 35).setOrigin(origin, origin).setSize(16, 10).setOffset(0, 3));
+                    flames[flames.length - 1].animation = color + "-bomb-exploding-left-head";
                 }
                 else {
-                    flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 15).setOrigin(origin, origin).setSize(16, 10).setOffset(0, 3));
-                    flames[flames.length - 1].animation = "bomb-exploding-lr-body";
+                    flames.push(scene.flamesGroup.create(x, y, color + '-flame', 15).setOrigin(origin, origin).setSize(16, 10).setOffset(0, 3));
+                    flames[flames.length - 1].animation = color + "-bomb-exploding-lr-body";
                 }
                 return true;
             }
         } else {
             if (map.getTileAtWorldXY(x + 16 * (i + 1), y, layer).index !== 1) {
                 x = x + 16 * (i + 1);
-                if (checkAndDestroyObjects(x, y)) {
+                if (checkAndDestroyObjects(x, y, color)) {
                     return false;
                 }
 
                 if (i == length - 1) {
-                    flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 30).setOrigin(origin, origin).setSize(16, 10).setOffset(0, 3));
-                    flames[flames.length - 1].animation = "bomb-exploding-right-head";
+                    flames.push(scene.flamesGroup.create(x, y, color + '-flame', 30).setOrigin(origin, origin).setSize(16, 10).setOffset(0, 3));
+                    flames[flames.length - 1].animation = color + "-bomb-exploding-right-head";
                 }
                 else {
-                    flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 15).setOrigin(origin, origin).setSize(16, 10).setOffset(0, 3));
-                    flames[flames.length - 1].animation = "bomb-exploding-lr-body";
+                    flames.push(scene.flamesGroup.create(x, y, color + '-flame', 15).setOrigin(origin, origin).setSize(16, 10).setOffset(0, 3));
+                    flames[flames.length - 1].animation = color + "-bomb-exploding-lr-body";
                 }
                 return true;
             }
@@ -528,15 +529,15 @@ function startGame(b, f, s, n_players, your_id) {
         return false;
     }
 
-    const checkAndDestroyObjects = (x, y) => { //used to stop the flames at the first wall/item
+    const checkAndDestroyObjects = (x, y, color) => { //used to stop the flames at the first wall/item
         walls_hit = _.filter(scene.wallsGroup.children.entries, (w) => w.x === x && w.y === y);
         if (walls_hit.length > 0) {
-            _.each(walls_hit, (w) => destroyWall(w));
+            _.each(walls_hit, (w) => destroyWall(w, color));
             return true;
         }
         items_hit = _.filter(scene.itemsGroup.children.entries, (i) => i.x === x && i.y === y);
         if (items_hit.length > 0) {
-            _.each(items_hit, (i) => destroyItem(i));
+            _.each(items_hit, (i) => destroyItem(i, color));
             return true;
         }
         return false;
@@ -562,98 +563,5 @@ function startGame(b, f, s, n_players, your_id) {
             canvas.style.width = (windowHeight * gameRatio) + "px";
             canvas.style.height = windowHeight + "px";
         }
-    }
-
-    const loadSprites = (context) => {
-
-        // BOMBERMAN
-        context.load.spritesheet('white-bm',
-            '/public/assets/sprites/snes_white.png',
-            { frameWidth: 17, frameHeight: 26 }
-        );
-
-        context.load.spritesheet('black-bm',
-            '/public/assets/sprites/snes_black.png',
-            { frameWidth: 17, frameHeight: 26 }
-        );
-
-        context.load.spritesheet('blue-bm',
-            '/public/assets/sprites/snes_blue.png',
-            { frameWidth: 17, frameHeight: 26 }
-        );
-
-        context.load.spritesheet('red-bm',
-            '/public/assets/sprites/snes_red.png',
-            { frameWidth: 17, frameHeight: 26 }
-        );
-
-
-        //BOMBS
-        
-
-        context.load.spritesheet('white-bomb',
-            '/public/assets/sprites/snes_bombs_white.png',
-            { frameWidth: 16, frameHeight: 16 }
-        );
-
-        context.load.spritesheet('black-bomb',
-            '/public/assets/sprites/snes_bombs_black.png',
-            { frameWidth: 16, frameHeight: 16 }
-        );
-
-        context.load.spritesheet('red-bomb',
-            '/public/assets/sprites/snes_bombs_red.png',
-            { frameWidth: 16, frameHeight: 16 }
-        );
-
-        context.load.spritesheet('blue-bomb',
-            '/public/assets/sprites/snes_bombs_blue.png',
-            { frameWidth: 16, frameHeight: 16 }
-        );
-
-
-        // FLAMES
-
-        context.load.spritesheet('bomb-flame',
-            '/public/assets/sprites/snes_flames_red.png',
-            { frameWidth: 16, frameHeight: 16 }
-        );
-
-        context.load.spritesheet('white-flame',
-            '/public/assets/sprites/snes_flames_white.png',
-            { frameWidth: 16, frameHeight: 16 }
-        );
-
-        context.load.spritesheet('black-flame',
-            '/public/assets/sprites/snes_flames_black.png',
-            { frameWidth: 16, frameHeight: 16 }
-        );
-
-        context.load.spritesheet('red-flame',
-            '/public/assets/sprites/snes_flames_red.png',
-            { frameWidth: 16, frameHeight: 16 }
-        );
-
-        context.load.spritesheet('blue-flame',
-            '/public/assets/sprites/snes_flames_blue.png',
-            { frameWidth: 16, frameHeight: 16 }
-        );
-
-        //WALLS
-        context.load.spritesheet('walls',
-            '/public/assets/tiles/snes_stage_1.png',
-            { frameWidth: 16, frameHeight: 16 }
-        );
-
-        context.load.spritesheet('wall-destroyed',
-            '/public/assets/sprites/wall_destroyed.png',
-            { frameWidth: 16, frameHeight: 16 }
-        );
-
-        //ITEMS
-        context.load.spritesheet('items',
-            '/public/assets/sprites/snes_items.png',
-            { frameWidth: 16, frameHeight: 16 }
-        );
     }
 };

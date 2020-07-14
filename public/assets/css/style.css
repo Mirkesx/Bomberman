@@ -21,6 +21,10 @@ body {
     width: 100px;
 }
 
+#gameSetup {
+    display: none;
+}
+
 .game {
     display: none;
 }
