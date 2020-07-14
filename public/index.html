@@ -19,6 +19,7 @@
 <body background="/public/assets/img/background_bomberman.png" style="background-position: center top;">
 
     <div class="lobby">
+        <div class="fa fa-4 fa-sign-out icon-exit"></div>
         <div id="loginModal" class="modal fade" role="dialog">
             <div class="modal-dialog modal-lg" role="content">
                 <div class="modal-content">
@@ -112,7 +113,7 @@
                                         <span class="col-6">
                                             <h5>Flames</h5>
                                         </span>
-                                        <input class="col-6" type="number" id="numberFlames" value="1" min="1" max="5">
+                                        <input class="col-6" type="number" id="numberFlames" value="2" min="1" max="5">
                                     </div>
                                     <div class="row">
                                         <span class="col-6">
@@ -120,17 +121,19 @@
                                         </span>
                                         <input class="col-6" type="number" id="numberSpeed" value="1" min="1" max="5">
                                     </div>
-                                    <div class="row">
+                                    <div class="row timePanel">
                                         <span class="col-12">
                                             <h5>Time</h5>
                                         </span>
-                                    </div>
-                                    <div class="row" id="settingsTimer">
-                                        <div class="col-12 col-sm-6">
-                                            Min. <input type="number" id="settingsMinutes" value="3" min="1" max="5">
-                                        </div>
-                                        <div class="col-12 col-sm-6">
-                                            Sec. <input type="number" id="settingsSeconds" value="00" min="0" max="59">
+                                        <div class="col-12">
+                                            <div class="row" id="settingsTimer">
+                                                <div class="col-12 col-md-6 p-sm-0">
+                                                    Min. <input type="number" id="settingsMinutes" value="3" min="1" max="5">
+                                                </div>
+                                                <div class="col-12 col-md-6 p-sm-0">
+                                                    Sec. <input type="number" id="settingsSeconds" value="00" min="0" max="59">
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

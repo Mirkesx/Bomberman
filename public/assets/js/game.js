@@ -12,6 +12,7 @@ function setupGame() {
 }
 
 function startGame(b, f, s, n_players, your_id) {
+    inGame = true;
     $('.lobby').hide();
     $('.game').show();
     $('.canvasContainer').html("");
@@ -136,7 +137,7 @@ function startGame(b, f, s, n_players, your_id) {
         this.backgroundSong.play(musicConfig);
 
 
-        socket.emit('request-stage');
+        socket.emit('request-stage',your_id);
         //game.scene.pause("default");
     }
 
@@ -278,7 +279,7 @@ function startGame(b, f, s, n_players, your_id) {
     };
 
     killEnemy = (id) => {
-        if (your_id != id) {
+        if (your_id != id && players[id]) {
             players[id].status = "dead";
             players[id].anims.play(game_colors[id] + '-death', true);
             players[id].once("animationcomplete", () => {
@@ -462,7 +463,7 @@ function startGame(b, f, s, n_players, your_id) {
                 flames[flames.length - 1].animation = color + "-bomb-exploding-up-head";
             }
             else {
-                flames.push(scene.flamesGroup.create(x, y, color + '-bomb-flame', 10).setOrigin(origin, origin).setSize(10, 16).setOffset(3, 0));
+                flames.push(scene.flamesGroup.create(x, y, color + '-flame', 10).setOrigin(origin, origin).setSize(10, 16).setOffset(3, 0));
                 flames[flames.length - 1].animation = color + "-bomb-exploding-ud-body";
             }
             return true;

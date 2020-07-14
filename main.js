@@ -42,8 +42,18 @@ io.on('connection', function (client) {
             if (client.status == "ready") {
                 rooms[client.roomName].readyPlayers--;
             }
+            if (client.isInGame) {
+                io.sockets.in(client.roomName).emit('kill-player', client.in_game_id);
+                rooms[client.roomName].players = _.filter(rooms[client.roomName].players, (p) => p != client.in_game_id);
+                if (rooms[client.roomName].players.length == 1) {
+                    io.sockets.in(client.roomName).emit('end-game', rooms[client.roomName].players[0]);
+                }
+            }
+            if (rooms[client.roomName].userList.length == 0) {
+                rooms[client.roomName].gameStarted = false;
+            }
             io.sockets.in(client.roomName).emit('user_disconnected', { nickname: client.nickname, status: client.status });
-            console.log("Client disconnected", client.roomName, client.nickname);
+            console.log("[ROOM " + client.roomName + "] - User " + client.nickname + " disconnected");
         }
     })
 
@@ -63,20 +73,25 @@ io.on('connection', function (client) {
     });
 
     client.on("login", (data) => {
-        if (checkValidRoom(data)) {
-            loginUser(data);
+        if (!rooms[data.roomName].gameStarted) {
+            if (checkValidRoom(data)) {
+                loginUser(data);
+            } else {
+                if (rooms[data.roomName] === undefined)
+                    client.emit("room-not-exists");
+                else if (rooms[data.roomName].userList.length == 4)
+                    client.emit("room-full");
+                else if (_.findIndex(rooms[data.roomName].userList, (user) => user.nickname == data.nickname) >= 0)
+                    client.emit('nickname-exists');
+            }
+
+            client.on("send_message", (msg) => {
+                io.sockets.in(client.roomName).emit("message", { nickname: client.nickname, message: msg, avatar: client.avatar });
+            })
         } else {
-            if (rooms[data.roomName] === undefined)
-                client.emit("room-not-exists");
-            else if (rooms[data.roomName].userList.length == 4)
-                client.emit("room-full");
-            else if (_.findIndex(rooms[data.roomName].userList, (user) => user.nickname == data.nickname) >= 0)
-                client.emit('nickname-exists');
+            client.emit('room-in-game');
         }
 
-        client.on("send_message", (msg) => {
-            io.sockets.in(client.roomName).emit("message", { nickname: client.nickname, message: msg, avatar: client.avatar });
-        })
     });
 
     client.on("send-input-values", (data) => {
@@ -114,9 +129,10 @@ io.on('connection', function (client) {
         client.roomName = data.roomName;
         client.avatar = data.avatar;
         client.status = 'not-ready';
+        client.isInGame = false;
 
 
-        console.info("[ROOM " + client.roomName + "] User " + client.nickname + " connected");
+        console.info("[ROOM " + client.roomName + "] - User " + client.nickname + " connected");
         rooms[client.roomName].readyPlayers++;
 
 
@@ -135,17 +151,31 @@ io.on('connection', function (client) {
     // GAME EVENTS
     client.on('start-game', (data) => {
         console.log("[ROOM " + client.roomName + "] - Started a new game");
+        rooms[client.roomName].gameStarted = true;
         rooms[client.roomName].players = _.range(data.n_p);
         rooms[client.roomName].map = generateWalls(empty_stage);
         rooms[client.roomName].items = generateItems(rooms[client.roomName].map);
-        io.sockets.emit('load-game', data);
+        io.sockets.in(client.roomName).emit('load-game', data);
     });
 
     client.on('close-game', () => {
-        io.sockets.emit('exit-game');
+        rooms[client.roomName].gameStarted = false;
+        io.sockets.in(client.roomName).emit('exit-game');
     });
 
-    client.on('request-stage', () => {
+    client.on('user-exits', () => {
+        client.isInGame = false;
+        io.sockets.in(client.roomName).emit('kill-player', client.in_game_id);
+        client.in_game_id = -1;
+        rooms[client.roomName].players = _.filter(rooms[client.roomName].players, (p) => p != client.in_game_id);
+        if (rooms[client.roomName].players.length == 1) {
+            io.sockets.in(client.roomName).emit('end-game', rooms[client.roomName].players[0]);
+        }
+    });
+
+    client.on('request-stage', (id) => {
+        client.in_game_id = id;
+        client.isInGame = true;
         io.sockets.in(client.roomName)
             .emit('walls-items-ready',
                 {
@@ -169,8 +199,7 @@ io.on('connection', function (client) {
 
 
     client.on('dead-items', (data) => {
-        client.status = 'dead';
-        console.log('[ROOM '+client.roomName+'] Player ' + (data.id + 1) + " died");
+        console.log('[ROOM ' + client.roomName + '] - Player ' + (data.id + 1) + " died");
         locations = replaceItems(data.stage, data.items);
         rooms[client.roomName].map = locations[1];
         io.sockets.in(client.roomName).emit('kill-player', data.id);
@@ -187,7 +216,7 @@ io.on('connection', function (client) {
 
 
 http.listen(3000, function () {
-    console.log('listening on localhost:3000');
+    console.log('[SERVER] - Listening on localhost:3000');
 });
 
 
@@ -203,7 +232,7 @@ function leaveRoom(room, nickname) {
         rooms[room].userList.splice(index, 1);
         if (rooms[room].userList.length > 0 && nickname === rooms[room].host) {
             rooms[room].host = rooms[room].userList[0].nickname;
-            console.log("[ROOM "+room+"] - User " + rooms[room].host + " is now the host");
+            console.log("[ROOM " + room + "] - User " + rooms[room].host + " is now the host");
             io.sockets.in(room).emit('new_host', rooms[room].host);
         }
     }

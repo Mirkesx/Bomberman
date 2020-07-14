@@ -21,6 +21,10 @@ body {
     width: 100px;
 }
 
+.timePanel {
+    display: none;
+}
+
 #gameSetup {
     display: none;
 }

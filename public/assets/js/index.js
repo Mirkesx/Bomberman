@@ -7,6 +7,7 @@ var host;
 var id;
 var stageSelected;
 var num_players_ready;
+var inGame;
 
 $(document).ready(() => {
 
@@ -15,6 +16,7 @@ $(document).ready(() => {
         userNickname = $("#nickname").val();
         roomName = $("#roomName").val();
         num_players_ready = 0;
+        inGame = false;
         if (roomName && roomName.length > 2 && userNickname && userNickname.length > 3) {
             socket = io(window.location.href);
 
@@ -24,7 +26,7 @@ $(document).ready(() => {
                     $('.chat').hide();
                     socket.close();
                     //console.log("Nickname exists");
-                    createPopup("Nickname already exists in this room",500,50);
+                    createPopup("Nickname already exists in this room", 500, 50);
                     setTimeout(() => {
                         $('#loginModal').modal('show');
                         $('#carouselAvatar').carousel('pause');
@@ -35,7 +37,7 @@ $(document).ready(() => {
                     $('.chat').hide();
                     socket.close();
                     //console.log("Doesn't exists a room with this name");
-                    createPopup("Doesn't exists a room with this name",500,50);
+                    createPopup("Doesn't exists a room with this name", 500, 50);
                     setTimeout(() => {
                         $('#loginModal').modal('show');
                         $('#carouselAvatar').carousel('pause');
@@ -46,7 +48,7 @@ $(document).ready(() => {
                     $('.chat').hide();
                     socket.close();
                     //console.log("This room name is already used");
-                    createPopup("This room name is already used",500,50);
+                    createPopup("This room name is already used", 500, 50);
                     setTimeout(() => {
                         $('#loginModal').modal('show');
                         $('#carouselAvatar').carousel('pause');
@@ -57,7 +59,18 @@ $(document).ready(() => {
                     $('.chat').hide();
                     socket.close();
                     //console.log("This room is full");
-                    createPopup("This room is full",500,50);
+                    createPopup("This room is full", 500, 50);
+                    setTimeout(() => {
+                        $('#loginModal').modal('show');
+                        $('#carouselAvatar').carousel('pause');
+                    }, 500);
+                });
+
+                socket.on("room-in-game", () => {
+                    $('.chat').hide();
+                    socket.close();
+                    //console.log("This room is full");
+                    createPopup("This room is in-game.", 500, 50);
                     setTimeout(() => {
                         $('#loginModal').modal('show');
                         $('#carouselAvatar').carousel('pause');
@@ -177,58 +190,73 @@ $(document).ready(() => {
                 });
 
                 socket.on('exit-game', () => {
-                    exitGame();
+                    if (inGame) {
+                        exitGame();
+                    }
                 });
 
                 socket.on('walls-items-ready', (data) => {
-                    setupStage(data.stage, data.items);
+                    if (inGame)
+                        setupStage(data.stage, data.items);
                     //game.scene.resume("default");
                 });
 
                 socket.on('move-enemy', (data) => {
-                    try {
-                        moveEnemy(data.x, data.y, data.player_id, data.animation);
-                    } catch {
-                        //console.log("Error! Moving a died enemy!");
-                    }
+                    if (inGame)
+                        try {
+                            moveEnemy(data.x, data.y, data.player_id, data.animation);
+                        } catch {
+                            //console.log("Error! Moving a died enemy!");
+                        }
 
                 });
 
                 socket.on('stop-enemy', (id) => {
-                    try {
-                        stopEnemy(id);
-                    } catch {
-                        console.log("Error! Moving a died enemy!");
-                    }
+                    if (inGame)
+                        try {
+                            stopEnemy(id);
+                        } catch {
+                            console.log("Error! Moving a died enemy!");
+                        }
 
                 });
 
                 socket.on('place-enemy-bomb', (data) => {
-                    placeBomb(data.x, data.y, data.player_id, data.flames_len);
+                    if (inGame)
+                        placeBomb(data.x, data.y, data.player_id, data.flames_len);
                 })
 
                 socket.on('replace-items', (data) => {
-                    replaceItems(data);
+                    if (inGame)
+                        replaceItems(data);
                 });
 
                 socket.on('kill-player', (id) => {
-                    killEnemy(id);
+                    if (inGame)
+                        killEnemy(id);
                 });
 
                 socket.on('end-game', (winner) => {
-                    let result;
-                    if(game.scene.scenes[0].your_id === winner) {
-                        result = "You won!";
-                    } else{
-                        result = "You lost! Player "+(winner+1)+" won!";
+                    if (inGame) {
+                        console.log("Exiting");
+                        let result;
+                        if (game.scene.scenes[0].your_id === winner) {
+                            result = "You won!";
+                        } else {
+                            result = "You lost! Player " + (winner + 1) + " won!";
+                        }
+                        createPopup(result, 2000, 150);
+                        if (game.scene.scenes[0].your_id === winner)
+                            $('.popup_scheda').removeClass('bg-danger').addClass('bg-success');
+                        setTimeout(() => game.destroy(false, false), 2000);
+                        setTimeout(() => $('.icon-exit').trigger('click'), 10000);
+                        inGame = false;
                     }
-                    createPopup(result,2000,150);
-                    setTimeout(() => game.destroy(false,false), 2000);
-                    setTimeout(() => $('.icon-exit').trigger('click'), 10000);
                 });
             });
-        } else {
-            createPopup("Type a proper nickname/roomName",500,50);
+        }
+        else {
+            createPopup("Type a proper nickname/roomName", 500, 50);
             setTimeout(() => $('#loginModal').modal('toggle'), 1000);
         }
     }
@@ -245,8 +273,8 @@ $(document).ready(() => {
     */
 
     $("#join-room").on('click', () => {
-        $("#nickname").val($("#nickname").val().replace(/ /g,""));
-        $("#roomName").val($("#roomName").val().replace(/ /g,""));
+        $("#nickname").val($("#nickname").val().replace(/ /g, ""));
+        $("#roomName").val($("#roomName").val().replace(/ /g, ""));
         avatar = $('#carouselAvatar').find('.active').attr('data-avatar');
         $('#loginModal').modal('hide');
         loginUser(true);
@@ -296,10 +324,33 @@ $(document).ready(() => {
     });
 
     $('.icon-exit').click(() => {
-        if(userId == 0) {
-            socket.emit('close-game');
+        if (inGame) {
+            if (userId == 0) {
+                socket.emit('close-game');
+                exitGame();
+            }
+            else {
+                exitGame();
+                if (inGame) {
+                    $('.chat').hide();
+                    $('#gameSetup').hide();
+                    socket.close();
+                    setTimeout(() => {
+                        $('#loginModal').modal('show');
+                        $('#carouselAvatar').carousel('pause');
+                    }, 500);
+                }
+            }
+            socket.emit('user-exits');
+            inGame = false;
         } else {
-            exitGame();
+            $('.chat').hide();
+            $('#gameSetup').hide();
+            socket.close();
+            setTimeout(() => {
+                $('#loginModal').modal('show');
+                $('#carouselAvatar').carousel('pause');
+            }, 500);
         }
     });
 });
@@ -329,7 +380,7 @@ function createLoginModal() {
     });
 }
 
-function createPopup(text,time=500,top=50) {
+function createPopup(text, time = 500, top = 50) {
     const popup = $('<div class="popup_scheda"></div>')
         .css({
             position: "fixed",
@@ -356,15 +407,15 @@ function createPopup(text,time=500,top=50) {
 
     popup.css("left", ($(window).width() / 2) - (popup.outerWidth() / 2));
 
-    window.setTimeout(() => deletePopup(popup,time,top), time*2);
+    window.setTimeout(() => deletePopup(popup, time, top), time * 2);
 }
 
-function deletePopup(popup,time,top) {
+function deletePopup(popup, time, top) {
     popup.animate({
         top: -top,
         opacity: 0
     },
-        time/2,
+        time / 2,
         () => {
             $('.popup_scheda').remove();
             popupCreato = false;

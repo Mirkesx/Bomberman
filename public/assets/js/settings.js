@@ -2,6 +2,7 @@ const colors = ['grey', 'black', 'blue', 'red'];
 
 const loadSettings = () => {
     $('#gameSetup').show("fast", setupSettings);
+    $('.timePanel').hide();
 }
 
 const setupSettings = () => {
