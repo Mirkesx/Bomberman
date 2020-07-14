@@ -292,7 +292,7 @@ const generateWalls = () => {
 const items_list = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 3, 9, 9, 9, 9, 9, 9, 9, 23, 23, 23];
 
 const generateItems = (stage) => {
-    items = [];
+    let items = [];
     for (let i = 1; i < 14; i++) {
         for (let j = 1; j < 12; j++) {
             if (stage[j][i] === 2) {
@@ -306,7 +306,7 @@ const generateItems = (stage) => {
 }
 
 const replaceItems = (stage, items) => {
-    notWalls = [];
+    let notWalls = [];
     for (let i = 1; i < 14; i++) {
         for (let j = 1; j < 12; j++) {
             if (stage[j][i] === 0)
@@ -315,7 +315,7 @@ const replaceItems = (stage, items) => {
     }
 
     i = 0;
-    locations = [];
+    let locations = [];
     while (i < items.length && notWalls.length > 0) {
         index = Math.floor(Math.random() * notWalls.length);
         locations.push([items[i], notWalls[index]]);
