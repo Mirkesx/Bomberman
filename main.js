@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * Loading Modules
  */
@@ -215,8 +217,8 @@ io.on('connection', function (client) {
 
 
 
-http.listen(3000, function () {
-    console.log('[SERVER] - Listening on localhost:3000');
+http.listen(8080, '0.0.0.0', function () {
+    console.log('[SERVER] - Listening on localhost:8080');
 });
 
 
