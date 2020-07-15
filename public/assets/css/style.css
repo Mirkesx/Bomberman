@@ -62,7 +62,7 @@ canvas {
 }
 
 .controls {
-    display: none;
+    display: block;
 }
 
 .controls .fa {

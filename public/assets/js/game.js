@@ -19,13 +19,13 @@ function setupGame() {
     n_players = userList.length;
     socket.emit('start-game', { b: bombs, f: flames, s: speed, n_p: n_players });
     startGame(bombs, flames, speed, userList.length, userId);
-    socket.emit('user-ready');
+    //socket.emit('user-ready');
 }
 
 function startGame(b, f, s, n_players, your_id) {
     inGame = true;
     $('.lobby').hide();
-    //$('.game').show();
+    $('.game').show();
     $('.canvasContainer').html("");
 
 
@@ -37,7 +37,7 @@ function startGame(b, f, s, n_players, your_id) {
             mode: Phaser.Scale.FIT,
             autoCenter: Phaser.Scale.NO_CENTER
         },
-        backgroundColor: "#2E8B57",
+        backgroundColor: "#000000",//"#2E8B57",
         scene: {
             preload: preload,
             create: create,
@@ -62,6 +62,76 @@ function startGame(b, f, s, n_players, your_id) {
     const items_list = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 3, 3, 9, 9, 9, 9, 9, 23, 23, 23];
 
     function preload() {
+
+        //LOAGING SCREEN
+        var progressBar = this.add.graphics();
+        var progressBox = this.add.graphics();
+        progressBox.fillStyle(0x222222, 0.8);
+        progressBox.fillRect(240, 270, 320, 50);
+
+        var width = this.cameras.main.width;
+        var height = this.cameras.main.height;
+        var loadingText = this.make.text({
+            x: width / 2,
+            y: height / 2 - 50,
+            text: 'Loading...',
+            style: {
+                font: '20px monospace',
+                fill: '#ffffff'
+            }
+        });
+        loadingText.setOrigin(0.5, 0.5);
+
+        var percentText = this.make.text({
+            x: width / 2,
+            y: height / 2 - 5,
+            text: '0%',
+            style: {
+                font: '18px monospace',
+                fill: '#ffffff'
+            }
+        });
+        percentText.setOrigin(0.5, 0.5);
+
+        var assetText = this.make.text({
+            x: width / 2,
+            y: height / 2 + 50,
+            text: '',
+            style: {
+                font: '18px monospace',
+                fill: '#ffffff'
+            }
+        });
+        assetText.setOrigin(0.5, 0.5);
+
+        this.load.on('progress', function (value) {
+            console.log(value);
+            progressBar.clear();
+            progressBar.fillStyle(0xffffff, 1);
+            progressBar.fillRect(250, 280, 300 * value, 30);
+            percentText.setText(parseInt(value * 100) + '%');
+        });
+
+        this.load.on('fileprogress', function (file) {
+            console.log(file.src);
+            assetText.setText('Loading asset: ' + file.key);
+        });
+
+        this.load.on('complete', function () {
+            console.log('complete');
+            progressBar.destroy();
+            progressBox.destroy();
+            loadingText.destroy();
+            percentText.destroy();
+            assetText.destroy();
+            //this.backgroundSong.play(musicConfig);
+            socket.emit('request-stage', your_id);
+            //socket.emit('user-ready');
+        });
+
+
+
+
         //1 hard wall, 2 normal wall, 3 grass, 4 shadowed grass,
         this.load.image("tiles-stage-1", "/public/assets/tiles/snes_stage_1.png");
         this.load.tilemapCSV('map', '/public/assets/tilemaps/stage_1.csv')
@@ -93,41 +163,12 @@ function startGame(b, f, s, n_players, your_id) {
     }
 
     function create() {
-
-        // MAP
-        map = this.make.tilemap({ key: 'map', tileWidth: 16, tileHeight: 16 });
-        tileset = map.addTilesetImage('tiles-stage-1');
-        layer = map.createStaticLayer(0, tileset, 0, 0);
-        layer.setCollisionByExclusion([3, 4]);
-
-
-        // PLAYERS
-        players = [];
-
-        players.push(createPlayer(24, 24, game_colors[0] + '-bm', 0));
-        if (n_players > 1)
-            players.push(createPlayer(216, 24, game_colors[1] + '-bm', 1));
-        if (n_players > 2)
-            players.push(createPlayer(24, 184, game_colors[2] + '-bm', 2));
-        if (n_players > 3)
-            players.push(createPlayer(216, 184, game_colors[3] + '-bm', 3));
-
-        scene.physics.add.collider(players[your_id], scene.flamesGroup, () => {
-            death(your_id);
-        }, null, this);
-
-        //ANIMATIONS
-        playerAnimation();
-        flamesAnimation();
-        bombsAnimations();
-        this.physics.add.collider(scene.playersGroup, layer);
-
         //AUDIO
         this.backgroundSong = this.sound.add("music");
         this.explosion = this.sound.add("explosion");
 
         //MOBILE CURSORS
-        if(isMobile)
+        if (isMobile)
             setupVirtualKeys();
 
         //INITIALIZATIONS VARIABLES
@@ -135,9 +176,62 @@ function startGame(b, f, s, n_players, your_id) {
         bombs = [];
 
         this.backgroundSong.play(musicConfig);
-        socket.emit('request-stage', your_id);
+        //socket.emit('request-stage', your_id);
+        socket.emit('user-ready');
         //game.scene.pause("default");
     }
+
+    setupStage = (s, items) => {
+        if (!stage) {
+            // MAP
+            map = scene.make.tilemap({ key: 'map', tileWidth: 16, tileHeight: 16 });
+            tileset = map.addTilesetImage('tiles-stage-1');
+            layer = map.createStaticLayer(0, tileset, 0, 0);
+            layer.setCollisionByExclusion([3, 4]);
+
+            // PLAYERS
+            players = [];
+
+            players.push(createPlayer(24, 24, game_colors[0] + '-bm', 0));
+            if (n_players > 1)
+                players.push(createPlayer(216, 24, game_colors[1] + '-bm', 1));
+            if (n_players > 2)
+                players.push(createPlayer(24, 184, game_colors[2] + '-bm', 2));
+            if (n_players > 3)
+                players.push(createPlayer(216, 184, game_colors[3] + '-bm', 3));
+
+            scene.physics.add.collider(players[your_id], scene.flamesGroup, () => {
+                death(your_id);
+            }, null, this);
+
+            //ANIMATIONS
+            playerAnimation();
+            flamesAnimation();
+            bombsAnimations();
+            scene.physics.add.collider(scene.playersGroup, layer);
+
+
+            //WALLS ITEMS
+            stage = s;
+            walls = [];
+            for (let i = 1; i < 14; i++) {
+                for (let j = 1; j < 12; j++) {
+                    if (stage[j][i] === 2 || stage[j][i] == 3) {
+                        let wall = scene.wallsGroup.create(i * 16, j * 16, 'walls', 2).setOrigin(0, 0);
+                        wall.setImmovable();
+                        wall.setDepth(1999);
+                        scene.physics.add.collider(scene.playersGroup, wall);
+                        walls.push(wall);
+                    }
+                }
+            }
+
+            for (let item of items) {
+                createNewItem(item[0], item[1], item[2]);
+            }
+            console.log("Walls/Items loaded");
+        }
+    };
 
     const createPlayer = (x, y, sprites, id) => {
         player = scene.playersGroup.create(x, y, sprites, 7);
@@ -165,34 +259,34 @@ function startGame(b, f, s, n_players, your_id) {
 
     const setupVirtualKeys = () => {
         $('.controls').show();
-        $('#chevron-up').on('mouseenter', () => {
+        $('#chevron-up').on('mousedown touchstart', () => {
             chevronUp = true;
         });
-        $('#chevron-down').on('mouseenter', () => {
+        $('#chevron-down').on('mousedown touchstart', () => {
             chevronDown = true;
         });
-        $('#chevron-left').on('mouseenter', () => {
+        $('#chevron-left').on('mousedown touchstart', () => {
             chevronLeft = true;
         });
-        $('#chevron-right').on('mouseenter', () => {
+        $('#chevron-right').on('mousedown touchstart', () => {
             chevronRight = true;
         });
-        $('#chevron-up').on('mouseleave', () => {
+        $('#chevron-up').on('mouseup touchend', () => {
             chevronUp = false;
         });
-        $('#chevron-down').on('mouseleave', () => {
+        $('#chevron-down').on('mouseup touchend', () => {
             chevronDown = false;
         });
-        $('#chevron-left').on('mouseleave', () => {
+        $('#chevron-left').on('mouseup touchend', () => {
             chevronLeft = false;
         });
-        $('#chevron-right').on('mouseleave', () => {
+        $('#chevron-right').on('mouseup touchend', () => {
             chevronRight = false;
         });
-        $('#bomb-key').on('mouseenter', () => {
+        $('#bomb-key').on('mousedown touchstart', () => {
             bombKey = true;
         });
-        $('#bomb-key').on('mouseleave', () => {
+        $('#bomb-key').on('mouseup touchend', () => {
             bombKey = false;
         });
     }
@@ -408,29 +502,6 @@ function startGame(b, f, s, n_players, your_id) {
             wall.destroy();
         });
     }
-
-    setupStage = (s, items) => {
-        if (!stage) {
-            stage = s;
-            walls = [];
-            for (let i = 1; i < 14; i++) {
-                for (let j = 1; j < 12; j++) {
-                    if (stage[j][i] === 2 || stage[j][i] == 3) {
-                        let wall = scene.wallsGroup.create(i * 16, j * 16, 'walls', 2).setOrigin(0, 0);
-                        wall.setImmovable();
-                        wall.setDepth(1999);
-                        scene.physics.add.collider(scene.playersGroup, wall);
-                        walls.push(wall);
-                    }
-                }
-            }
-
-            for (let item of items) {
-                createNewItem(item[0], item[1], item[2]);
-            }
-            console.log("Walls/Items loaded");
-        }
-    };
 
     const createNewItem = (item_index, item_x, item_y) => {
         item = scene.itemsGroup.create(item_x, item_y, 'items', item_index).setOrigin(0, 0).setSize(12, 12).setOffset(2, 2);

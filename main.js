@@ -40,7 +40,7 @@ io.on('connection', function (client) {
         if (client.nickname) {
             leaveRoom(client.roomName, client.nickname);
             if (client.status == "ready") {
-                rooms[client.roomName].readyPlayers--;
+                rooms[client.roomName].readyPlayers = _.filter(rooms[client.roomName].userList, (player) => player.status == 'ready').length;
             }
             if (client.isInGame) {
                 io.sockets.in(client.roomName).emit('kill-player', client.in_game_id);
@@ -101,14 +101,14 @@ io.on('connection', function (client) {
     client.on("player-ready", (index) => {
         client.status = "ready";
         rooms[client.roomName].userList[index].status = "ready";
-        rooms[client.roomName].readyPlayers++;
+        rooms[client.roomName].readyPlayers = _.filter(rooms[client.roomName].userList, (player) => player.status == 'ready').length;
         io.sockets.in(client.roomName).emit("set-player-ready", {index: index, readyPlayers: rooms[client.roomName].readyPlayers});
     });
 
     client.on("player-not-ready", (index) => {
         client.status = "not-ready";
         rooms[client.roomName].userList[index].status = "not-ready";
-        rooms[client.roomName].readyPlayers--;
+        rooms[client.roomName].readyPlayers = _.filter(rooms[client.roomName].userList, (player) => player.status == 'ready').length;
         io.sockets.in(client.roomName).emit("set-player-not-ready", {index: index, readyPlayers: rooms[client.roomName].readyPlayers});
     });
 
@@ -160,7 +160,7 @@ io.on('connection', function (client) {
 
     client.on('close-game', () => {
         rooms[client.roomName].gameStarted = false;
-        //io.sockets.in(client.roomName).emit('exit-game');
+        io.sockets.in(client.roomName).emit('exit-game');
     });
 
     client.on('user-ready', () => {

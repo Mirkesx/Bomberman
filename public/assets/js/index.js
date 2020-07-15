@@ -103,7 +103,7 @@ $(document).ready(() => {
 
                 socket.on("user_disconnected", (data) => {
                     serviceMessage('User disconnected: ' + data.nickname);
-                    num_players_ready = data.readyPlayers; 
+                    num_players_ready = data.readyPlayers;
                     socket.emit('request_user_list');
                 });
 
@@ -186,12 +186,12 @@ $(document).ready(() => {
                 socket.on('load-game', (data) => {
                     if (userId != 0) {
                         startGame(data.b, data.f, data.s, data.n_p, userId);
-                        socket.emit('user-ready');
+                        //socket.emit('user-ready');
                     }
                 });
 
                 socket.on('all-users-ready', () => {
-                    $('.game').show();
+                    //$('.game').show();
                     cursors = game.scene.scenes[0].input.keyboard.createCursorKeys();
                 });
 
@@ -202,8 +202,10 @@ $(document).ready(() => {
                 });
 
                 socket.on('walls-items-ready', (data) => {
-                    if (inGame)
+                    if (inGame) {
                         setupStage(data.stage, data.items);
+                        //socket.emit('user-ready');
+                    }
                     //game.scene.resume("default");
                 });
 
@@ -331,26 +333,24 @@ $(document).ready(() => {
     });
 
     $('.icon-exit').click(() => {
-        if (inGame) {
-            if (userId == 0) {
-                socket.emit('close-game');
-                exitGame();
-            }
-            else {
-                exitGame();
-                if (inGame) {
-                    $('.chat').hide();
-                    $('#gameSetup').hide();
-                    socket.close();
-                    setTimeout(() => {
-                        $('#loginModal').modal('show');
-                        $('#carouselAvatar').carousel('pause');
-                    }, 500);
-                }
-            }
-            socket.emit('user-exits');
-            inGame = false;
+        if (userId == 0) {
+            socket.emit('close-game');
+            exitGame();
         }
+        else {
+            exitGame();
+            if (inGame) {
+                $('.chat').hide();
+                $('#gameSetup').hide();
+                socket.close();
+                setTimeout(() => {
+                    $('#loginModal').modal('show');
+                    $('#carouselAvatar').carousel('pause');
+                }, 500);
+            }
+        }
+        socket.emit('user-exits');
+        inGame = false;
     });
 });
 
