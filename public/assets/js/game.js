@@ -126,7 +126,7 @@ function startGame(b, f, s, n_players, your_id) {
             assetText.destroy();
             //this.backgroundSong.play(musicConfig);
             socket.emit('request-stage', your_id);
-            //socket.emit('user-ready');
+            socket.emit('user-ready');
         });
 
 
@@ -163,13 +163,45 @@ function startGame(b, f, s, n_players, your_id) {
     }
 
     function create() {
+
+        // MAP
+        if (map === undefined) {
+            map = scene.make.tilemap({ key: 'map', tileWidth: 16, tileHeight: 16 });
+            tileset = map.addTilesetImage('tiles-stage-1');
+            layer = map.createStaticLayer(0, tileset, 0, 0);
+            layer.setCollisionByExclusion([3, 4]);
+        }
+
+        // PLAYERS
+        players = [];
+
+        players.push(createPlayer(24, 24, game_colors[0] + '-bm', 0));
+        if (n_players > 1)
+            players.push(createPlayer(216, 24, game_colors[1] + '-bm', 1));
+        if (n_players > 2)
+            players.push(createPlayer(24, 184, game_colors[2] + '-bm', 2));
+        if (n_players > 3)
+            players.push(createPlayer(216, 184, game_colors[3] + '-bm', 3));
+
+        scene.physics.add.collider(players[your_id], scene.flamesGroup, () => {
+            death(your_id);
+        }, null, this);
+
+        //ANIMATIONS
+        playerAnimation();
+        flamesAnimation();
+        bombsAnimations();
+        scene.physics.add.collider(scene.playersGroup, layer);
+
         //AUDIO
         this.backgroundSong = this.sound.add("music");
         this.explosion = this.sound.add("explosion");
 
         //MOBILE CURSORS
-        if (isMobile)
+        if (isMobile) {
+            $('.controls').show();
             setupVirtualKeys();
+        }
 
         //INITIALIZATIONS VARIABLES
         animated = false;
@@ -177,38 +209,18 @@ function startGame(b, f, s, n_players, your_id) {
 
         this.backgroundSong.play(musicConfig);
         //socket.emit('request-stage', your_id);
-        socket.emit('user-ready');
+        //socket.emit('user-ready');
         //game.scene.pause("default");
     }
 
     setupStage = (s, items) => {
         if (!stage) {
-            // MAP
-            map = scene.make.tilemap({ key: 'map', tileWidth: 16, tileHeight: 16 });
-            tileset = map.addTilesetImage('tiles-stage-1');
-            layer = map.createStaticLayer(0, tileset, 0, 0);
-            layer.setCollisionByExclusion([3, 4]);
-
-            // PLAYERS
-            players = [];
-
-            players.push(createPlayer(24, 24, game_colors[0] + '-bm', 0));
-            if (n_players > 1)
-                players.push(createPlayer(216, 24, game_colors[1] + '-bm', 1));
-            if (n_players > 2)
-                players.push(createPlayer(24, 184, game_colors[2] + '-bm', 2));
-            if (n_players > 3)
-                players.push(createPlayer(216, 184, game_colors[3] + '-bm', 3));
-
-            scene.physics.add.collider(players[your_id], scene.flamesGroup, () => {
-                death(your_id);
-            }, null, this);
-
-            //ANIMATIONS
-            playerAnimation();
-            flamesAnimation();
-            bombsAnimations();
-            scene.physics.add.collider(scene.playersGroup, layer);
+            if (map === undefined) {
+                map = scene.make.tilemap({ key: 'map', tileWidth: 16, tileHeight: 16 });
+                tileset = map.addTilesetImage('tiles-stage-1');
+                layer = map.createStaticLayer(0, tileset, 0, 0);
+                layer.setCollisionByExclusion([3, 4]);
+            }
 
 
             //WALLS ITEMS
@@ -258,37 +270,38 @@ function startGame(b, f, s, n_players, your_id) {
     var chevronUp = chevronDown = chevronLeft = chevronRight = bombKey = false;
 
     const setupVirtualKeys = () => {
-        $('.controls').show();
-        $('#chevron-up').on('mousedown touchstart', () => {
+        $('#chevron-up').bind('mousedown touchstart', () => {
             chevronUp = true;
         });
-        $('#chevron-down').on('mousedown touchstart', () => {
+        $('#chevron-down').bind('mousedown touchstart', () => {
             chevronDown = true;
         });
-        $('#chevron-left').on('mousedown touchstart', () => {
+        $('#chevron-left').bind('mousedown touchstart', () => {
             chevronLeft = true;
         });
-        $('#chevron-right').on('mousedown touchstart', () => {
+        $('#chevron-right').bind('mousedown touchstart', () => {
             chevronRight = true;
         });
-        $('#chevron-up').on('mouseup touchend', () => {
+        $('#chevron-up').bind('mouseup touchend', () => {
             chevronUp = false;
         });
-        $('#chevron-down').on('mouseup touchend', () => {
+        $('#chevron-down').bind('mouseup touchend', () => {
             chevronDown = false;
         });
-        $('#chevron-left').on('mouseup touchend', () => {
+        $('#chevron-left').bind('mouseup touchend', () => {
             chevronLeft = false;
         });
-        $('#chevron-right').on('mouseup touchend', () => {
+        $('#chevron-right').bind('mouseup touchend', () => {
             chevronRight = false;
         });
-        $('#bomb-key').on('mousedown touchstart', () => {
+        $('#bomb-key').bind('mousedown touchstart', () => {
             bombKey = true;
         });
-        $('#bomb-key').on('mouseup touchend', () => {
+        $('#bomb-key').bind('mouseup touchend', () => {
             bombKey = false;
         });
+
+        zoomDisable();
     }
 
 

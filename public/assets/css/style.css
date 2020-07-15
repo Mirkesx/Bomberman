@@ -27,6 +27,7 @@ body {
 
 #gameSetup {
     display: none;
+    margin-top: 50px;
 }
 
 .game {
@@ -36,7 +37,7 @@ body {
 canvas {
     display: block;
     margin: 0;
-    padding: 20px;
+    padding: 50px;
     position: absolute;
     top: 50%;
     left: 50%;
@@ -62,31 +63,44 @@ canvas {
 }
 
 .controls {
-    display: block;
+    display: none;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 300px;
+    position: fixed;
+}
+
+.controls span{
+    padding:0;
+}
+
+.controls .col-4{
+    padding:0;
 }
 
 .controls .fa {
     font-size: 50px !important;
 }
 
-.fa:hover {
-    color: white !important;
-}
-
-.fa:focus {
+.fa:active {
     color: white !important;
 }
 
 #chevron-up {
+    margin-bottom:50px;
+}
+
+#chevron-up {
     position: fixed;
-    left: 125px;
-    bottom: 160px;
+    left: 115px;
+    bottom: 130px;
 }
 
 #chevron-down {
     position: fixed;
-    left: 125px;
-    bottom: 50px;
+    left: 115px;
+    bottom: 20px;
 }
 
 #chevron-right {
@@ -97,12 +111,12 @@ canvas {
 
 #chevron-left {
     position: fixed;
-    left: 75px;
+    left: 50px;
     bottom: 100px;
 }
 
 #bomb-key {
     position: fixed;
-    right: 100px;
-    bottom: 100px;
+    right: 50px;
+    bottom: 150px;
 }

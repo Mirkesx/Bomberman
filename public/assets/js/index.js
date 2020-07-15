@@ -9,10 +9,12 @@ var stageSelected;
 var num_players_ready;
 var inGame;
 var isMobile;
+var $objHead;
 
 $(document).ready(() => {
 
     const loginUser = (isCreatingRoom) => {
+        $objHead = $('head');
         userList = [];
         userNickname = $("#nickname").val();
         roomName = $("#roomName").val();
@@ -192,7 +194,11 @@ $(document).ready(() => {
 
                 socket.on('all-users-ready', () => {
                     //$('.game').show();
-                    cursors = game.scene.scenes[0].input.keyboard.createCursorKeys();
+                    if (!isMobile) {
+                        cursors = game.scene.scenes[0].input.keyboard.createCursorKeys();
+                        createPopup("Start!", 500, 100);
+                        $('.popup_scheda').removeClass('bg-danger').addClass('bg-primary');
+                    }
                 });
 
                 socket.on('exit-game', () => {
@@ -334,8 +340,21 @@ $(document).ready(() => {
 
     $('.icon-exit').click(() => {
         if (userId == 0) {
-            socket.emit('close-game');
-            exitGame();
+            if ($('canvas')) {
+                socket.emit('close-game');
+                exitGame();
+            } else {
+                $('.chat').hide();
+                $('#buttonStart').hide();
+                $('#buttonReady').trigger('click');
+                $('#buttonReady').show();
+                $('#gameSetup').hide();
+                socket.close();
+                setTimeout(() => {
+                    $('#loginModal').modal('show');
+                    $('#carouselAvatar').carousel('pause');
+                }, 500);
+            }
         }
         else {
             exitGame();
@@ -360,6 +379,8 @@ function exitGame() {
     $('.game').hide();
     $('.lobby').show();
     $('#buttonReady').trigger('click');
+    if (isMobile)
+        zoomEnable();
 }
 
 
@@ -421,4 +442,16 @@ function deletePopup(popup, time, top) {
             $('.popup_scheda').remove();
             popupCreato = false;
         });
+};
+
+var zoomDisable = function () {
+    $objHead.find('meta[name=viewport]').remove();
+    $objHead.prepend('<meta name="viewport" \
+        content="width=device-width, initial-scale=1.0, user-scalable=0" />' );
+};
+
+var zoomEnable = function () {
+    $objHead.find('meta[name=viewport]').remove();
+    $objHead.prepend('<meta name="viewport" \
+        content="width=device-width, initial-scale=1.0, user-scalable=1" />');
 };
