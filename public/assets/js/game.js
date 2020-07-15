@@ -1,7 +1,9 @@
-var game, cursors, cursorsKey;
-var setupStage, replaceItems, placeBomb, moveEnemy, stopEnemy, killEnemy;
-var dumpJoyStickState;
 const game_colors = ['white', 'black', 'blue', 'red'];
+const items_list = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 3, 3, 9, 9, 9, 9, 9, 23, 23, 23];
+
+var game, cursors;
+var setupStage, replaceItems, placeBomb, moveEnemy, stopEnemy, killEnemy;
+
 var musicConfig = {
     mute: false,
     volume: 0.25,
@@ -19,15 +21,9 @@ function setupGame() {
     n_players = userList.length;
     socket.emit('start-game', { b: bombs, f: flames, s: speed, n_p: n_players });
     startGame(bombs, flames, speed, userList.length, userId);
-    //socket.emit('user-ready');
 }
 
 function startGame(b, f, s, n_players, your_id) {
-    inGame = true;
-    $('.lobby').hide();
-    $('.game').show();
-    $('.canvasContainer').html("");
-
 
     var config = {
         type: Phaser.AUTO,
@@ -49,17 +45,26 @@ function startGame(b, f, s, n_players, your_id) {
                 debug: false
             },
         },
+        input: {
+            gamepad: true
+        },
         pixelArt: true
     };
 
     game = new Phaser.Game(config);
+
+
+    inGame = true;
+    $('.lobby').hide();
+    $('.game').show();
+    $('.canvasContainer').html("");
     isMobile = !game.device.os.desktop;
     var map, tileset, layer, scene, stage;
     var players;
     var bombs, flipFlopBomb;
     var animated; //animated is used to show the right animation with the player sprite
     var walls;
-    const items_list = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 3, 3, 9, 9, 9, 9, 9, 23, 23, 23];
+
 
     function preload() {
 
@@ -124,7 +129,6 @@ function startGame(b, f, s, n_players, your_id) {
             loadingText.destroy();
             percentText.destroy();
             assetText.destroy();
-            //this.backgroundSong.play(musicConfig);
             socket.emit('request-stage', your_id);
             socket.emit('user-ready');
         });
@@ -161,6 +165,13 @@ function startGame(b, f, s, n_players, your_id) {
         scene = this;
         scene.your_id = your_id;
     }
+
+
+
+
+
+
+
 
     function create() {
 
@@ -203,14 +214,16 @@ function startGame(b, f, s, n_players, your_id) {
             setupVirtualKeys();
         }
 
+        //GAMEPAD
+        this.input.gamepad.once('connected', function (pad) {
+            console.log(pad);
+        });
+
         //INITIALIZATIONS VARIABLES
         animated = false;
         bombs = [];
 
         this.backgroundSong.play(musicConfig);
-        //socket.emit('request-stage', your_id);
-        //socket.emit('user-ready');
-        //game.scene.pause("default");
     }
 
     setupStage = (s, items) => {
@@ -244,6 +257,33 @@ function startGame(b, f, s, n_players, your_id) {
             console.log("Walls/Items loaded");
         }
     };
+
+
+
+
+
+
+
+
+
+    function update() {
+
+        phaserKeyboard();
+        mobileControls();
+
+    }
+
+
+
+
+
+
+
+
+
+
+    // FUNCTIONS
+
 
     const createPlayer = (x, y, sprites, id) => {
         player = scene.playersGroup.create(x, y, sprites, 7);
@@ -302,152 +342,6 @@ function startGame(b, f, s, n_players, your_id) {
         });
 
         zoomDisable();
-    }
-
-
-    function update() {
-
-        if (cursors && players[your_id] && players[your_id].status === 'alive') {
-            let anim = 'stop';
-            players[your_id].setVelocity(0, 0);
-            speed = 50 + players[your_id].speed * 15;
-
-            if (cursors.up.isDown) {
-                players[your_id].body.velocity.y = -speed;
-                if (cursors.left.isDown) {
-                    players[your_id].body.velocity.x = -speed;
-                } else if (cursors.right.isDown) {
-                    players[your_id].body.velocity.x = speed;
-                }
-
-                players[your_id].anims.play(game_colors[your_id] + '-up', true);
-                anim = game_colors[your_id] + '-up';
-                animated = true;
-
-            } else if (cursors.down.isDown) {
-                players[your_id].body.velocity.y = speed;
-                if (cursors.left.isDown) {
-                    players[your_id].body.velocity.x = -speed;
-                } else if (cursors.right.isDown) {
-                    players[your_id].body.velocity.x = speed;
-                }
-
-                players[your_id].anims.play(game_colors[your_id] + '-down', true);
-                anim = game_colors[your_id] + '-down';
-                animated = true;
-
-            } else if (cursors.left.isDown) {
-                players[your_id].body.velocity.x = -speed;
-
-                players[your_id].anims.play(game_colors[your_id] + '-left', true);
-                anim = game_colors[your_id] + '-left';
-                animated = true;
-
-            }
-            else if (cursors.right.isDown) {
-                players[your_id].body.velocity.x = speed;
-
-                players[your_id].anims.play(game_colors[your_id] + '-right', true);
-                anim = game_colors[your_id] + '-right';
-                animated = true;
-
-            }
-
-            if (!flipFlopBomb && players[your_id].bombs > _.filter(bombs, (b) => b.player_id === your_id).length && cursors.space.isDown) {
-                placeBomb(players[your_id].x, players[your_id].y, your_id, players[your_id].flames);
-                socket.emit('placed-bomb', { x: players[your_id].x, y: players[your_id].y, player_id: your_id, flames_len: players[your_id].flames });
-                flipFlopBomb = true;
-            }
-
-            if (flipFlopBomb && cursors.space.isUp) {
-                flipFlopBomb = false;
-            }
-
-            if (animated && players[your_id].body.velocity.x == 0 && players[your_id].body.velocity.y == 0) {
-                players[your_id].anims.setCurrentFrame(players[your_id].anims.currentAnim.frames[1]);
-                players[your_id].anims.stop();
-                anim = 'stop';
-                animated = false;
-            }
-
-            socket.emit('move-player', {
-                player_id: players[your_id].id,
-                x: players[your_id].x,
-                y: players[your_id].y,
-                animation: anim,
-            });
-        }
-
-        if (isMobile && players[your_id] && players[your_id].status === 'alive') {
-            let anim = 'stop';
-            players[your_id].setVelocity(0, 0);
-            speed = 50 + players[your_id].speed * 15;
-
-            if (chevronUp) {
-                players[your_id].body.velocity.y = -speed;
-                if (chevronLeft) {
-                    players[your_id].body.velocity.x = -speed;
-                } else if (chevronRight) {
-                    players[your_id].body.velocity.x = speed;
-                }
-
-                players[your_id].anims.play(game_colors[your_id] + '-up', true);
-                anim = game_colors[your_id] + '-up';
-                animated = true;
-
-            } else if (chevronDown) {
-                players[your_id].body.velocity.y = speed;
-                if (chevronLeft) {
-                    players[your_id].body.velocity.x = -speed;
-                } else if (chevronRight) {
-                    players[your_id].body.velocity.x = speed;
-                }
-
-                players[your_id].anims.play(game_colors[your_id] + '-down', true);
-                anim = game_colors[your_id] + '-down';
-                animated = true;
-
-            } else if (chevronLeft) {
-                players[your_id].body.velocity.x = -speed;
-
-                players[your_id].anims.play(game_colors[your_id] + '-left', true);
-                anim = game_colors[your_id] + '-left';
-                animated = true;
-
-            }
-            else if (chevronRight) {
-                players[your_id].body.velocity.x = speed;
-
-                players[your_id].anims.play(game_colors[your_id] + '-right', true);
-                anim = game_colors[your_id] + '-right';
-                animated = true;
-
-            }
-
-            if (!flipFlopBomb && players[your_id].bombs > _.filter(bombs, (b) => b.player_id === your_id).length && bombKey) {
-                placeBomb(players[your_id].x, players[your_id].y, your_id, players[your_id].flames);
-                socket.emit('placed-bomb', { x: players[your_id].x, y: players[your_id].y, player_id: your_id, flames_len: players[your_id].flames });
-                flipFlopBomb = true;
-            }
-
-            if (flipFlopBomb && !bombKey) {
-                flipFlopBomb = false;
-            }
-
-            if (animated && players[your_id].body.velocity.x == 0 && players[your_id].body.velocity.y == 0) {
-                players[your_id].anims.setCurrentFrame(players[your_id].anims.currentAnim.frames[1]);
-                players[your_id].anims.stop();
-                anim = 'stop';
-                animated = false;
-            }
-
-            socket.emit('move-player', {
-                player_id: players[your_id].id,
-                x: players[your_id].x,
-                y: players[your_id].y,
-                animation: anim,
-            });
-        }
     }
 
     moveEnemy = (x, y, id, animation) => {
@@ -599,7 +493,7 @@ function startGame(b, f, s, n_players, your_id) {
     const explosion = (bomb, origin) => {
         bombs.splice(bombs.indexOf(bomb), 1);
         createFlames(bomb.x, bomb.y, origin, bomb.flames, bomb.color);
-        //scene.explosion.play();
+        scene.explosion.play();
         bomb.destroy();
     }
 
@@ -753,4 +647,150 @@ function startGame(b, f, s, n_players, your_id) {
             canvas.style.height = windowHeight + "px";
         }
     }
+
+    function phaserKeyboard() {
+        if (cursors && players[your_id] && players[your_id].status === 'alive') {
+            let anim = 'stop';
+            players[your_id].setVelocity(0, 0);
+            speed = 50 + players[your_id].speed * 15;
+
+            if (cursors.up.isDown) {
+                players[your_id].body.velocity.y = -speed;
+                if (cursors.left.isDown) {
+                    players[your_id].body.velocity.x = -speed;
+                } else if (cursors.right.isDown) {
+                    players[your_id].body.velocity.x = speed;
+                }
+
+                players[your_id].anims.play(game_colors[your_id] + '-up', true);
+                anim = game_colors[your_id] + '-up';
+                animated = true;
+
+            } else if (cursors.down.isDown) {
+                players[your_id].body.velocity.y = speed;
+                if (cursors.left.isDown) {
+                    players[your_id].body.velocity.x = -speed;
+                } else if (cursors.right.isDown) {
+                    players[your_id].body.velocity.x = speed;
+                }
+
+                players[your_id].anims.play(game_colors[your_id] + '-down', true);
+                anim = game_colors[your_id] + '-down';
+                animated = true;
+
+            } else if (cursors.left.isDown) {
+                players[your_id].body.velocity.x = -speed;
+
+                players[your_id].anims.play(game_colors[your_id] + '-left', true);
+                anim = game_colors[your_id] + '-left';
+                animated = true;
+
+            }
+            else if (cursors.right.isDown) {
+                players[your_id].body.velocity.x = speed;
+
+                players[your_id].anims.play(game_colors[your_id] + '-right', true);
+                anim = game_colors[your_id] + '-right';
+                animated = true;
+
+            }
+
+            if (!flipFlopBomb && players[your_id].bombs > _.filter(bombs, (b) => b.player_id === your_id).length && cursors.space.isDown) {
+                placeBomb(players[your_id].x, players[your_id].y, your_id, players[your_id].flames);
+                socket.emit('placed-bomb', { x: players[your_id].x, y: players[your_id].y, player_id: your_id, flames_len: players[your_id].flames });
+                flipFlopBomb = true;
+            }
+
+            if (flipFlopBomb && cursors.space.isUp) {
+                flipFlopBomb = false;
+            }
+
+            if (animated && players[your_id].body.velocity.x == 0 && players[your_id].body.velocity.y == 0) {
+                players[your_id].anims.setCurrentFrame(players[your_id].anims.currentAnim.frames[1]);
+                players[your_id].anims.stop();
+                anim = 'stop';
+                animated = false;
+            }
+
+            socket.emit('move-player', {
+                player_id: players[your_id].id,
+                x: players[your_id].x,
+                y: players[your_id].y,
+                animation: anim,
+            });
+        }
+    };
+
+    function mobileControls() {
+        if (isMobile && players[your_id] && players[your_id].status === 'alive') {
+            let anim = 'stop';
+            players[your_id].setVelocity(0, 0);
+            speed = 50 + players[your_id].speed * 15;
+
+            if (chevronUp) {
+                players[your_id].body.velocity.y = -speed;
+                if (chevronLeft) {
+                    players[your_id].body.velocity.x = -speed;
+                } else if (chevronRight) {
+                    players[your_id].body.velocity.x = speed;
+                }
+
+                players[your_id].anims.play(game_colors[your_id] + '-up', true);
+                anim = game_colors[your_id] + '-up';
+                animated = true;
+
+            } else if (chevronDown) {
+                players[your_id].body.velocity.y = speed;
+                if (chevronLeft) {
+                    players[your_id].body.velocity.x = -speed;
+                } else if (chevronRight) {
+                    players[your_id].body.velocity.x = speed;
+                }
+
+                players[your_id].anims.play(game_colors[your_id] + '-down', true);
+                anim = game_colors[your_id] + '-down';
+                animated = true;
+
+            } else if (chevronLeft) {
+                players[your_id].body.velocity.x = -speed;
+
+                players[your_id].anims.play(game_colors[your_id] + '-left', true);
+                anim = game_colors[your_id] + '-left';
+                animated = true;
+
+            }
+            else if (chevronRight) {
+                players[your_id].body.velocity.x = speed;
+
+                players[your_id].anims.play(game_colors[your_id] + '-right', true);
+                anim = game_colors[your_id] + '-right';
+                animated = true;
+
+            }
+
+            if (!flipFlopBomb && players[your_id].bombs > _.filter(bombs, (b) => b.player_id === your_id).length && bombKey) {
+                placeBomb(players[your_id].x, players[your_id].y, your_id, players[your_id].flames);
+                socket.emit('placed-bomb', { x: players[your_id].x, y: players[your_id].y, player_id: your_id, flames_len: players[your_id].flames });
+                flipFlopBomb = true;
+            }
+
+            if (flipFlopBomb && !bombKey) {
+                flipFlopBomb = false;
+            }
+
+            if (animated && players[your_id].body.velocity.x == 0 && players[your_id].body.velocity.y == 0) {
+                players[your_id].anims.setCurrentFrame(players[your_id].anims.currentAnim.frames[1]);
+                players[your_id].anims.stop();
+                anim = 'stop';
+                animated = false;
+            }
+
+            socket.emit('move-player', {
+                player_id: players[your_id].id,
+                x: players[your_id].x,
+                y: players[your_id].y,
+                animation: anim,
+            });
+        }
+    };
 };

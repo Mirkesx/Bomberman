@@ -13,7 +13,7 @@ var $objHead;
 
 $(document).ready(() => {
 
-    const loginUser = (isCreatingRoom) => {
+    const loginUser = () => {
         $objHead = $('head');
         userList = [];
         userNickname = $("#nickname").val();
@@ -97,7 +97,6 @@ $(document).ready(() => {
                     if (nickname !== userNickname) {
                         serviceMessage('User joined: ' + nickname);
                         socket.emit('request_user_list');
-                        //$('#buttonStart').prop('disabled', 'true');
                         $('#buttonStart').hide();
                         $('#buttonReady').show();
                     }
@@ -113,7 +112,6 @@ $(document).ready(() => {
                     serviceMessage('New host: ' + nickname);
                     if (userNickname === nickname) {
                         host = nickname;
-                        //$('#buttonStart').show();
                         initCarousel();
                     }
                 });
@@ -125,7 +123,6 @@ $(document).ready(() => {
                     $user.find('.not-ready').removeClass('fa-times not-ready').addClass("fa-check ready");
                     num_players_ready = data.readyPlayers;
                     if (host == userNickname && num_players_ready > 1 && num_players_ready == userList.length) {
-                        //$('#buttonStart').removeAttr('disabled');
                         $('#buttonReady').hide();
                         $('#buttonStart').show();
                     }
@@ -138,19 +135,12 @@ $(document).ready(() => {
                     $user.find('.ready').removeClass('fa-check ready').addClass("fa-times not-ready");
                     num_players_ready = data.readyPlayers;
                     if (host == userNickname && num_players_ready < userList.length) {
-                        //$('#buttonStart').prop('disabled', 'true');
                         $('#buttonStart').hide();
                         $('#buttonReady').show();
                     }
                 });
 
-                if (isCreatingRoom) {
-                    socket.emit('create-room', { nickname: userNickname, roomName: roomName, avatar: avatar });
-                    host = userNickname;
-                }
-                else {
-                    socket.emit("login", { nickname: userNickname, roomName: roomName, avatar: avatar });
-                }
+                socket.emit('create-room', { nickname: userNickname, roomName: roomName, avatar: avatar });
 
                 socket.on("message", (data) => {
                     if (userNickname != data.nickname) {
@@ -188,12 +178,10 @@ $(document).ready(() => {
                 socket.on('load-game', (data) => {
                     if (userId != 0) {
                         startGame(data.b, data.f, data.s, data.n_p, userId);
-                        //socket.emit('user-ready');
                     }
                 });
 
                 socket.on('all-users-ready', () => {
-                    //$('.game').show();
                     if (!isMobile) {
                         cursors = game.scene.scenes[0].input.keyboard.createCursorKeys();
                         createPopup("Start!", 500, 100);
@@ -210,9 +198,7 @@ $(document).ready(() => {
                 socket.on('walls-items-ready', (data) => {
                     if (inGame) {
                         setupStage(data.stage, data.items);
-                        //socket.emit('user-ready');
                     }
-                    //game.scene.resume("default");
                 });
 
                 socket.on('move-enemy', (data) => {
@@ -292,13 +278,8 @@ $(document).ready(() => {
         $("#roomName").val($("#roomName").val().replace(/ /g, ""));
         avatar = $('#carouselAvatar').find('.active').attr('data-avatar');
         $('#loginModal').modal('hide');
-        loginUser(true);
+        loginUser();
     });
-    /*$("#create-room").on('click', () => {
-        avatar = $('#carouselAvatar').find('.active').attr('data-avatar');
-        $('#loginModal').modal('hide');
-        loginUser(true);
-    });*/
 
     /*
      * Chat commands

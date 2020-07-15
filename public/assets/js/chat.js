@@ -10,18 +10,17 @@ $('document').ready(() => {
                 return $message_input.val();
             };
             sendMsg = function (text) {
-                var today = new Date();
                 const $message = $('\
                     <li class="left clearfix">\
                         <span class="chat-img pull-left">\
-                            <img src="/public/assets/img/avatar/avatar_'+avatar+'.png" alt="User Avatar" class="rounded-circle">\
+                            <img src="/public/assets/img/avatar/avatar_'+ avatar + '.png" alt="User Avatar" class="rounded-circle">\
                         </span>\
                         <div class="chat-body clearfix">\
                             <div class="header">\
                                 <strong class="pull-right primary-font">You</strong>\
-                                <small class=" text-muted"><span class="fa fa-clock-o fa-1"></span> '+today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds()+'</small>\
+                                <small class=" text-muted"><span class="fa fa-clock-o fa-1"></span> '+ getNow() + '</small>\
                             </div>\
-                            <p>'+text+'</p>\
+                            <p>'+ text + '</p>\
                         </div>\
                     </li>');
 
@@ -36,18 +35,17 @@ $('document').ready(() => {
                 return $messages.animate({ scrollTop: $messages.prop('scrollHeight') }, 300);
             };
             receiveMsg = function (user, text, avatarUser) {
-                var today = new Date();
                 const $message = $('\
                     <li class="left clearfix">\
                         <span class="chat-img pull-left">\
-                            <img src="/public/assets/img/avatar/avatar_'+avatarUser+'.png" alt="User Avatar" class="rounded-circle">\
+                            <img src="/public/assets/img/avatar/avatar_'+ avatarUser + '.png" alt="User Avatar" class="rounded-circle">\
                         </span>\
                         <div class="chat-body clearfix">\
                             <div class="header">\
-                                <strong class="pull-right primary-font">'+user+'</strong>\
-                                <small class=" text-muted"><span class="fa fa-clock-o fa-1"></span> '+today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds()+'</small>\
+                                <strong class="pull-right primary-font">'+ user + '</strong>\
+                                <small class=" text-muted"><span class="fa fa-clock-o fa-1"></span> '+ getNow() + '</small>\
                             </div>\
-                            <p>'+text+'</p>\
+                            <p>'+ text + '</p>\
                         </div>\
                     </li>');
                 var $messages;
@@ -57,20 +55,19 @@ $('document').ready(() => {
                 $messages = $('.messages');
                 $message.appendTo('.chat_messages');
 
-                var unread = parseInt($('#unread-messages').text())+1;
+                var unread = parseInt($('#unread-messages').text()) + 1;
                 $('#unread-messages').html(unread);
                 return $messages.animate({ scrollTop: $messages.prop('scrollHeight') }, 300);
             };
 
             serviceMessage = function (text) {
-                var today = new Date();
                 const $message = $('\
                     <li class="clearfix">\
                         <div class="chat-body clearfix">\
                             <div class="header">\
-                                <small class=" text-muted"><span class="fa fa-clock-o fa-1"></span> '+today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds()+'</small>\
+                                <small class=" text-muted"><span class="fa fa-clock-o fa-1"></span> '+ getNow() + '</small>\
                             </div>\
-                            <p><strong>'+text+'<strong></p>\
+                            <p><strong>'+ text + '<strong></p>\
                         </div>\
                     </li>');
                 var $messages;
@@ -79,8 +76,8 @@ $('document').ready(() => {
                 }
                 $messages = $('.messages');
                 $message.appendTo('.chat_messages');
-                
-                var unread = parseInt($('#unread-messages').text())+1;
+
+                var unread = parseInt($('#unread-messages').text()) + 1;
                 $('#unread-messages').html(unread);
                 return $messages.animate({ scrollTop: $messages.prop('scrollHeight') }, 300);
             };
@@ -95,4 +92,19 @@ $('document').ready(() => {
             });
         });
     }.call(this));
+
+
+    function getNow() {
+        var today = new Date();
+        let hh = today.getHours();
+        if (("" + hh).length == 1)
+            hh = "0" + hh;
+        let mm = today.getMinutes();
+        if (("" + mm).length == 1)
+            mm = "0" + mm;
+        let ss = today.getSeconds();
+        if (("" + ss).length == 1)
+            ss = "0" + ss;
+        return hh + ':' + mm + ':' + ss;
+    }
 });

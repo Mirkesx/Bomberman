@@ -19,18 +19,14 @@ const printUserList = () => {
         let $row = $('<div class="row"></div>');
         $row.append('<span class="col-10 userName" style="color:' + colors[i] + ';">' + userList[i].nickname + '</span>');
         $row.append('<span class="col-1 fa ' + (userList[i].status == "ready" ? 'fa-check' : 'fa-times') + ' fa-2 ' + userList[i].status + '"></span>');
-        /*if (userNickname == host)
-            $row.append('<span class="col-1 fa fa-solid:door-closed fa-2 kick-user"></span>')*/
         $('#gameSetup').find('#cardPlayersList').find('.card-body').append($row);
     }
     if(userNickname == host) {
         if(userList.length == _.filter(userList, (user) => user.status == "ready").length) {
-            //$('#buttonStart').removeAttr('disabled');
             $('#buttonReady').hide();
             $('#buttonStart').show();
         }
         else {
-            //$('#buttonStart').prop('disabled', 'true');
             $('#buttonStart').hide();
             $('#buttonReady').show();
         }
