@@ -47,8 +47,7 @@ canvas {
     position: fixed;
     right: 20px;
     top: 20px;
-    height: 40px;
-    width: 40px;
+    font-size: 50px !important;
     cursor: pointer;
     z-index: 9999;
 }
@@ -57,8 +56,53 @@ canvas {
     position: fixed;
     left: 20px;
     top: 20px;
-    height: 40px;
-    width: 40px;
+    font-size: 50px !important;
     cursor: pointer;
     z-index: 9999;
+}
+
+.controls {
+    display: none;
+}
+
+.controls .fa {
+    font-size: 50px !important;
+}
+
+.fa:hover {
+    color: white !important;
+}
+
+.fa:focus {
+    color: white !important;
+}
+
+#chevron-up {
+    position: fixed;
+    left: 125px;
+    bottom: 160px;
+}
+
+#chevron-down {
+    position: fixed;
+    left: 125px;
+    bottom: 50px;
+}
+
+#chevron-right {
+    position: fixed;
+    left: 185px;
+    bottom: 100px;
+}
+
+#chevron-left {
+    position: fixed;
+    left: 75px;
+    bottom: 100px;
+}
+
+#bomb-key {
+    position: fixed;
+    right: 100px;
+    bottom: 100px;
 }

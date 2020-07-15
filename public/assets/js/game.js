@@ -1,6 +1,16 @@
-var game;
+var game, cursors, cursorsKey;
 var setupStage, replaceItems, placeBomb, moveEnemy, stopEnemy, killEnemy;
+var dumpJoyStickState;
 const game_colors = ['white', 'black', 'blue', 'red'];
+var musicConfig = {
+    mute: false,
+    volume: 0.25,
+    rate: 1,
+    detune: 0,
+    seek: 0,
+    loop: true,
+    delay: 0,
+}
 
 function setupGame() {
     bombs = $('#numberBombs').val();
@@ -9,12 +19,13 @@ function setupGame() {
     n_players = userList.length;
     socket.emit('start-game', { b: bombs, f: flames, s: speed, n_p: n_players });
     startGame(bombs, flames, speed, userList.length, userId);
+    socket.emit('user-ready');
 }
 
 function startGame(b, f, s, n_players, your_id) {
     inGame = true;
     $('.lobby').hide();
-    $('.game').show();
+    //$('.game').show();
     $('.canvasContainer').html("");
 
 
@@ -38,23 +49,15 @@ function startGame(b, f, s, n_players, your_id) {
                 debug: false
             },
         },
-        pixelArt: true,
+        pixelArt: true
     };
-    var musicConfig = {
-        mute: false,
-        volume: 0.25,
-        rate: 1,
-        detune: 0,
-        seek: 0,
-        loop: true,
-        delay: 0,
-    }
 
     game = new Phaser.Game(config);
+    isMobile = !game.device.os.desktop;
     var map, tileset, layer, scene, stage;
     var players;
     var bombs, flipFlopBomb;
-    var cursors, animated; //animated is used to show the right animation with the player sprite
+    var animated; //animated is used to show the right animation with the player sprite
     var walls;
     const items_list = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 3, 3, 9, 9, 9, 9, 9, 23, 23, 23];
 
@@ -64,13 +67,9 @@ function startGame(b, f, s, n_players, your_id) {
         this.load.tilemapCSV('map', '/public/assets/tilemaps/stage_1.csv')
         loadSprites(this);
 
-
-
         //AUDIO
         this.load.audio("music", "/public/assets/audio/snes_battle_music.mp3");
         this.load.audio("explosion", "/public/assets/audio/explosion.mp3");
-
-
 
         // GROUPS
         this.bombsGroup = this.physics.add.group({
@@ -127,24 +126,23 @@ function startGame(b, f, s, n_players, your_id) {
         this.backgroundSong = this.sound.add("music");
         this.explosion = this.sound.add("explosion");
 
-        //CURSORS
-        cursors = this.input.keyboard.createCursorKeys();
+        //MOBILE CURSORS
+        if(isMobile)
+            setupVirtualKeys();
 
         //INITIALIZATIONS VARIABLES
         animated = false;
         bombs = [];
 
         this.backgroundSong.play(musicConfig);
-
-
-        socket.emit('request-stage',your_id);
+        socket.emit('request-stage', your_id);
         //game.scene.pause("default");
     }
 
     const createPlayer = (x, y, sprites, id) => {
         player = scene.playersGroup.create(x, y, sprites, 7);
         player.setSize(11, 9, 0, 0).setOffset(3, 15).setOrigin(0.5, 0.75);
-        player.setDepth(2000);
+        player.setDepth(2001);
         player.setCollideWorldBounds(true);
         player.speed = s;
         player.countDeathCollider = 0;
@@ -163,10 +161,46 @@ function startGame(b, f, s, n_players, your_id) {
         return player;
     }
 
+    var chevronUp = chevronDown = chevronLeft = chevronRight = bombKey = false;
+
+    const setupVirtualKeys = () => {
+        $('.controls').show();
+        $('#chevron-up').on('mouseenter', () => {
+            chevronUp = true;
+        });
+        $('#chevron-down').on('mouseenter', () => {
+            chevronDown = true;
+        });
+        $('#chevron-left').on('mouseenter', () => {
+            chevronLeft = true;
+        });
+        $('#chevron-right').on('mouseenter', () => {
+            chevronRight = true;
+        });
+        $('#chevron-up').on('mouseleave', () => {
+            chevronUp = false;
+        });
+        $('#chevron-down').on('mouseleave', () => {
+            chevronDown = false;
+        });
+        $('#chevron-left').on('mouseleave', () => {
+            chevronLeft = false;
+        });
+        $('#chevron-right').on('mouseleave', () => {
+            chevronRight = false;
+        });
+        $('#bomb-key').on('mouseenter', () => {
+            bombKey = true;
+        });
+        $('#bomb-key').on('mouseleave', () => {
+            bombKey = false;
+        });
+    }
+
 
     function update() {
 
-        if (players[your_id] && players[your_id].status === 'alive') {
+        if (cursors && players[your_id] && players[your_id].status === 'alive') {
             let anim = 'stop';
             players[your_id].setVelocity(0, 0);
             speed = 50 + players[your_id].speed * 15;
@@ -231,8 +265,77 @@ function startGame(b, f, s, n_players, your_id) {
 
             socket.emit('move-player', {
                 player_id: players[your_id].id,
-                vel_x: players[your_id].body.velocity.x,
-                vel_y: players[your_id].body.velocity.y,
+                x: players[your_id].x,
+                y: players[your_id].y,
+                animation: anim,
+            });
+        }
+
+        if (isMobile && players[your_id] && players[your_id].status === 'alive') {
+            let anim = 'stop';
+            players[your_id].setVelocity(0, 0);
+            speed = 50 + players[your_id].speed * 15;
+
+            if (chevronUp) {
+                players[your_id].body.velocity.y = -speed;
+                if (chevronLeft) {
+                    players[your_id].body.velocity.x = -speed;
+                } else if (chevronRight) {
+                    players[your_id].body.velocity.x = speed;
+                }
+
+                players[your_id].anims.play(game_colors[your_id] + '-up', true);
+                anim = game_colors[your_id] + '-up';
+                animated = true;
+
+            } else if (chevronDown) {
+                players[your_id].body.velocity.y = speed;
+                if (chevronLeft) {
+                    players[your_id].body.velocity.x = -speed;
+                } else if (chevronRight) {
+                    players[your_id].body.velocity.x = speed;
+                }
+
+                players[your_id].anims.play(game_colors[your_id] + '-down', true);
+                anim = game_colors[your_id] + '-down';
+                animated = true;
+
+            } else if (chevronLeft) {
+                players[your_id].body.velocity.x = -speed;
+
+                players[your_id].anims.play(game_colors[your_id] + '-left', true);
+                anim = game_colors[your_id] + '-left';
+                animated = true;
+
+            }
+            else if (chevronRight) {
+                players[your_id].body.velocity.x = speed;
+
+                players[your_id].anims.play(game_colors[your_id] + '-right', true);
+                anim = game_colors[your_id] + '-right';
+                animated = true;
+
+            }
+
+            if (!flipFlopBomb && players[your_id].bombs > _.filter(bombs, (b) => b.player_id === your_id).length && bombKey) {
+                placeBomb(players[your_id].x, players[your_id].y, your_id, players[your_id].flames);
+                socket.emit('placed-bomb', { x: players[your_id].x, y: players[your_id].y, player_id: your_id, flames_len: players[your_id].flames });
+                flipFlopBomb = true;
+            }
+
+            if (flipFlopBomb && !bombKey) {
+                flipFlopBomb = false;
+            }
+
+            if (animated && players[your_id].body.velocity.x == 0 && players[your_id].body.velocity.y == 0) {
+                players[your_id].anims.setCurrentFrame(players[your_id].anims.currentAnim.frames[1]);
+                players[your_id].anims.stop();
+                anim = 'stop';
+                animated = false;
+            }
+
+            socket.emit('move-player', {
+                player_id: players[your_id].id,
                 x: players[your_id].x,
                 y: players[your_id].y,
                 animation: anim,
@@ -315,7 +418,7 @@ function startGame(b, f, s, n_players, your_id) {
                     if (stage[j][i] === 2 || stage[j][i] == 3) {
                         let wall = scene.wallsGroup.create(i * 16, j * 16, 'walls', 2).setOrigin(0, 0);
                         wall.setImmovable();
-                        wall.setDepth(1001);
+                        wall.setDepth(1999);
                         scene.physics.add.collider(scene.playersGroup, wall);
                         walls.push(wall);
                     }
@@ -332,6 +435,7 @@ function startGame(b, f, s, n_players, your_id) {
     const createNewItem = (item_index, item_x, item_y) => {
         item = scene.itemsGroup.create(item_x, item_y, 'items', item_index).setOrigin(0, 0).setSize(12, 12).setOffset(2, 2);
         item.setImmovable();
+        item.setDepth(1998);
         item.index = item_index;
         item.player_collider = scene.physics.add.overlap(item, scene.playersGroup, (item, player) => {
             player.items_collected.push(item.index);
@@ -382,9 +486,8 @@ function startGame(b, f, s, n_players, your_id) {
             bomb.flames = flames_len;
             bomb.color = game_colors[id];
             bomb.setSize(13, 13).setOffset(2, 2);
-
-            bomb.setInteractive();
             bomb.setImmovable();
+            bomb.setDepth(2000);
 
             setTimeout(() => { //fixed the bug when the bomb is misplaced on top of an undestructable wall
                 if (bombOverlapWall(bomb)) { //bomb misplaced
@@ -444,6 +547,7 @@ function startGame(b, f, s, n_players, your_id) {
 
         _.each(flames, (f) => {
             f.setImmovable();
+            f.setDepth(1997);
             f.anims.play(f.animation, 'play');
             f.once("animationcomplete", () => {
                 f.destroy();

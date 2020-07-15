@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * Loading Modules
  */
@@ -54,7 +52,7 @@ io.on('connection', function (client) {
             if (rooms[client.roomName].userList.length == 0) {
                 rooms[client.roomName].gameStarted = false;
             }
-            io.sockets.in(client.roomName).emit('user_disconnected', { nickname: client.nickname, status: client.status });
+            io.sockets.in(client.roomName).emit('user_disconnected', { nickname: client.nickname, status: client.status, readyPlayers: rooms[client.roomName].readyPlayers});
             console.log("[ROOM " + client.roomName + "] - User " + client.nickname + " disconnected");
         }
     })
@@ -104,14 +102,14 @@ io.on('connection', function (client) {
         client.status = "ready";
         rooms[client.roomName].userList[index].status = "ready";
         rooms[client.roomName].readyPlayers++;
-        io.sockets.in(client.roomName).emit("set-player-ready", index);
+        io.sockets.in(client.roomName).emit("set-player-ready", {index: index, readyPlayers: rooms[client.roomName].readyPlayers});
     });
 
     client.on("player-not-ready", (index) => {
         client.status = "not-ready";
         rooms[client.roomName].userList[index].status = "not-ready";
         rooms[client.roomName].readyPlayers--;
-        io.sockets.in(client.roomName).emit("set-player-not-ready", index);
+        io.sockets.in(client.roomName).emit("set-player-not-ready", {index: index, readyPlayers: rooms[client.roomName].readyPlayers});
     });
 
     client.on("update-stage", (stage) => {
@@ -135,7 +133,6 @@ io.on('connection', function (client) {
 
 
         console.info("[ROOM " + client.roomName + "] - User " + client.nickname + " connected");
-        rooms[client.roomName].readyPlayers++;
 
 
         io.sockets.in(client.roomName).emit('user_logged', data.nickname);
@@ -153,6 +150,7 @@ io.on('connection', function (client) {
     // GAME EVENTS
     client.on('start-game', (data) => {
         console.log("[ROOM " + client.roomName + "] - Started a new game");
+        rooms[client.roomName].loaded = 0;
         rooms[client.roomName].gameStarted = true;
         rooms[client.roomName].players = _.range(data.n_p);
         rooms[client.roomName].map = generateWalls(empty_stage);
@@ -162,7 +160,13 @@ io.on('connection', function (client) {
 
     client.on('close-game', () => {
         rooms[client.roomName].gameStarted = false;
-        io.sockets.in(client.roomName).emit('exit-game');
+        //io.sockets.in(client.roomName).emit('exit-game');
+    });
+
+    client.on('user-ready', () => {
+        rooms[client.roomName].loaded++;
+        if (rooms[client.roomName].loaded == rooms[client.roomName].players.length)
+            io.sockets.in(client.roomName).emit('all-users-ready');
     });
 
     client.on('user-exits', () => {
@@ -314,10 +318,10 @@ const replaceItems = (stage, items) => {
         }
     }
 
-    i = 0;
+    let i = 0;
     let locations = [];
     while (i < items.length && notWalls.length > 0) {
-        index = Math.floor(Math.random() * notWalls.length);
+        let index = Math.floor(Math.random() * notWalls.length);
         locations.push([items[i], notWalls[index]]);
         stage[notWalls[index][1] / 16][notWalls[index][0] / 16] = 3;
         notWalls.splice(index, 1);

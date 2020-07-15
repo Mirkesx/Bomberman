@@ -8,6 +8,7 @@ var id;
 var stageSelected;
 var num_players_ready;
 var inGame;
+var isMobile;
 
 $(document).ready(() => {
 
@@ -102,8 +103,7 @@ $(document).ready(() => {
 
                 socket.on("user_disconnected", (data) => {
                     serviceMessage('User disconnected: ' + data.nickname);
-                    if (data.status == "ready")
-                        num_players_ready--;
+                    num_players_ready = data.readyPlayers; 
                     socket.emit('request_user_list');
                 });
 
@@ -116,25 +116,25 @@ $(document).ready(() => {
                     }
                 });
 
-                socket.on("set-player-ready", (index) => {
-                    userList[index].status = "ready";
+                socket.on("set-player-ready", (data) => {
+                    userList[data.index].status = "ready";
                     let $rowUserList = $('#gameSetup #cardPlayersList .card-body').find('.row');
-                    $user = $($rowUserList[index]);
+                    $user = $($rowUserList[data.index]);
                     $user.find('.not-ready').removeClass('fa-times not-ready').addClass("fa-check ready");
-                    num_players_ready++;
-                    if (host == userNickname && num_players_ready == userList.length) {
+                    num_players_ready = data.readyPlayers;
+                    if (host == userNickname && num_players_ready > 1 && num_players_ready == userList.length) {
                         //$('#buttonStart').removeAttr('disabled');
                         $('#buttonReady').hide();
                         $('#buttonStart').show();
                     }
                 });
 
-                socket.on("set-player-not-ready", (index) => {
-                    userList[index].status = "not-ready";
+                socket.on("set-player-not-ready", (data) => {
+                    userList[data.index].status = "not-ready";
                     let $rowUserList = $('#gameSetup #cardPlayersList .card-body').find('.row');
-                    $user = $($rowUserList[index]);
+                    $user = $($rowUserList[data.index]);
                     $user.find('.ready').removeClass('fa-check ready').addClass("fa-times not-ready");
-                    num_players_ready--;
+                    num_players_ready = data.readyPlayers;
                     if (host == userNickname && num_players_ready < userList.length) {
                         //$('#buttonStart').prop('disabled', 'true');
                         $('#buttonStart').hide();
@@ -186,7 +186,13 @@ $(document).ready(() => {
                 socket.on('load-game', (data) => {
                     if (userId != 0) {
                         startGame(data.b, data.f, data.s, data.n_p, userId);
+                        socket.emit('user-ready');
                     }
+                });
+
+                socket.on('all-users-ready', () => {
+                    $('.game').show();
+                    cursors = game.scene.scenes[0].input.keyboard.createCursorKeys();
                 });
 
                 socket.on('exit-game', () => {
@@ -249,7 +255,8 @@ $(document).ready(() => {
                         if (game.scene.scenes[0].your_id === winner)
                             $('.popup_scheda').removeClass('bg-danger').addClass('bg-success');
                         setTimeout(() => game.destroy(false, false), 2000);
-                        setTimeout(() => $('.icon-exit').trigger('click'), 10000);
+                        setTimeout(() => exitGame(), 10000);
+                        socket.emit('close-game');
                         inGame = false;
                     }
                 });
@@ -343,22 +350,16 @@ $(document).ready(() => {
             }
             socket.emit('user-exits');
             inGame = false;
-        } else {
-            $('.chat').hide();
-            $('#gameSetup').hide();
-            socket.close();
-            setTimeout(() => {
-                $('#loginModal').modal('show');
-                $('#carouselAvatar').carousel('pause');
-            }, 500);
         }
     });
 });
 
 function exitGame() {
     game.destroy();
+    $('.controls').hide();
     $('.game').hide();
     $('.lobby').show();
+    $('#buttonReady').trigger('click');
 }
 
 
@@ -420,4 +421,4 @@ function deletePopup(popup, time, top) {
             $('.popup_scheda').remove();
             popupCreato = false;
         });
-}
+};
