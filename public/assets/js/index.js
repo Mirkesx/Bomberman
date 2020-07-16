@@ -346,6 +346,7 @@ $(document).ready(() => {
     $('#exit-room').click(() => {
         socket.close();
         $('#gameSetup').hide();
+        $('.chat').hide();
         createPopup("You left the room.", 500, 50);
         setTimeout(() => {
             $('#loginModal').modal('show');
