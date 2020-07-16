@@ -184,6 +184,7 @@ $(document).ready(() => {
                 socket.on('all-users-ready', () => {
                     if (!isMobile) {
                         cursors = game.scene.scenes[0].input.keyboard.createCursorKeys();
+                        cursors['ctrl'] = game.scene.scenes[0].input.keyboard.addKey('CTRL');
                         createPopup("Start!", 500, 100);
                         $('.popup_scheda').removeClass('bg-danger').addClass('bg-primary');
                     }
@@ -319,22 +320,11 @@ $(document).ready(() => {
         }
     });
 
-    $('.icon-exit').click(() => {
+    $('#exit-game').click(() => {
         if (userId == 0) {
             if ($('canvas')) {
                 socket.emit('close-game');
                 exitGame();
-            } else {
-                $('.chat').hide();
-                $('#buttonStart').hide();
-                $('#buttonReady').trigger('click');
-                $('#buttonReady').show();
-                $('#gameSetup').hide();
-                socket.close();
-                setTimeout(() => {
-                    $('#loginModal').modal('show');
-                    $('#carouselAvatar').carousel('pause');
-                }, 500);
             }
         }
         else {
@@ -351,6 +341,16 @@ $(document).ready(() => {
         }
         socket.emit('user-exits');
         inGame = false;
+    });
+
+    $('#exit-room').click(() => {
+        socket.close();
+        $('#gameSetup').hide();
+        createPopup("You left the room.", 500, 50);
+        setTimeout(() => {
+            $('#loginModal').modal('show');
+            $('#carouselAvatar').carousel('pause');
+        }, 1000);
     });
 });
 

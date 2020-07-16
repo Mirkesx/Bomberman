@@ -34,6 +34,17 @@ body {
     display: none;
 }
 
+.header-game > .text-white {
+    text-align: center;
+    font-weight: bolder;
+    position: fixed;
+    top: 0;
+    left: 70px;
+    right: 70px;
+    height: 20px;
+    font-size: 20px;
+}
+
 canvas {
     display: block;
     margin: 0;

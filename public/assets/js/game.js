@@ -214,11 +214,6 @@ function startGame(b, f, s, n_players, your_id) {
             setupVirtualKeys();
         }
 
-        //GAMEPAD
-        this.input.gamepad.once('connected', function (pad) {
-            console.log(pad);
-        });
-
         //INITIALIZATIONS VARIABLES
         animated = false;
         bombs = [];
@@ -242,10 +237,7 @@ function startGame(b, f, s, n_players, your_id) {
             for (let i = 1; i < 14; i++) {
                 for (let j = 1; j < 12; j++) {
                     if (stage[j][i] === 2 || stage[j][i] == 3) {
-                        let wall = scene.wallsGroup.create(i * 16, j * 16, 'walls', 2).setOrigin(0, 0);
-                        wall.setImmovable();
-                        wall.setDepth(1999);
-                        scene.physics.add.collider(scene.playersGroup, wall);
+                        let wall = createNewWall(i * 16, j * 16)
                         walls.push(wall);
                     }
                 }
@@ -259,7 +251,13 @@ function startGame(b, f, s, n_players, your_id) {
     };
 
 
-
+    const createNewWall = (x, y) => {
+        let wall = scene.wallsGroup.create(x, y, 'walls', 2).setOrigin(0, 0);
+        wall.setImmovable();
+        wall.setDepth(1999);
+        scene.physics.add.collider(scene.playersGroup, wall);
+        return wall;
+    }
 
 
 
@@ -287,7 +285,7 @@ function startGame(b, f, s, n_players, your_id) {
 
     const createPlayer = (x, y, sprites, id) => {
         player = scene.playersGroup.create(x, y, sprites, 7);
-        player.setSize(11, 9, 0, 0).setOffset(3, 15).setOrigin(0.5, 0.75);
+        player.setSize(13, 10, 0, 0).setOffset(1, 15).setOrigin(0.5, 0.75);
         player.setDepth(2001);
         player.setCollideWorldBounds(true);
         player.speed = s;
@@ -434,6 +432,7 @@ function startGame(b, f, s, n_players, your_id) {
             stage[y][x] = 0;
             item.destroy();
         });
+        return item;
     }
 
     const destroyItem = (item, color) => {
@@ -541,7 +540,7 @@ function startGame(b, f, s, n_players, your_id) {
             }
 
             if (i == length - 1) {
-                flames.push(scene.flamesGroup.create(x, y, color + '-flame', 20).setOrigin(origin, origin).setSize(10, 16).setOffset(3, 0));
+                flames.push(scene.flamesGroup.create(x, y, color + '-flame', 20).setOrigin(origin, origin).setSize(8, 16).setOffset(5, 0));
                 flames[flames.length - 1].animation = color + "-bomb-exploding-up-head";
             }
             else {
@@ -615,12 +614,26 @@ function startGame(b, f, s, n_players, your_id) {
     const checkAndDestroyObjects = (x, y, color) => { //used to stop the flames at the first wall/item
         walls_hit = _.filter(scene.wallsGroup.children.entries, (w) => w.x === x && w.y === y);
         if (walls_hit.length > 0) {
-            _.each(walls_hit, (w) => destroyWall(w, color));
+            _.each(walls_hit, (w) => {
+                try {
+                    destroyWall(w, color)
+                } catch {
+                    console.log("Element not found");
+                    destroyWall(createNewWall(x, y), color);
+                }
+            });
             return true;
         }
         items_hit = _.filter(scene.itemsGroup.children.entries, (i) => i.x === x && i.y === y);
         if (items_hit.length > 0) {
-            _.each(items_hit, (i) => destroyItem(i, color));
+            _.each(items_hit, (i) => {
+                try {
+                    destroyItem(i, color);
+                } catch {
+                    console.log("Element not found");
+                    destroyItem(createNewItem(0, x, y), color);
+                }
+            });
             return true;
         }
         return false;
@@ -695,13 +708,13 @@ function startGame(b, f, s, n_players, your_id) {
 
             }
 
-            if (!flipFlopBomb && players[your_id].bombs > _.filter(bombs, (b) => b.player_id === your_id).length && cursors.space.isDown) {
+            if (!flipFlopBomb && players[your_id].bombs > _.filter(bombs, (b) => b.player_id === your_id).length && cursors.ctrl.isDown) {
                 placeBomb(players[your_id].x, players[your_id].y, your_id, players[your_id].flames);
                 socket.emit('placed-bomb', { x: players[your_id].x, y: players[your_id].y, player_id: your_id, flames_len: players[your_id].flames });
                 flipFlopBomb = true;
             }
 
-            if (flipFlopBomb && cursors.space.isUp) {
+            if (flipFlopBomb && cursors.ctrl.isUp) {
                 flipFlopBomb = false;
             }
 
