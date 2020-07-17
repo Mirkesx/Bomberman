@@ -57,6 +57,7 @@ function startGame(b, f, s, n_players, your_id) {
     inGame = true;
     $('.lobby').hide();
     $('.game').show();
+    $('.icon-volume').removeClass('fa-volume-off').addClass('fa-volume-up');
     $('.canvasContainer').html("");
     isMobile = !game.device.os.desktop;
     var map, tileset, layer, scene, stage;
@@ -219,6 +220,7 @@ function startGame(b, f, s, n_players, your_id) {
         bombs = [];
 
         this.backgroundSong.play(musicConfig);
+        game.sound.setVolume(0.2);
     }
 
     setupStage = (s, items) => {
@@ -285,7 +287,7 @@ function startGame(b, f, s, n_players, your_id) {
 
     const createPlayer = (x, y, sprites, id) => {
         player = scene.playersGroup.create(x, y, sprites, 7);
-        player.setSize(13, 10, 0, 0).setOffset(1, 15).setOrigin(0.5, 0.75);
+        player.setSize(11, 9, 0, 0).setOffset(1, 15).setOrigin(0.5, 0.75);
         player.setDepth(2001);
         player.setCollideWorldBounds(true);
         player.speed = s;
