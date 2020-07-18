@@ -310,14 +310,24 @@ $(document).ready(() => {
      * Game Commands
      */
 
-    $('.icon-volume').click(() => {
-        if ($('.icon-volume').hasClass('fa-volume-up')) {
+    $('#icon-volume').click(() => {
+        /*if ($('.icon-volume').hasClass('fa-volume-up')) {
             $('.icon-volume').removeClass('fa-volume-up').addClass('fa-volume-off');
             game.scene.scenes[0].sound.mute = true;
         } else {
             $('.icon-volume').removeClass('fa-volume-off').addClass('fa-volume-up');
             game.scene.scenes[0].sound.mute = false;
-        }
+        }*/
+        $('#range-volume').show().focus();
+        $('#icon-volume').hide();
+    });
+
+    $('#range-volume').on('change', () => {
+        game.sound.setVolume($('#range-volume').val());
+        $('#range-volume').focusout();
+    }).on('focusout', () => {
+        $('#range-volume').hide();
+        $('#icon-volume').show();
     });
 
     $('#exit-game').click(() => {

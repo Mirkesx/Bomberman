@@ -1,6 +1,3 @@
-const game_colors = ['white', 'black', 'blue', 'red'];
-const items_list = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 3, 3, 9, 9, 9, 9, 9, 23, 23, 23];
-
 var game, cursors;
 var setupStage, replaceItems, placeBomb, moveEnemy, stopEnemy, killEnemy;
 
@@ -65,6 +62,8 @@ function startGame(b, f, s, n_players, your_id) {
     var bombs, flipFlopBomb;
     var animated; //animated is used to show the right animation with the player sprite
     var walls;
+    const game_colors = ['white', 'black', 'blue', 'red'];
+    const items_list = [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 3, 9, 9, 9, 9, 9, 23, 23];
 
 
     function preload() {

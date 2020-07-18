@@ -79,7 +79,8 @@
                             </div>
                             <div class="row row-content align-items-center">
                                 <div class="col-12 d-flex justify-content-center">
-                                    <button type="button" id="join-room" class="btn btn-primary btn-sm m-1 p-2">Join</button>
+                                    <button type="button" id="join-room"
+                                        class="btn btn-primary btn-sm m-1 p-2">Join</button>
                                     <!-- <button type="button" id="create-room" class="btn btn-danger btn-sm m-1 p-2">Create
                                         a
                                         room</button> -->
@@ -129,10 +130,12 @@
                                         <div class="col-12">
                                             <div class="row" id="settingsTimer">
                                                 <div class="col-12 col-md-6 p-sm-0">
-                                                    Min. <input type="number" id="settingsMinutes" value="3" min="1" max="5">
+                                                    Min. <input type="number" id="settingsMinutes" value="3" min="1"
+                                                        max="5">
                                                 </div>
                                                 <div class="col-12 col-md-6 p-sm-0">
-                                                    Sec. <input type="number" id="settingsSeconds" value="00" min="0" max="59">
+                                                    Sec. <input type="number" id="settingsSeconds" value="00" min="0"
+                                                        max="59">
                                                 </div>
                                             </div>
                                         </div>
@@ -196,9 +199,12 @@
 
     <div class="game">
         <div class="header-game">
-            <div class="fa fa-4 fa-volume-up icon-volume"></div>
+            <div class="volume">
+                <div class="fa fa-4 fa-volume-up" id="icon-volume"></div>
+                <input type="range" value="0.2" min="0" max="1" id="range-volume" step='.001'>
+            </div>
             <span class="text-white">Use arrows to move and CTRL to place a bomb.</span>
-            <div class="fa fa-4 fa-sign-out icon-exit"  id='exit-game'></div>
+            <div class="fa fa-4 fa-sign-out icon-exit" id='exit-game'></div>
         </div>
         <div class=" canvasContainer">
         </div>
