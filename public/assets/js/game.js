@@ -42,7 +42,7 @@ function startGame(b, f, s, n_players, your_id) {
         physics: {
             default: 'arcade',
             arcade: {
-                debug: false
+                debug: true
             },
         },
         input: {
@@ -287,7 +287,7 @@ function startGame(b, f, s, n_players, your_id) {
 
     const createPlayer = (x, y, sprites, id) => {
         player = scene.playersGroup.create(x, y, sprites, 7);
-        player.setSize(11, 9, 0, 0).setOffset(1, 15).setOrigin(0.5, 0.75);
+        player.setSize(11, 9, 0, 0).setOffset(3, 15).setOrigin(0.5, 0.75);
         player.setDepth(2001);
         player.setCollideWorldBounds(true);
         player.speed = s;
