@@ -42,7 +42,7 @@ function startGame(b, f, s, n_players, your_id) {
         physics: {
             default: 'arcade',
             arcade: {
-                debug: true
+                debug: false
             },
         },
         input: {
