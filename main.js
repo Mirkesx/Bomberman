@@ -277,11 +277,12 @@ const generateWalls = () => {
         "12,11",
     ];
 
-    let stage = [[], [], [], [], [], [], [], [], [], [], [], [], []];
+    //let stage = [[], [], [], [], [], [], [], [], [], [], [], [], []];
+    let stage = players_start.slice();
 
     for (let i = 0; i < 15; i++) {
         for (let j = 0; j < 13; j++) {
-            stage[j].push(empty_stage[j][i]);
+            //stage[j].push(empty_stage[j][i]);
             if (players_start.indexOf(i + "," + j) === -1 && stage[j][i] === 0) {
                 if (Math.random() < 0.85) {
                     stage[j][i] = 2;
