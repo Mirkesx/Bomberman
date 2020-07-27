@@ -8,11 +8,23 @@
     <ul>
       <li><a href="#npm-start">Start the server with npm</a></li>
       <li><a href="#docker-start">Start the server with docker</a></li>
+      <li><a href="#login-start">Login and start a game</a></li>
     </ul>
   </li>
+  <li>
+    <a href="#about">About this project</a>
+    <ul>
+      <li><a href="#folders">Folder structure</a></li>
+      <li><a href="#modules">Node modules installed</a></li>
+      <li><a href="#phaser">Phaser</a></li>
+    </ul>
+  </li>
+  <li><a href="#ref">References</a></li>
 </ol>
 
-<span name="intro">Assignment for the Web Programming course of the University of Catania. This is a repo about a Bomberman-like multiplayer videogame as a Node.js application. 
+# <span name="intro">Introduction</span>
+<lr>
+<span>Assignment for the Web Programming course of the University of Catania. This is a repo about a Bomberman-like multiplayer videogame as a Node.js application. 
 
 Do you believe that nowadays games are overrated? Do you still play with your Super Nintendo because PS5 is just for spoiled children? Then you will surely like this project! You probably should know about Bomberman (if not, shame on you, google it... now). The gameplay is pretty straight-forward: 2 to 4 players fighting each others using bombs. You can get power-ups to become stronger. The last man standing wins (doesn't it sounds so much like battle royales?).
 
@@ -64,6 +76,120 @@ For the third solution: once you stop using this server i suggest you to destroy
 
 That's all!
 
-# References
+# <span name="login-start">Login and start a game</span>
 <lr>
- - WSL 2 https://docs.microsoft.com/it-it/windows/wsl/wsl2-index
+  
+Once you connect to the index you will see the login prompt. Choose a nickname and the name of the room you want to join. The avatar is up to you, since it doesn't affect your gameplay but just your appearance in the built-in chat.
+
+Each room can have only 4 players connected and it is not allowed to have 2 players with the same nickname. To play you need at least 2 players connected to the lobby.
+
+The first player who joins a room is the host: this player can change the settings and the map level (TO DO). The other players can only set their status to "READY". Once all the players are READY and there at least 2 players, the host can press "START" and it will start the game for every player connected to the lobby.
+
+If the host logs-off, the second player in the list will become the host automatically.
+
+Once in-game you can move your character with the arrow keys and place bombs with LEFT CTRL. You can adjust the audio if you want or exit the room. If the host exits the room it will close the game for all the players, but if is a normal player to quit he will just log-off from the lobby.
+
+Any player can log-off by pressing F5 or clicking on the exit-icon on the top-left corner.
+
+# <span name="about">About this project</span>
+<lr>
+
+This section will be about technical stuff. Let's watch closer this code and see how it runs.
+
+# <span name="folders">Folder structure</span>
+<lr>
+  
+The project folders is divided into 3 parts:
+<ul>
+  <li>Backend files</li>
+  <li>public files</li>
+  <li>test files</li>
+</ul>
+
+I kept the test files, but they are basically useless since they are meant to be to test phaser and the gameplay outside the frontend web-page. So let's just forget about the test folder (it is basically a simpler version of the public folder).
+
+The only file related to the backend is the <strong>main.js</strong> file.
+
+The public folders contains all the frontend files. The structure is this one:
+<ul>
+  <li>
+    assets
+    <ul>
+      <li>
+        audio
+        <ul>
+          <li><i>Contains the background-music and the explosion sound</i></li>  
+        </ul>
+      </li>  
+      <li>
+        css
+        <ul>
+          <li><i>Contains the css files</i></li>  
+        </ul>
+      </li>
+      <li>
+        img
+        <ul>
+          <li><i>Contains the images used for the graphic of the website</i></li>  
+        </ul>
+      </li>
+      <li>
+        js
+        <ul>
+          <li><i>Contains all the js files</i></li>  
+        </ul>
+      </li>
+      <li>
+        sprites
+        <ul>
+          <li><i>Contains the sprites for Phaser (players/bombs/flames)</i></li>  
+        </ul>
+      </li>
+      <li>
+        tilemaps
+        <ul>
+          <li><i>Contains the tilemaps for Phaser (map-level as csv)</i></li>  
+        </ul>
+      </li>
+      <li>
+        tiles
+        <ul>
+          <li><i>Contains the tiles for Phaser (map-level as tile set)</i></li>  
+        </ul>
+      </li>
+    </ul>
+  </li>  
+  <li>index.html</li>
+</ul>
+
+The only running file is index.html. When you open it (or connect to the server) you will face the login section. This section is all coded using bootstrap/jQuery. Once you join a room you will see the lobby which is too coded in bootstrap/jQuery. Once you Start the game from the lobby you will see the canvas and this is all coded using Phaser.
+
+The js files inside assets/js are divided to manage each different section such as the login, the chat and the game itself.
+
+# <span name="modules">Node Modules installed</span>
+<lr>
+  
+As i said, this game runs on node.js. Why is this? It is obviously because it was needed to have a real-time experience. The game is fast-pacing and needs a backend which would keep all the clients always updated in time to allows players to play without harm.
+
+The modules installed to run this code are the following:
+<ul>
+  <li>Express</li>
+  <li>Socker.io</li>
+  <li>jQuery</li>
+  <li>Underscore</li>
+  <li>Font-Awesome</li>
+  <li>Bootstrap</li>
+  <li>Phaser</li>
+</ul>
+
+# <span name="phaser">Phaser</span>
+<lr>
+This is the library i used to code the game. I picked Phaser 3.23.0 (the latest realease). I picked this library since is the most (i believe) complete js library to develop web-games. It makes easier to check collisions/overlaps and to run animations when elements are moving. You can use spritesheets for the animations. I personally used some sprites i got from Spiters Resource (link in the references), but you can use your own sprites, even gif files.
+
+# <span name="ref">References</span>
+<lr>
+  <ul>
+    <li>WSL 2 https://docs.microsoft.com/it-it/windows/wsl/wsl2-index</li>
+    <li>Phaser https://phaser.io/</li>
+    <li>Spriters Resource https://www.spriters-resource.com/</li>
+  </ul>
