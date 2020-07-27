@@ -1,21 +1,33 @@
+# Marco Cavalli - X81000445
 # Bomberman
 
-Assignment for the Web Programming course of the University of Catania. This is a repo about a Bomberman-like multiplayer videogame as a Node.js application. 
+<ol>
+  <li><a href="#intro">Introduction</a></li>
+  <li>
+    <a href="#how-to-start">How to start it</a>
+    <ul>
+      <li><a href="#npm-start">Start the server with npm</a></li>
+      <li><a href="#docker-start">Start the server with docker</a></li>
+    </ul>
+  </li>
+</ol>
+
+<span name="intro">Assignment for the Web Programming course of the University of Catania. This is a repo about a Bomberman-like multiplayer videogame as a Node.js application. 
 
 Do you believe that nowadays games are overrated? Do you still play with your Super Nintendo because PS5 is just for spoiled children? Then you will surely like this project! You probably should know about Bomberman (if not, shame on you, google it... now). The gameplay is pretty straight-forward: 2 to 4 players fighting each others using bombs. You can get power-ups to become stronger. The last man standing wins (doesn't it sounds so much like battle royales?).
 
 This software allows you to start a web-server application. It will allow you to create private rooms to play with friends, you can even pick an avatar and chat through the main page of the game. The first who enters an empty room will be the host and can setup the game (choosing the number of bombs and such) and then start the game when all the players are ready.
 
-That's awesome, right? But... how to use this?
+That's awesome, right? But... how to use this?</span>
 
-# Usage
+# <span name="how-to-start">How to start it</span>
 <lr>
   
 You can choose 2 ways to start/host this game:
 - npm
 - docker
 
-<h3>Start the server with npm</h3>
+<h3 name="npm-start">Start the server with npm</h3>
 <lr>
   
 <strong>Requires</strong> npm to be installed on your pc!
@@ -34,7 +46,7 @@ For the third solution: once you stop using this server i suggest you to destroy
 That's all!
 
 
-<h3>Start the server with docker</h3>
+<h3 name="docker-start">Start the server with docker</h3>
 <lr>
   
 <strong>Requires</strong> docker to be installed on your pc! It is easier to get it on Linux/Mac OS, but you can get it on windows with WSL 2.
