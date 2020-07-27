@@ -35,7 +35,7 @@ That's awesome, right? But... how to use this?</span>
 # <span name="how-to-start">How to start it</span>
 <lr>
   
-You can choose 2 ways to start/host this game:
+You can choose 2 ways to start/host the web-server:
 - npm
 - docker
 
