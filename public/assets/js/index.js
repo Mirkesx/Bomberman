@@ -15,18 +15,50 @@ $(document).ready(() => {
 
     const loginUser = () => {
         $objHead = $('head');
-        userList = [];
-        userNickname = $("#nickname").val();
-        roomName = $("#roomName").val();
-        num_players_ready = 0;
-        inGame = false;
-        if (roomName && roomName.length > 2 && userNickname && userNickname.length > 3) {
+        $('.icon-exit').show();
+
+        if (userNickname && userNickname.length > 3) {
             socket = io(window.location.href);
 
             socket.on('connect', () => {
 
+                // LOGIN
+
+                socket.emit('load-rooms');
+
+                socket.on('loads-room', (rooms) => {
+
+                });
+
+                //socket.emit('create-room', { nickname: userNickname, roomName: roomName, avatar: avatar });
+
+
+                socket.on('list-of-rooms', (rooms) => {
+                    let $rooms = [];
+                    for(let room in rooms) {
+                        if(rooms[room].userList.length > 0 && rooms[room].userList.length < 4) {
+                            $rooms.push('<span class="col-8 d-flex justify-content-center" id="room'+room+'">'+room+'</span>\
+                                        <span class="col-2 d-flex justify-content-center" id="len'+room+'">'+rooms[room].userList.length+'/4</span>\
+                                        <span class="col-2 d-flex justify-content-center" data-room="'+room+'"><button class="btn btn-success p-1 enter-room-button">ENTER</button></span>');
+                        }
+                        $('#room-list').html($rooms.join(""));
+                    }
+
+                    $('.enter-room-button').click((event) => {
+                        event.preventDefault();
+                        roomName = $(event.currentTarget.parentElement).attr('data-room');
+                        setTimeout(() => {
+                            $('#enterRoom').modal('hide');
+                            socket.emit('create-room', { nickname: userNickname, roomName: roomName, avatar: avatar });
+                        }, 250);
+                    });
+                });
+
+                // ERROR HANDLING
+
                 socket.on("nickname-exists", () => {
                     $('.chat').hide();
+                    $('.icon-exit').hide();
                     socket.close();
                     //console.log("Nickname exists");
                     createPopup("Nickname already exists in this room", 500, 50);
@@ -38,6 +70,7 @@ $(document).ready(() => {
 
                 socket.on("room-not-exists", () => {
                     $('.chat').hide();
+                    $('.icon-exit').hide();
                     socket.close();
                     //console.log("Doesn't exists a room with this name");
                     createPopup("Doesn't exists a room with this name", 500, 50);
@@ -49,6 +82,7 @@ $(document).ready(() => {
 
                 socket.on("room-exists", () => {
                     $('.chat').hide();
+                    $('.icon-exit').hide();
                     socket.close();
                     //console.log("This room name is already used");
                     createPopup("This room name is already used", 500, 50);
@@ -60,6 +94,7 @@ $(document).ready(() => {
 
                 socket.on("room-full", () => {
                     $('.chat').hide();
+                    $('.icon-exit').hide();
                     socket.close();
                     //console.log("This room is full");
                     createPopup("This room is full", 500, 50);
@@ -71,6 +106,7 @@ $(document).ready(() => {
 
                 socket.on("room-in-game", () => {
                     $('.chat').hide();
+                    $('.icon-exit').hide();
                     socket.close();
                     //console.log("This room is full");
                     createPopup("This room is in-game.", 500, 50);
@@ -139,8 +175,6 @@ $(document).ready(() => {
                         $('#buttonReady').show();
                     }
                 });
-
-                socket.emit('create-room', { nickname: userNickname, roomName: roomName, avatar: avatar });
 
                 socket.on("message", (data) => {
                     if (userNickname != data.nickname) {
@@ -274,12 +308,23 @@ $(document).ready(() => {
     Manage events
     */
 
-    $("#join-room").on('click', () => {
+    $("#loads-room").on('click', () => {
         $("#nickname").val($("#nickname").val().replace(/ /g, ""));
-        $("#roomName").val($("#roomName").val().replace(/ /g, ""));
+        userNickname = $("#nickname").val();
         avatar = $('#carouselAvatar').find('.active').attr('data-avatar');
         $('#loginModal').modal('hide');
+        setTimeout(() => $('#enterRoom').modal('show'), 500);
         loginUser();
+    });
+
+    $("#join-room").on('click', () => {
+        $("#roomName").val($("#roomName").val().replace(/ /g, ""));
+        $('#enterRoom').modal('hide');
+        userList = [];
+        roomName = $("#roomName").val();
+        num_players_ready = 0;
+        inGame = false;
+        socket.emit('create-room', { nickname: userNickname, roomName: roomName, avatar: avatar });
     });
 
     /*
@@ -341,6 +386,7 @@ $(document).ready(() => {
             exitGame();
             if (inGame) {
                 $('.chat').hide();
+                $('.icon-exit').hide();
                 $('#gameSetup').hide();
                 socket.close();
                 setTimeout(() => {
@@ -357,6 +403,7 @@ $(document).ready(() => {
         socket.close();
         $('#gameSetup').hide();
         $('.chat').hide();
+        $('.icon-exit').hide();
         createPopup("You left the room.", 500, 50);
         setTimeout(() => {
             $('#loginModal').modal('show');
@@ -378,6 +425,7 @@ function exitGame() {
 
 function createLoginModal() {
     $('.chat').hide();
+    $('.icon-exit').hide();
     $('#gameSetup').hide();
     $('#loginModal').modal({ backdrop: 'static', keyboard: false });
 

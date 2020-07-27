@@ -2,11 +2,11 @@ body {
     padding-bottom: 50px;
 }
 
-#loginModal .modal-content {
+#loginModal .modal-content, #enterRoom .modal-content {
     border-radius: 25px;
 }
 
-#loginModal .modal-content .modal-header {
+#loginModal .modal-content .modal-header, #enterRoom .modal-content .modal-header {
     border-top-left-radius: 25px;
     border-top-right-radius: 25px;
 }
@@ -160,4 +160,8 @@ input[type='range']::-webkit-slider-thumb {
     position: fixed;
     right: 50px;
     bottom: 150px;
+}
+
+.room-item > * {
+    margin: 5px 0 !important;
 }

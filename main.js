@@ -34,6 +34,7 @@ app.get('/test', function (req, res) {
  */
 
 const rooms = {};
+const main_lobby = ' lobby ';
 io.on('connection', function (client) {
 
     client.on("disconnect", () => {
@@ -53,13 +54,19 @@ io.on('connection', function (client) {
                 rooms[client.roomName].gameStarted = false;
             }
             io.sockets.in(client.roomName).emit('user_disconnected', { nickname: client.nickname, status: client.status, readyPlayers: rooms[client.roomName].readyPlayers});
+            io.sockets.in(main_lobby).emit('list-of-rooms', rooms);
             console.log("[ROOM " + client.roomName + "] - User " + client.nickname + " disconnected");
         }
     })
 
     client.on("request_user_list", () => {
         client.emit("user_list", { list: rooms[client.roomName].userList, h: rooms[client.roomName].host });
-    })
+    });
+
+    client.on("load-rooms", () => {
+        client.join(main_lobby);
+        client.emit('list-of-rooms', rooms);
+    });
 
     client.on("create-room", (data) => {
         if (!rooms.hasOwnProperty(data.roomName)) {
@@ -69,6 +76,7 @@ io.on('connection', function (client) {
         /*else {
             client.emit("room-exists");
         }*/
+        client.leave(main_lobby);
         client.emit("enter-room", data);
     });
 
@@ -138,6 +146,7 @@ io.on('connection', function (client) {
         io.sockets.in(client.roomName).emit('user_logged', data.nickname);
         client.emit("user_list", { list: rooms[client.roomName].userList, h: rooms[client.roomName].host });
         client.emit('load_dashboard', rooms[client.roomName].gameStarted);
+        io.sockets.in(main_lobby).emit('list-of-rooms', rooms);
     };
 
     const checkValidRoom = (data) => {
@@ -277,12 +286,12 @@ const generateWalls = () => {
         "12,11",
     ];
 
-    //let stage = [[], [], [], [], [], [], [], [], [], [], [], [], []];
-    let stage = players_start.slice();
+    let stage = [[], [], [], [], [], [], [], [], [], [], [], [], []];
+    //let stage = players_start.slice();
 
     for (let i = 0; i < 15; i++) {
         for (let j = 0; j < 13; j++) {
-            //stage[j].push(empty_stage[j][i]);
+            stage[j].push(empty_stage[j][i]);
             if (players_start.indexOf(i + "," + j) === -1 && stage[j][i] === 0) {
                 if (Math.random() < 0.85) {
                     stage[j][i] = 2;

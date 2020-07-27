@@ -29,15 +29,10 @@
                     <div class="modal-body">
                         <form>
                             <div class="row row-content align-items-center">
-                                <div class="form-group col-12 col-sm-6">
+                                <div class="form-group col-12">
                                     <label class="sr-only" for="nickname">Nickname</label>
                                     <input type="text" class="form-control form-control-sm mr-1" id="nickname"
                                         placeholder="Enter a nickname">
-                                </div>
-                                <div class="form-group col-12 col-sm-6">
-                                    <label class="sr-only" for="roomName">Room Name</label>
-                                    <input type="text" class="form-control form-control-sm mr-1" id="roomName"
-                                        placeholder="Room Name">
                                 </div>
                                 <div class="form-group col-12 d-flex justify-content-center">
                                     <label class="sr-only" for="avatar">Avatar</label>
@@ -79,12 +74,44 @@
                             </div>
                             <div class="row row-content align-items-center">
                                 <div class="col-12 d-flex justify-content-center">
-                                    <button type="button" id="join-room"
-                                        class="btn btn-primary btn-sm m-1 p-2">Join</button>
-                                    <!-- <button type="button" id="create-room" class="btn btn-danger btn-sm m-1 p-2">Create
-                                        a
-                                        room</button> -->
+                                    <button type="button" id="loads-room"
+                                        class="btn btn-primary btn-sm m-1 p-2">Enter</button>
                                 </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="enterRoom" class="modal fade" role="dialog">
+            <div class="modal-dialog modal-lg" role="content">
+                <div class="modal-content">
+                    <div class="modal-header btn-primary">
+                        <h4 class="modal-title">Create o Join a Room</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="row row-content align-items-center">
+                                <div class="form-group col-12">
+                                    <label class="sr-only" for="roomName">Room Name</label>
+                                    <input type="text" class="form-control form-control-sm mr-1" id="roomName"
+                                        placeholder="Room Name">
+                                </div>
+                            </div>
+                            <div class="row row-content align-items-center">
+                                <div class="col-12 d-flex justify-content-center">
+                                    <button type="button" id="join-room"
+                                        class="btn btn-primary btn-sm m-1 p-2">Login</button>
+                                </div>
+                            </div>
+                            <hr class="col-12">
+                            <div class="row row-content align-items-center">
+                                <div class="col-12 d-flex justify-content-center">
+                                    <h2>List of rooms:</h2>
+                                </div>
+                            </div>
+                            <div class="row row-content align-items-center room-item" id="room-list">
                             </div>
                         </form>
                     </div>

@@ -17,8 +17,9 @@ const printUserList = () => {
     $('#gameSetup').find('#cardPlayersList').find('.card-body').html('');
     for (let i = 0; i < userList.length; i++) {
         let $row = $('<div class="row"></div>');
-        $row.append('<span class="col-10 userName" style="color:' + colors[i] + ';">' + userList[i].nickname + '</span>');
-        $row.append('<span class="col-1 fa ' + (userList[i].status == "ready" ? 'fa-check' : 'fa-times') + ' fa-2 ' + userList[i].status + '"></span>');
+        $row.append('<span class="col-12 col-lg-7 userName" style="color:' + colors[i] + ';">' + userList[i].nickname + '</span>');
+        //$row.append('<span class="col-1 fa ' + (userList[i].status == "ready" ? 'fa-check' : 'fa-times') + ' fa-2 ' + userList[i].status + '"></span>');
+        $row.append('<span class="col-12 col-lg-5 ' +userList[i].status + '">'+(userList[i].status == "ready" ? 'READY' : 'NOT-READY')+'</span>');
         $('#gameSetup').find('#cardPlayersList').find('.card-body').append($row);
     }
     if(userNickname == host) {
