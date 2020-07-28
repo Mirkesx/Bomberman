@@ -102,7 +102,7 @@
                             <div class="row row-content align-items-center">
                                 <div class="col-12 d-flex justify-content-center">
                                     <button type="button" id="join-room"
-                                        class="btn btn-primary btn-sm m-1 p-2">Login</button>
+                                        class="btn btn-primary btn-sm m-1 p-2">Enter the room</button>
                                 </div>
                             </div>
                             <hr class="col-12">
@@ -132,23 +132,29 @@
                                     </p>
                                 </div>
                                 <div class="card-body">
-                                    <div class="row">
+                                    <div class="row row-content align-items-center">
                                         <span class="col-6">
                                             <h5>Bombs</h5>
                                         </span>
-                                        <input class="col-6" type="number" id="numberBombs" value="1" min="1" max="5">
+                                        <button class="col-2 fa fa-arrow-down settingButton"></button>
+                                        <input class="col-2" type="number" id="numberBombs" value="1" min="1" max="5" disabled>
+                                        <button class="col-2 fa fa-arrow-up settingButton"></button>
                                     </div>
-                                    <div class="row">
+                                    <div class="row row-content align-items-center">
                                         <span class="col-6">
                                             <h5>Flames</h5>
                                         </span>
-                                        <input class="col-6" type="number" id="numberFlames" value="2" min="1" max="5">
+                                        <button class="col-2 fa fa-arrow-down settingButton"></button>
+                                        <input class="col-2" type="number" id="numberFlames" value="2" min="1" max="5" disabled>
+                                        <button class="col-2 fa fa-arrow-up settingButton"></button>
                                     </div>
-                                    <div class="row">
+                                    <div class="row row-content align-items-center">
                                         <span class="col-6">
                                             <h5>Speed</h5>
                                         </span>
-                                        <input class="col-6" type="number" id="numberSpeed" value="1" min="1" max="5">
+                                        <button class="col-2 fa fa-arrow-down settingButton"></button>
+                                        <input class="col-2" type="number" id="numberSpeed" value="1" min="1" max="5" disabled>
+                                        <button class="col-2 fa fa-arrow-up settingButton"></button>
                                     </div>
                                     <div class="row timePanel">
                                         <span class="col-12">

@@ -31,11 +31,11 @@ $(document).ready(() => {
 
                 socket.on('list-of-rooms', (rooms) => {
                     let $rooms = [];
-                    for(let room in rooms) {
-                        if(rooms[room].userList.length > 0 && rooms[room].userList.length < 4) {
-                            $rooms.push('<span class="col-5 d-flex justify-content-center" id="room'+room+'">'+room+'</span>\
-                                        <span class="col-4 d-flex justify-content-center" id="len'+room+'">'+rooms[room].userList.length+'/4</span>\
-                                        <span class="col-3 d-flex justify-content-center" data-room="'+room+'"><button class="btn btn-success p-1 enter-room-button">ENTER</button></span>');
+                    for (let room in rooms) {
+                        if (rooms[room].userList.length > 0 && rooms[room].userList.length < 4) {
+                            $rooms.push('<span class="col-5 d-flex justify-content-center" id="room' + room + '">' + room + '</span>\
+                                        <span class="col-4 d-flex justify-content-center" id="len'+ room + '">' + rooms[room].userList.length + '/4</span>\
+                                        <span class="col-3 d-flex justify-content-center" data-room="'+ room + '"><button class="btn btn-success p-1 enter-room-button">ENTER</button></span>');
                         }
                         $('#room-list').html($rooms.join(""));
                     }
@@ -146,6 +146,7 @@ $(document).ready(() => {
                     serviceMessage('New host: ' + nickname);
                     if (userNickname === nickname) {
                         host = nickname;
+                        $('.settingButton').css('visibility', 'visible');
                         initCarousel();
                     }
                 });
@@ -196,18 +197,18 @@ $(document).ready(() => {
 
 
                 socket.on("remove-color", (data) => {
-                    $('#cardPlaceSelector [data-color="'+data.actual_color+'"]').css('visibility', 'hidden');
-                    $('#cardPlaceSelector [data-color="'+data.actual_color+'"]').parent().addClass('picked-color');
-                    if(data.prev_color) {
-                        $('#cardPlaceSelector [data-color="'+data.prev_color+'"]').css('visibility', 'visible');
-                        $('#cardPlaceSelector [data-color="'+data.prev_color+'"]').parent().removeClass('picked-color');
+                    $('#cardPlaceSelector [data-color="' + data.actual_color + '"]').css('visibility', 'hidden');
+                    $('#cardPlaceSelector [data-color="' + data.actual_color + '"]').parent().addClass('picked-color');
+                    if (data.prev_color) {
+                        $('#cardPlaceSelector [data-color="' + data.prev_color + '"]').css('visibility', 'visible');
+                        $('#cardPlaceSelector [data-color="' + data.prev_color + '"]').parent().removeClass('picked-color');
                     }
-                }); 
+                });
 
 
                 socket.on("release-color", (color) => {
-                    $('#cardPlaceSelector [data-color="'+color+'"]').css('visibility', 'visible');
-                    $('#cardPlaceSelector [data-color="'+data.prev_color+'"]').parent().removeClass('picked-color');
+                    $('#cardPlaceSelector [data-color="' + color + '"]').css('visibility', 'visible');
+                    $('#cardPlaceSelector [data-color="' + color.prev_color + '"]').parent().removeClass('picked-color');
                 });
 
 
@@ -337,12 +338,17 @@ $(document).ready(() => {
 
     $("#join-room").on('click', () => {
         $("#roomName").val($("#roomName").val().replace(/ /g, ""));
-        $('#enterRoom').modal('hide');
-        userList = [];
         roomName = $("#roomName").val();
-        num_players_ready = 0;
-        inGame = false;
-        socket.emit('create-room', { nickname: userNickname, roomName: roomName, avatar: avatar });
+        if (roomName.length > 0) {
+            $('#enterRoom').modal('hide');
+            $('.icon-exit').modal('show');
+            userList = [];
+            num_players_ready = 0;
+            inGame = false;
+            socket.emit('create-room', { nickname: userNickname, roomName: roomName, avatar: avatar });
+        } else {
+            createPopup("Room Name must have at least a character", 500, 50);
+        }
     });
 
     /*

@@ -12,6 +12,7 @@ const setupSettings = () => {
     setEventsButtons();
     setCarousel();
     setPlaceButtons();
+    setSettingsButtons();
 }
 
 const printUserList = () => {
@@ -123,4 +124,19 @@ const setPlaceButtons = () => {
         if(userList[i].color)
             $('#cardPlaceSelector [data-color="'+userList[i].color+'"]').css('visibility', 'hidden');
     }
+};
+
+const setSettingsButtons = () => {
+    $('.fa-arrow-down.settingButton').click((event) => {
+        $el = $(event.currentTarget);
+        let val = parseInt($el.parent().find("input").val());
+        $el.parent().find("input").val(val-1);
+    });
+    $('.fa-arrow-up.settingButton').click((event) => {
+        $el = $(event.currentTarget);
+        let val = parseInt($el.parent().find("input").val());
+        $el.parent().find("input").val(val+1);
+    });
+    if(userId != 0)
+        $('.settingButton').css('visibility','hidden');
 };
