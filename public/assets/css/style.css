@@ -165,3 +165,18 @@ input[type='range']::-webkit-slider-thumb {
 .room-item > * {
     margin: 5px 0 !important;
 }
+
+#cardPlaceSelector .card-body {
+    padding: 0 !important;
+}
+
+#cardPlaceSelector .btn {
+    margin: 20px !important;
+    padding: 0 !important;
+    height: 50px;
+    width: 50px;
+}
+
+#cardPlaceSelector .btn-light {
+    background-color: lightslategray;
+}

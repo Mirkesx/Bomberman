@@ -11,15 +11,23 @@ const setupSettings = () => {
     setInputListeners();
     setEventsButtons();
     setCarousel();
+    setPlaceButtons();
 }
 
 const printUserList = () => {
     $('#gameSetup').find('#cardPlayersList').find('.card-body').html('');
     for (let i = 0; i < userList.length; i++) {
         let $row = $('<div class="row"></div>');
-        $row.append('<span class="col-12 col-lg-7 userName" style="color:' + colors[i] + ';">' + userList[i].nickname + '</span>');
+        let color = "white";
+        if(userList[i].color) {
+            if(userList[i].color == "white")
+                color = "gray";
+            else
+                color = userList[i].color;
+        }
+        $row.append('<span class="col-12 col-lg-7 userName" style="color:' + color + ';">' + userList[i].nickname + '</span>');
         //$row.append('<span class="col-1 fa ' + (userList[i].status == "ready" ? 'fa-check' : 'fa-times') + ' fa-2 ' + userList[i].status + '"></span>');
-        $row.append('<span class="col-12 col-lg-5 ' +userList[i].status + '">'+(userList[i].status == "ready" ? 'READY' : 'NOT-READY')+'</span>');
+        $row.append('<span class="col-12 col-lg-5 ' +userList[i].status + '">'+(userList[i].status == "ready" ? 'READY' : 'NOT READY')+'</span>');
         $('#gameSetup').find('#cardPlayersList').find('.card-body').append($row);
     }
     if(userNickname == host) {
@@ -55,10 +63,14 @@ const setEventsButtons = () => {
     $('#buttonReady').click(() => {
         let index = _.findIndex(userList, (user) => user.nickname == userNickname);
         if (userList[index].status == "not-ready") {
-            console.log("Now ready.")
-            socket.emit('player-ready', index);
-            $('#buttonReady').removeClass('btn-danger').addClass('btn-success');
-        } else {
+            if(userList[index].color) {
+                console.log("Now ready.")
+                socket.emit('player-ready', index);
+                $('#buttonReady').removeClass('btn-danger').addClass('btn-success');
+            } else {
+                createPopup("You must choose a color before!", 500, 50);
+            }
+        } else if(userList[index].status == "ready") {
             console.log("Now not ready.")
             socket.emit('player-not-ready', index);
             $('#buttonReady').removeClass('btn-success').addClass('btn-danger');
@@ -100,4 +112,11 @@ const initCarousel = () => {
         $('#prev-stage').hide();
         $('#next-stage').hide();
     }
-}
+};
+
+const setPlaceButtons = () => {
+    $('#cardPlaceSelector .btn').click((event) => {
+        yourColor = $(event.currentTarget).data('color');
+        socket.emit('color-claimed',yourColor);
+    });
+};

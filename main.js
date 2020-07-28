@@ -156,6 +156,18 @@ io.on('connection', function (client) {
     };
 
 
+    client.on('color-claimed', (color) => {
+        let index = _.findIndex(rooms[client.roomName].userList, (user) => user.nickname == client.nickname);
+        let data = {actual_color: color, prev_color: undefined};
+        if(rooms[client.roomName].userList[index].color)
+            data.prev_color = rooms[client.roomName].userList[index].color;
+        rooms[client.roomName].userList[index].color = color;
+        io.sockets.in(client.roomName).emit('remove-color', data);
+        io.sockets.in(client.roomName).emit('user_list', { list: rooms[client.roomName].userList, h: rooms[client.roomName].host });
+    });
+
+
+
     // GAME EVENTS
     client.on('start-game', (data) => {
         console.log("[ROOM " + client.roomName + "] - Started a new game");

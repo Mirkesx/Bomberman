@@ -4,18 +4,18 @@ var roomName;
 var avatar;
 var userList;
 var host;
-var id;
+var userId;
 var stageSelected;
 var num_players_ready;
 var inGame;
 var isMobile;
 var $objHead;
+var yourColor;
 
 $(document).ready(() => {
 
     const loginUser = () => {
         $objHead = $('head');
-        $('.icon-exit').show();
 
         if (userNickname && userNickname.length > 3) {
             socket = io(window.location.href);
@@ -26,10 +26,6 @@ $(document).ready(() => {
 
                 socket.emit('load-rooms');
 
-                socket.on('loads-room', (rooms) => {
-
-                });
-
                 //socket.emit('create-room', { nickname: userNickname, roomName: roomName, avatar: avatar });
 
 
@@ -37,9 +33,9 @@ $(document).ready(() => {
                     let $rooms = [];
                     for(let room in rooms) {
                         if(rooms[room].userList.length > 0 && rooms[room].userList.length < 4) {
-                            $rooms.push('<span class="col-8 d-flex justify-content-center" id="room'+room+'">'+room+'</span>\
-                                        <span class="col-2 d-flex justify-content-center" id="len'+room+'">'+rooms[room].userList.length+'/4</span>\
-                                        <span class="col-2 d-flex justify-content-center" data-room="'+room+'"><button class="btn btn-success p-1 enter-room-button">ENTER</button></span>');
+                            $rooms.push('<span class="col-5 d-flex justify-content-center" id="room'+room+'">'+room+'</span>\
+                                        <span class="col-4 d-flex justify-content-center" id="len'+room+'">'+rooms[room].userList.length+'/4</span>\
+                                        <span class="col-3 d-flex justify-content-center" data-room="'+room+'"><button class="btn btn-success p-1 enter-room-button">ENTER</button></span>');
                         }
                         $('#room-list').html($rooms.join(""));
                     }
@@ -49,6 +45,7 @@ $(document).ready(() => {
                         roomName = $(event.currentTarget.parentElement).attr('data-room');
                         setTimeout(() => {
                             $('#enterRoom').modal('hide');
+                            $('.icon-exit').show();
                             socket.emit('create-room', { nickname: userNickname, roomName: roomName, avatar: avatar });
                         }, 250);
                     });
@@ -122,6 +119,7 @@ $(document).ready(() => {
 
                 socket.on("user_list", (data) => {
                     userList = data.list;
+                    //console.logconsole.log(userList);
                     let nicknames = _.map(userList, (user) => user.nickname);
                     userId = nicknames.indexOf(userNickname);
                     host = data.h;
@@ -156,7 +154,8 @@ $(document).ready(() => {
                     userList[data.index].status = "ready";
                     let $rowUserList = $('#gameSetup #cardPlayersList .card-body').find('.row');
                     $user = $($rowUserList[data.index]);
-                    $user.find('.not-ready').removeClass('fa-times not-ready').addClass("fa-check ready");
+                    $user.find('.not-ready').removeClass('not-ready').addClass("ready");
+                    $user.find('.ready').html("READY");
                     num_players_ready = data.readyPlayers;
                     if (host == userNickname && num_players_ready > 1 && num_players_ready == userList.length) {
                         $('#buttonReady').hide();
@@ -168,7 +167,8 @@ $(document).ready(() => {
                     userList[data.index].status = "not-ready";
                     let $rowUserList = $('#gameSetup #cardPlayersList .card-body').find('.row');
                     $user = $($rowUserList[data.index]);
-                    $user.find('.ready').removeClass('fa-check ready').addClass("fa-times not-ready");
+                    $user.find('.ready').removeClass('ready').addClass("not-ready");
+                    $user.find('.not-ready').html("NOT READY");
                     num_players_ready = data.readyPlayers;
                     if (host == userNickname && num_players_ready < userList.length) {
                         $('#buttonStart').hide();
@@ -193,6 +193,15 @@ $(document).ready(() => {
                         loadSettings();
                     }
                 });
+
+
+                socket.on("remove-color", (data) => {
+                    $('#cardPlaceSelector [data-color="'+data.actual_color+'"]').css('visibility', 'hidden');
+                    if(data.prev_color)
+                        $('#cardPlaceSelector [data-color="'+data.prev_color+'"]').css('visibility', 'visible');
+                }); 
+
+
 
                 socket.on("get-input-values", (data) => {
                     $('#' + data.id).val(data.value);
