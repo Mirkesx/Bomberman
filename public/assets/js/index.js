@@ -197,13 +197,17 @@ $(document).ready(() => {
 
                 socket.on("remove-color", (data) => {
                     $('#cardPlaceSelector [data-color="'+data.actual_color+'"]').css('visibility', 'hidden');
-                    if(data.prev_color)
+                    $('#cardPlaceSelector [data-color="'+data.actual_color+'"]').parent().addClass('picked-color');
+                    if(data.prev_color) {
                         $('#cardPlaceSelector [data-color="'+data.prev_color+'"]').css('visibility', 'visible');
+                        $('#cardPlaceSelector [data-color="'+data.prev_color+'"]').parent().removeClass('picked-color');
+                    }
                 }); 
 
 
                 socket.on("release-color", (color) => {
                     $('#cardPlaceSelector [data-color="'+color+'"]').css('visibility', 'visible');
+                    $('#cardPlaceSelector [data-color="'+data.prev_color+'"]').parent().removeClass('picked-color');
                 });
 
 
