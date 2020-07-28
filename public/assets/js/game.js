@@ -18,12 +18,11 @@ function setupGame() {
     bombs = $('#numberBombs').val();
     flames = $('#numberFlames').val();
     speed = $('#numberSpeed').val();
-    n_players = userList.length;
-    socket.emit('start-game', { b: bombs, f: flames, s: speed, n_p: n_players });
-    startGame(bombs, flames, speed, userList.length, userId);
+    socket.emit('start-game', { b: bombs, f: flames, s: speed, n_p: userList.length });
+    startGame(bombs, flames, speed, userList, userId);
 }
 
-function startGame(b, f, s, n_players, your_id) {
+function startGame(b, f, s, playersList, your_id) {
 
     var config = {
         type: Phaser.AUTO,
@@ -185,7 +184,7 @@ function startGame(b, f, s, n_players, your_id) {
         }
 
         // PLAYERS
-        players = [];
+        /*players = [];
 
         players.push(createPlayer(24, 24, game_colors[0] + '-bm', 0));
         if (n_players > 1)
@@ -193,7 +192,9 @@ function startGame(b, f, s, n_players, your_id) {
         if (n_players > 2)
             players.push(createPlayer(24, 184, game_colors[2] + '-bm', 2));
         if (n_players > 3)
-            players.push(createPlayer(216, 184, game_colors[3] + '-bm', 3));
+            players.push(createPlayer(216, 184, game_colors[3] + '-bm', 3));*/
+        
+        players = addPlayers(playersList);
 
         scene.physics.add.collider(players[your_id], scene.flamesGroup, () => {
             death(your_id);
@@ -280,9 +281,23 @@ function startGame(b, f, s, n_players, your_id) {
 
 
 
-
-
     // FUNCTIONS
+
+    const addPlayers = (list) => {
+        const colorMap = {
+            gray : {sprites: "white-bm", x:24, y:24},
+            black : {sprites: "black-bm", x:216, y:24},
+            blue : {sprites: "blue-bm", x:24, y:184},
+            red : {sprites: "red-bm", x:216, y:184}
+        };
+        let players = [];
+        let i = 0;
+        for(let user in list) {
+            let player = colorMap[list[user].color];
+            players.push(createPlayer(player.x, player.y, player.sprites, i++));
+        }
+        return players;
+    };
 
 
     const createPlayer = (x, y, sprites, id) => {
@@ -373,7 +388,7 @@ function startGame(b, f, s, n_players, your_id) {
             socket.emit('dead-items', { stage: stage, items: players[id].items_collected, id: your_id });
             players[id].countDeathCollider++;
             players[id].status = "dead";
-            players[id].anims.play(game_colors[id] + '-death', true);
+            players[id].anims.play(/*game_colors[id]*/userList[id].color + '-death', true);
             players[id].once("animationcomplete", () => {
                 setTimeout(() => {
                     players[id].destroy();
@@ -385,7 +400,7 @@ function startGame(b, f, s, n_players, your_id) {
     killEnemy = (id) => {
         if (your_id != id && players[id]) {
             players[id].status = "dead";
-            players[id].anims.play(game_colors[id] + '-death', true);
+            players[id].anims.play(/*game_colors[id]*/userList[id].color + '-death', true);
             players[id].once("animationcomplete", () => {
                 setTimeout(() => {
                     players[id].destroy();
@@ -458,12 +473,12 @@ function startGame(b, f, s, n_players, your_id) {
         newY = Math.floor(y) - (Math.floor(y) % 16) + 8;
 
         if (_.filter(bombs, (b) => Math.floor(b.x / 16) == i && Math.floor(b.y / 16) == j).length == 0) {
-            bomb = scene.bombsGroup.create(-128, -128, 'white-bomb').setOrigin(0, 0).disableBody(true, true);
+            bomb = scene.bombsGroup.create(-128, -128, userList[id].color+'-bomb').setOrigin(0, 0).disableBody(true, true);
             bomb.x = newX;
             bomb.y = newY;
             bomb.player_id = id;
             bomb.flames = flames_len;
-            bomb.color = game_colors[id];
+            bomb.color = userList[id].color;//game_colors[id];
             bomb.setSize(13, 13).setOffset(2, 2);
             bomb.setImmovable();
             bomb.setDepth(2000);
@@ -677,7 +692,7 @@ function startGame(b, f, s, n_players, your_id) {
                     players[your_id].body.velocity.x = speed;
                 }
 
-                players[your_id].anims.play(game_colors[your_id] + '-up', true);
+                players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-up', true);
                 anim = game_colors[your_id] + '-up';
                 animated = true;
 
@@ -689,14 +704,14 @@ function startGame(b, f, s, n_players, your_id) {
                     players[your_id].body.velocity.x = speed;
                 }
 
-                players[your_id].anims.play(game_colors[your_id] + '-down', true);
+                players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-down', true);
                 anim = game_colors[your_id] + '-down';
                 animated = true;
 
             } else if (cursors.left.isDown) {
                 players[your_id].body.velocity.x = -speed;
 
-                players[your_id].anims.play(game_colors[your_id] + '-left', true);
+                players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-left', true);
                 anim = game_colors[your_id] + '-left';
                 animated = true;
 
@@ -704,7 +719,7 @@ function startGame(b, f, s, n_players, your_id) {
             else if (cursors.right.isDown) {
                 players[your_id].body.velocity.x = speed;
 
-                players[your_id].anims.play(game_colors[your_id] + '-right', true);
+                players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-right', true);
                 anim = game_colors[your_id] + '-right';
                 animated = true;
 
@@ -750,7 +765,7 @@ function startGame(b, f, s, n_players, your_id) {
                     players[your_id].body.velocity.x = speed;
                 }
 
-                players[your_id].anims.play(game_colors[your_id] + '-up', true);
+                players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-up', true);
                 anim = game_colors[your_id] + '-up';
                 animated = true;
 
@@ -762,14 +777,14 @@ function startGame(b, f, s, n_players, your_id) {
                     players[your_id].body.velocity.x = speed;
                 }
 
-                players[your_id].anims.play(game_colors[your_id] + '-down', true);
+                players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-down', true);
                 anim = game_colors[your_id] + '-down';
                 animated = true;
 
             } else if (chevronLeft) {
                 players[your_id].body.velocity.x = -speed;
 
-                players[your_id].anims.play(game_colors[your_id] + '-left', true);
+                players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-left', true);
                 anim = game_colors[your_id] + '-left';
                 animated = true;
 
@@ -777,7 +792,7 @@ function startGame(b, f, s, n_players, your_id) {
             else if (chevronRight) {
                 players[your_id].body.velocity.x = speed;
 
-                players[your_id].anims.play(game_colors[your_id] + '-right', true);
+                players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-right', true);
                 anim = game_colors[your_id] + '-right';
                 animated = true;
 
