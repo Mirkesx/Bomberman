@@ -173,7 +173,7 @@ io.on('connection', function (client) {
         console.log("[ROOM " + client.roomName + "] - Started a new game");
         rooms[client.roomName].loaded = 0;
         rooms[client.roomName].gameStarted = true;
-        rooms[client.roomName].players = _.range(data.n_p);
+        rooms[client.roomName].players = _.range(data.players.length);
         rooms[client.roomName].map = generateWalls(empty_stage);
         rooms[client.roomName].items = generateItems(rooms[client.roomName].map);
         io.sockets.in(client.roomName).emit('load-game', data);
@@ -256,6 +256,7 @@ http.listen(8080, '0.0.0.0', function () {
 function leaveRoom(room, nickname) {
     let index = _.findIndex(rooms[room].userList, (user) => user.nickname === nickname);
     if (rooms[room] && index >= -1) {
+        io.sockets.in(room).emit('release-color', rooms[room].userList[index].color);
         rooms[room].userList.splice(index, 1);
         if (rooms[room].userList.length > 0 && nickname === rooms[room].host) {
             rooms[room].host = rooms[room].userList[0].nickname;

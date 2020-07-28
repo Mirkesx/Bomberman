@@ -202,6 +202,11 @@ $(document).ready(() => {
                 }); 
 
 
+                socket.on("release-color", (color) => {
+                    $('#cardPlaceSelector [data-color="'+color+'"]').css('visibility', 'visible');
+                });
+
+
 
                 socket.on("get-input-values", (data) => {
                     $('#' + data.id).val(data.value);
@@ -220,7 +225,7 @@ $(document).ready(() => {
                 // GAME EVENTS
                 socket.on('load-game', (data) => {
                     if (userId != 0) {
-                        startGame(data.b, data.f, data.s, data.n_p, userId);
+                        startGame(data.b, data.f, data.s, data.players, userId);
                     }
                 });
 

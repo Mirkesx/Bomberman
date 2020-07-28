@@ -119,4 +119,8 @@ const setPlaceButtons = () => {
         yourColor = $(event.currentTarget).data('color');
         socket.emit('color-claimed',yourColor);
     });
+    for(let i in userList) {
+        if(userList[i].color)
+            $('#cardPlaceSelector [data-color="'+userList[i].color+'"]').css('visibility', 'hidden');
+    }
 };

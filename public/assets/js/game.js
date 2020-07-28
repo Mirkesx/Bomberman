@@ -18,7 +18,7 @@ function setupGame() {
     bombs = $('#numberBombs').val();
     flames = $('#numberFlames').val();
     speed = $('#numberSpeed').val();
-    socket.emit('start-game', { b: bombs, f: flames, s: speed, n_p: userList.length });
+    socket.emit('start-game', { b: bombs, f: flames, s: speed, players: userList });
     startGame(bombs, flames, speed, userList, userId);
 }
 
@@ -294,7 +294,11 @@ function startGame(b, f, s, playersList, your_id) {
         let i = 0;
         for(let user in list) {
             let player = colorMap[list[user].color];
-            players.push(createPlayer(player.x, player.y, player.sprites, i++));
+            players.push(createPlayer(player.x, player.y, player.sprites, i));
+
+            if(list[user].color == "gray")
+                userList[user].color = "white";
+            i++;
         }
         return players;
     };
@@ -693,7 +697,7 @@ function startGame(b, f, s, playersList, your_id) {
                 }
 
                 players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-up', true);
-                anim = game_colors[your_id] + '-up';
+                anim = /*game_colors[your_id]*/userList[your_id].color + '-up';
                 animated = true;
 
             } else if (cursors.down.isDown) {
@@ -705,14 +709,14 @@ function startGame(b, f, s, playersList, your_id) {
                 }
 
                 players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-down', true);
-                anim = game_colors[your_id] + '-down';
+                anim = /*game_colors[your_id]*/userList[your_id].color + '-down';
                 animated = true;
 
             } else if (cursors.left.isDown) {
                 players[your_id].body.velocity.x = -speed;
 
                 players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-left', true);
-                anim = game_colors[your_id] + '-left';
+                anim = /*game_colors[your_id]*/userList[your_id].color + '-left';
                 animated = true;
 
             }
@@ -720,7 +724,7 @@ function startGame(b, f, s, playersList, your_id) {
                 players[your_id].body.velocity.x = speed;
 
                 players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-right', true);
-                anim = game_colors[your_id] + '-right';
+                anim = /*game_colors[your_id]*/userList[your_id].color + '-right';
                 animated = true;
 
             }
@@ -766,7 +770,7 @@ function startGame(b, f, s, playersList, your_id) {
                 }
 
                 players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-up', true);
-                anim = game_colors[your_id] + '-up';
+                anim = /*game_colors[your_id]*/userList[your_id].color + '-up';
                 animated = true;
 
             } else if (chevronDown) {
@@ -778,14 +782,14 @@ function startGame(b, f, s, playersList, your_id) {
                 }
 
                 players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-down', true);
-                anim = game_colors[your_id] + '-down';
+                anim = /*game_colors[your_id]*/userList[your_id].color + '-down';
                 animated = true;
 
             } else if (chevronLeft) {
                 players[your_id].body.velocity.x = -speed;
 
                 players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-left', true);
-                anim = game_colors[your_id] + '-left';
+                anim = /*game_colors[your_id]*/userList[your_id].color + '-left';
                 animated = true;
 
             }
@@ -793,7 +797,7 @@ function startGame(b, f, s, playersList, your_id) {
                 players[your_id].body.velocity.x = speed;
 
                 players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-right', true);
-                anim = game_colors[your_id] + '-right';
+                anim = /*game_colors[your_id]*/userList[your_id].color + '-right';
                 animated = true;
 
             }
