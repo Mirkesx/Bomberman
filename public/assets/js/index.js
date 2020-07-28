@@ -12,6 +12,25 @@ var isMobile;
 var $objHead;
 var yourColor;
 
+const resetVal = () => {
+    userNickname = undefined;
+    roomName = undefined;
+    avatar = undefined;
+    userList = undefined;
+    host = undefined;
+    userId = undefined;
+    stageSelected = undefined;
+    num_players_ready = undefined;
+    inGame = undefined;
+    isMobile = undefined;
+    yourColor = undefined;
+    $('#cardPlaceSelector [data-color]').css('visibility', 'visible');
+    $('#cardPlaceSelector [data-color]').parent().removeClass('picked-color');
+    $('#numberBombs').val(1);
+    $('#numberFlames').val(2);
+    $('#numberSpeed').val(1);
+}
+
 $(document).ready(() => {
 
     const loginUser = () => {
@@ -341,7 +360,7 @@ $(document).ready(() => {
         roomName = $("#roomName").val();
         if (roomName.length > 0) {
             $('#enterRoom').modal('hide');
-            $('.icon-exit').modal('show');
+            $('.icon-exit').show();
             userList = [];
             num_players_ready = 0;
             inGame = false;
@@ -429,10 +448,27 @@ $(document).ready(() => {
         $('.chat').hide();
         $('.icon-exit').hide();
         createPopup("You left the room.", 500, 50);
+        resetVal();
         setTimeout(() => {
             $('#loginModal').modal('show');
             $('#carouselAvatar').carousel('pause');
         }, 1000);
+    });
+
+    $('.fa-arrow-down.settingButton').click((event) => {
+        $el = $(event.currentTarget);
+        let val = parseInt($el.parent().find("input").val());
+        $el.parent().find("input").val(val - 1);
+    });
+    $('.fa-arrow-up.settingButton').click((event) => {
+        $el = $(event.currentTarget);
+        let val = parseInt($el.parent().find("input").val());
+        $el.parent().find("input").val(val + 1);
+    });
+
+    $('#cardPlaceSelector .btn').click((event) => {
+        yourColor = $(event.currentTarget).data('color');
+        socket.emit('color-claimed', yourColor);
     });
 });
 
