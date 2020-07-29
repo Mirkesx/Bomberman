@@ -217,10 +217,10 @@ $(document).ready(() => {
 
                 socket.on("remove-color", (data) => {
                     $('#cardPlaceSelector [data-color="' + data.actual_color + '"]').css('visibility', 'hidden');
-                    $('#cardPlaceSelector [data-color="' + data.actual_color + '"]').parent().addClass('picked-color');
+                    //$('#cardPlaceSelector [data-color="' + data.actual_color + '"]').parent().addClass('picked-color');
                     if (data.prev_color) {
                         $('#cardPlaceSelector [data-color="' + data.prev_color + '"]').css('visibility', 'visible');
-                        $('#cardPlaceSelector [data-color="' + data.prev_color + '"]').parent().removeClass('picked-color');
+                        //$('#cardPlaceSelector [data-color="' + data.prev_color + '"]').parent().removeClass('picked-color');
                     }
                 });
 
@@ -466,9 +466,40 @@ $(document).ready(() => {
         $el.parent().find("input").val(val + 1);
     });
 
-    $('#cardPlaceSelector .btn').click((event) => {
+    $('#cardPlaceSelector .colors-circle .btn').click((event) => {
         yourColor = $(event.currentTarget).data('color');
+        $('.colors-circle').hide();
+
+        let colorClass;
+        switch (yourColor) {
+            case "black":
+                colorClass = "btn btn-dark";
+                break;
+            case "blue":
+                colorClass = "btn btn-primary";
+                break;
+            case "red":
+                colorClass = "btn btn-danger";
+                break;
+            default:
+                colorClass = "btn btn-light";
+        }
+        $('.your-color span').addClass(colorClass);
+        $('.your-color p').html("You picked the color: "+yourColor+".<br>Click again on your color to change the selection!");
+
+        $('.your-color').show();
         socket.emit('color-claimed', yourColor);
+    });
+
+    $('#cardPlaceSelector .your-color .btn').click(() => {
+        if($('#buttonReady').hasClass('btn-success')) {
+            $('#buttonReady').trigger('click');
+        }
+        $('.your-color span').removeClass();
+        socket.emit('color-released', yourColor);
+        yourColor = undefined;
+        $('.your-color').hide();
+        $('.colors-circle').show();
     });
 });
 

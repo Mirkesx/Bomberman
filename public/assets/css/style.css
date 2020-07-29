@@ -185,6 +185,10 @@ input[type='range']::-webkit-slider-thumb {
     background-color: red;
 }
 
+.your-color {
+    display: none;
+}
+
 .settingButton {
     margin: 0;
     padding: 0;
@@ -192,4 +196,10 @@ input[type='range']::-webkit-slider-thumb {
 
 input[type="number"] {
     text-align: center;
+}
+
+input[type='number']::-webkit-inner-spin-button, 
+input[type='number']::-webkit-outer-spin-button { 
+    -webkit-appearance: none;
+    margin: 0;
 }

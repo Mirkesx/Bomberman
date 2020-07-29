@@ -166,6 +166,12 @@ io.on('connection', function (client) {
         io.sockets.in(client.roomName).emit('user_list', { list: rooms[client.roomName].userList, h: rooms[client.roomName].host });
     });
 
+    client.on('color-released', (color) => {
+        let index = _.findIndex(rooms[client.roomName].userList, (user) => user.nickname == client.nickname);
+        rooms[client.roomName].userList[index].color = undefined;
+        io.sockets.in(client.roomName).emit('release-color', color);
+        io.sockets.in(client.roomName).emit('user_list', { list: rooms[client.roomName].userList, h: rooms[client.roomName].host });
+    });
 
 
     // GAME EVENTS
