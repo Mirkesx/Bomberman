@@ -93,7 +93,7 @@ function create() {
 
     // PLAYER
     player = this.physics.add.sprite(24, 24, 'white-bm', 7);
-    player.setSize(11, 9, 0, 0).setOffset(3, 15).setOrigin(0.5, 0.75);
+    player.setSize(14, 14, 0, 0).setOffset(1, 11).setOrigin(0.471, 0.70);
     player.setDepth(2000);
     player.setCollideWorldBounds(true);
 
@@ -132,6 +132,8 @@ function create() {
     //CURSORS
     cursors = this.input.keyboard.createCursorKeys();
 
+    $(document).on('keyup',movementByTile);
+
     //INITIALIZATIONS VARIABLES
     animated = false;
     bombs = [];
@@ -148,50 +150,154 @@ function create() {
 
 
 function update() {
+    keyboardMovements();
+}
 
+var directions = {
+    RIGHT: 0,
+    LEFT: 1,
+    UP: 2,
+    DOWN: 3,
+}
+var currMovement, nextMovement;
+var currMovementTimeout;
+
+function movementByTile(event) {
+
+    if (event.keyCode === 38) {
+        if (!getCollisionOnMove(player.x, player.y - 16)) {
+            if (currMovement && currMovement != directions.UP) {
+                if (currMovement != directions.DOWN) {
+                    nextMovement = directions.UP;
+                } else {
+                    clearTimeout(currMovementTimeout);
+                    let y = player.y - parseInt(player.y / 16) * 16 + 8;
+                    currMovementTimeout = setTimeout(() => moveTo(0, -y), 26 - player.speed * 2.5);
+                    player.anims.play('up', true);
+                }
+            }
+            else {
+                currMovement = directions.UP;
+                player.anims.play('up', true);
+                currMovementTimeout = setTimeout(() => moveTo(0, -16), 26 - player.speed * 2.5);
+            }
+        }
+    } else if (event.keyCode === 40) {
+        if (!getCollisionOnMove(player.x, player.y + 16)) {
+            if (currMovement && currMovement != directions.DOWN) {
+                if (currMovement != directions.UP) {
+                    nextMovement = directions.DOWN;
+                } else {
+                    clearTimeout(currMovementTimeout);
+                    let y = player.y - parseInt(player.y / 16) * 16 + 8;
+                    currMovementTimeout = setTimeout(() => moveTo(0, y), 26 - player.speed * 2.5);
+                    player.anims.play('down', true);
+                }
+            }
+            else {
+                currMovement = directions.UP;
+                player.anims.play('down', true);
+                currMovementTimeout = setTimeout(() => moveTo(0, 16), 26 - player.speed * 2.5);
+            }
+        }
+    } else if (event.keyCode === 37) {
+        if (!getCollisionOnMove(player.x - 16, player.y)) {
+            if (currMovement && currMovement != directions.LEFT) {
+                if (currMovement != directions.RIGHT) {
+                    nextMovement = directions.LEFT;
+                } else {
+                    clearTimeout(currMovementTimeout);
+                    let x = player.x - parseInt(player.x / 16) * 16 - 8;
+                    player.anims.play('left', true);
+                    currMovementTimeout = setTimeout(() => moveTo(x, 0), 26 - player.speed * 2.5);
+
+                }
+            }
+            else {
+                currMovement = directions.LEFT;
+                player.anims.play('left', true);
+                currMovementTimeout = setTimeout(() => moveTo(-16, 0), 26 - player.speed * 2.5);
+            }
+        }
+    } else if (event.keyCode === 39) {
+        if (!getCollisionOnMove(player.x + 16, player.y)) {
+            if (currMovement && currMovement != directions.RIGHT) {
+                if (currMovement != directions.LEFT) {
+                    nextMovement = directions.RIGHT;
+                } else {
+                    clearTimeout(currMovementTimeout);
+                    let x = player.x - parseInt(player.x / 16) * 16 + 8;
+                    player.anims.play('right', true);
+                    currMovementTimeout = setTimeout(() => moveTo(x, 0), 26 - player.speed * 2.5);
+
+                }
+            }
+            else {
+                currMovement = directions.RIGHT;
+                player.anims.play('right', true);
+                currMovementTimeout = setTimeout(() => moveTo(16, 0), 26 - player.speed * 2.5);
+            }
+        }
+    }
+};
+
+function moveTo(x, y) {
+    if (x > 0) {
+        player.x++;
+        x--;
+    } else if (x < 0) {
+        player.x--;
+        x++;
+    } else if (y > 0) {
+        player.y++;
+        y--;
+    } else if (y < 0) {
+        player.y--;
+        y++;
+    }
+    if (x == 0 && y == 0) {
+        player.anims.stop();
+        currMovement = nextMovement;
+        nextMovement = undefined;
+        switch (currMovement) {
+            case directions.UP:
+                currMovementTimeout = setTimeout(() => moveTo(0, -16), 26 - player.speed * 2.5);
+                break;
+            case directions.DOWN:
+                currMovementTimeout = setTimeout(() => moveTo(0, 16), 26 - player.speed * 2.5);
+                break;
+            case directions.LEFT:
+                currMovementTimeout = setTimeout(() => moveTo(-16, 0), 26 - player.speed * 2.5);
+                break;
+            case directions.RIGHT:
+                currMovementTimeout = setTimeout(() => moveTo(16, 0), 26 - player.speed * 2.5);
+                break;
+            default:
+                clearTimeout(currMovementTimeout);
+                currMovementTimeout = undefined;
+        }
+    } else {
+        currMovementTimeout = setTimeout(() => moveTo(x, y), 26 - player.speed * 2.5);
+    }
+};
+
+function getCollisionOnMove(x, y) {
+    return map.getTileAtWorldXY(x, y, layer).index === 1 || _.filter(bombs,(el) => getCollisionObject(x,y,el.x,el.y)).length > 0 || _.filter(game.scene.scenes[0].wallsGroup.children.entries,(el) => getCollisionObject(x,y,el.x,el.y)).length > 0;
+};
+
+function getCollisionObject(x1,y1,x2,y2) {
+    return (x2 <= x1) && (x1 < x2 + 16) &&
+            (y2 <= y1) && (y1 < y2 + 16);
+}
+
+function keyboardMovements() {
     if (player.status === 'alive') {
+        let tile = { x: parseInt(player.x / 16), y: parseInt(player.y / 16) };
         player.setVelocity(0, 0);
-        speed = 50 + player.speed * 15;
-
-        if (cursors.up.isDown) {
-            player.body.velocity.y = -speed;
-            if (cursors.left.isDown) {
-                player.body.velocity.x = -speed;
-            } else if (cursors.right.isDown) {
-                player.body.velocity.x = speed;
-            }
-
-            player.anims.play('up', true);
-            animated = true;
-
-        } else if (cursors.down.isDown) {
-            player.body.velocity.y = speed;
-            if (cursors.left.isDown) {
-                player.body.velocity.x = -speed;
-            } else if (cursors.right.isDown) {
-                player.body.velocity.x = speed;
-            }
-
-            player.anims.play('down', true);
-            animated = true;
-
-        } else if (cursors.left.isDown) {
-            player.body.velocity.x = -speed;
-
-            player.anims.play('left', true);
-            animated = true;
-
-        }
-        else if (cursors.right.isDown) {
-            player.body.velocity.x = speed;
-
-            player.anims.play('right', true);
-            animated = true;
-
-        }
+        speed = 26 - player.speed * 2.5;
 
         if (!flipFlopBomb && player.bombs > bombs.length && cursors.space.isDown) {
-            place_bomb(player.x, player.y, this);
+            place_bomb(player.x, player.y);
             flipFlopBomb = true;
         }
 
@@ -214,6 +320,7 @@ function update() {
 const death = (player) => {
     player.status = "dead";
     player.anims.play('death', true);
+    $(document).unbind('keydown',movementByTile);
     player.once("animationcomplete", () => {
         setTimeout(() => {
             items_collected = player.items_collected;
@@ -226,11 +333,11 @@ const death = (player) => {
 const replaceItems = (items_collected) => {
     let i = 0;
     while (i < items_collected.length && notWall.length > 0) {
-        index = Math.floor(Math.random()*notWall.length);
+        index = Math.floor(Math.random() * notWall.length);
         x = parseInt(notWall[index].split(',')[0]);
         y = parseInt(notWall[index].split(',')[1]);
-        createNewItem(items_collected[i], x*16, y*16);
-        notWall.splice(index,1);
+        createNewItem(items_collected[i], x * 16, y * 16);
+        notWall.splice(index, 1);
         i++;
     }
 }
@@ -321,7 +428,7 @@ const destroyItem = (item) => {
 }
 
 
-const place_bomb = (x, y, scene) => {
+const place_bomb = (x, y) => {
     var bomb;
     var newX, newY, i, j; //i,j are the coordinates of the 16x16 squares of the stage map
     i = Math.floor(Math.floor(x) / 16);
@@ -413,7 +520,7 @@ const addFlameUp = (flames, x, y, i, length, origin) => {
         }
 
         if (i == length - 1) {
-            flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 20).setOrigin(origin, origin).setSize(10, 16).setOffset(3, 0));
+            flames.push(scene.flamesGroup.create(x, y, 'bomb-flame', 3000).setOrigin(origin, origin).setSize(10, 16).setOffset(3, 0));
             flames[flames.length - 1].animation = "bomb-exploding-up-head";
         }
         else {
