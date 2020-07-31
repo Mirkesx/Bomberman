@@ -24,7 +24,7 @@ var config = {
 var game = new Phaser.Game(config);
 var map, tileset, layer, scene, notWall;
 var player;
-var bombs, flipFlopBomb;
+var bombs, flipFlopBomb, flipMovement;
 var cursors, animated; //animated is used to show the right animation with the player sprite
 var walls, items;
 const items_list = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 3, 3, 9, 9, 9, 9, 9, 23, 23, 23];
@@ -92,15 +92,16 @@ function create() {
 
 
     // PLAYER
-    player = this.physics.add.sprite(24, 24, 'white-bm', 7);
+    player = this.physics.add.sprite(0, 0, 'white-bm', 7);
     player.setSize(14, 14, 0, 0).setOffset(1, 11).setOrigin(0.471, 0.70);
+    player.setPosition(24,24)
     player.setDepth(2000);
     player.setCollideWorldBounds(true);
 
 
     // WALLS and ITEMS
-    generateWalls();
-    generateItems();
+    //generateWalls();
+    //generateItems();
 
     //ANIMATIONS
     playerAnimation();
@@ -130,9 +131,9 @@ function create() {
 
 
     //CURSORS
-    cursors = this.input.keyboard.createCursorKeys();
+    //cursors = this.input.keyboard.createCursorKeys();
 
-    $(document).on('keyup',movementByTile);
+    //$(document).on('keydown',movementByTile);
 
     //INITIALIZATIONS VARIABLES
     animated = false;
@@ -144,13 +145,29 @@ function create() {
     player.status = 'alive';
     player.godlike = false;
     flipFlopBomb = false;
+    flipMovement = false;
 
     this.backgroundSong.play();
+    this.input.keyboard.on('keydown-' + 'RIGHT', function (event) {
+        scene.tweens.add({
+            targets: player,
+            duration: 600,
+            x: parseInt(player.x/16)*16 + 24,
+            ease: 'Sine.easeInOut',
+            repeat: 0,
+            onStart: () => {player.anims.play('right',true);},
+            onComplete: () => {
+                player.anims.setCurrentFrame(player.anims.currentAnim.frames[1]);
+                player.anims.stop();
+            },
+            yoyo: false
+        });
+    });
 }
 
 
 function update() {
-    keyboardMovements();
+    //keyboardMovements();
 }
 
 var directions = {
@@ -171,7 +188,7 @@ function movementByTile(event) {
                     nextMovement = directions.UP;
                 } else {
                     clearTimeout(currMovementTimeout);
-                    let y = player.y - parseInt(player.y / 16) * 16 + 8;
+                    let y = parseInt(player.y / 16) * 16 - player.y;
                     currMovementTimeout = setTimeout(() => moveTo(0, -y), 26 - player.speed * 2.5);
                     player.anims.play('up', true);
                 }
@@ -189,7 +206,7 @@ function movementByTile(event) {
                     nextMovement = directions.DOWN;
                 } else {
                     clearTimeout(currMovementTimeout);
-                    let y = player.y - parseInt(player.y / 16) * 16 + 8;
+                    let y = player.y - parseInt(player.y / 16) * 16;
                     currMovementTimeout = setTimeout(() => moveTo(0, y), 26 - player.speed * 2.5);
                     player.anims.play('down', true);
                 }
@@ -207,7 +224,7 @@ function movementByTile(event) {
                     nextMovement = directions.LEFT;
                 } else {
                     clearTimeout(currMovementTimeout);
-                    let x = player.x - parseInt(player.x / 16) * 16 - 8;
+                    let x = parseInt(player.x / 16) * 16 - player.x;
                     player.anims.play('left', true);
                     currMovementTimeout = setTimeout(() => moveTo(x, 0), 26 - player.speed * 2.5);
 
@@ -226,7 +243,8 @@ function movementByTile(event) {
                     nextMovement = directions.RIGHT;
                 } else {
                     clearTimeout(currMovementTimeout);
-                    let x = player.x - parseInt(player.x / 16) * 16 + 8;
+                    let x = 2 * player.x - parseInt(player.x / 16) * 16;
+                    console.log(x);
                     player.anims.play('right', true);
                     currMovementTimeout = setTimeout(() => moveTo(x, 0), 26 - player.speed * 2.5);
 
@@ -282,12 +300,12 @@ function moveTo(x, y) {
 };
 
 function getCollisionOnMove(x, y) {
-    return map.getTileAtWorldXY(x, y, layer).index === 1 || _.filter(bombs,(el) => getCollisionObject(x,y,el.x,el.y)).length > 0 || _.filter(game.scene.scenes[0].wallsGroup.children.entries,(el) => getCollisionObject(x,y,el.x,el.y)).length > 0;
+    return map.getTileAtWorldXY(x, y, layer).index === 1 || _.filter(bombs, (el) => getCollisionObject(x, y, el.x, el.y)).length > 0 || _.filter(game.scene.scenes[0].wallsGroup.children.entries, (el) => getCollisionObject(x, y, el.x, el.y)).length > 0;
 };
 
-function getCollisionObject(x1,y1,x2,y2) {
+function getCollisionObject(x1, y1, x2, y2) {
     return (x2 <= x1) && (x1 < x2 + 16) &&
-            (y2 <= y1) && (y1 < y2 + 16);
+        (y2 <= y1) && (y1 < y2 + 16);
 }
 
 function keyboardMovements() {
@@ -295,6 +313,13 @@ function keyboardMovements() {
         let tile = { x: parseInt(player.x / 16), y: parseInt(player.y / 16) };
         player.setVelocity(0, 0);
         speed = 26 - player.speed * 2.5;
+
+        if (!flipMovement && cursors.right.isDown) {
+            flipMovement = true;
+            player.x = player.x + 16;
+            player.anims.play('right', true);
+            animated = true;
+        }
 
         if (!flipFlopBomb && player.bombs > bombs.length && cursors.space.isDown) {
             place_bomb(player.x, player.y);
@@ -308,6 +333,7 @@ function keyboardMovements() {
         if (animated && player.body.velocity.x == 0 && player.body.velocity.y == 0) {
             player.anims.setCurrentFrame(player.anims.currentAnim.frames[1]);
             player.anims.stop();
+            flipMovement = false;
             animated = false;
         }
 
@@ -320,7 +346,7 @@ function keyboardMovements() {
 const death = (player) => {
     player.status = "dead";
     player.anims.play('death', true);
-    $(document).unbind('keydown',movementByTile);
+    $(document).unbind('keydown', movementByTile);
     player.once("animationcomplete", () => {
         setTimeout(() => {
             items_collected = player.items_collected;
