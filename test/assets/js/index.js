@@ -27,6 +27,7 @@ var player;
 var bombs, flipFlopBomb, flipMovement;
 var cursors, animated; //animated is used to show the right animation with the player sprite
 var walls, items;
+var speed;
 const items_list = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 3, 3, 9, 9, 9, 9, 9, 23, 23, 23];
 
 function preload() {
@@ -94,14 +95,14 @@ function create() {
     // PLAYER
     player = this.physics.add.sprite(0, 0, 'white-bm', 7);
     player.setSize(14, 14, 0, 0).setOffset(1, 11).setOrigin(0.471, 0.70);
-    player.setPosition(24,24)
+    player.setPosition(24, 24)
     player.setDepth(2000);
     player.setCollideWorldBounds(true);
 
 
     // WALLS and ITEMS
-    //generateWalls();
-    //generateItems();
+    generateWalls();
+    generateItems();
 
     //ANIMATIONS
     playerAnimation();
@@ -131,14 +132,13 @@ function create() {
 
 
     //CURSORS
-    //cursors = this.input.keyboard.createCursorKeys();
-
-    //$(document).on('keydown',movementByTile);
+    cursors = this.input.keyboard.createCursorKeys();
+    //initializeTweenMovements(this);
 
     //INITIALIZATIONS VARIABLES
     animated = false;
     bombs = [];
-    player.speed = 1;
+    player.speed = 5;
     player.items_collected = [0, 0];
     player.bombs = 3;
     player.flames = 2;
@@ -148,171 +148,277 @@ function create() {
     flipMovement = false;
 
     this.backgroundSong.play();
-    this.input.keyboard.on('keydown-' + 'RIGHT', function (event) {
-        scene.tweens.add({
-            targets: player,
-            duration: 600,
-            x: parseInt(player.x/16)*16 + 24,
-            ease: 'Sine.easeInOut',
-            repeat: 0,
-            onStart: () => {player.anims.play('right',true);},
-            onComplete: () => {
-                player.anims.setCurrentFrame(player.anims.currentAnim.frames[1]);
-                player.anims.stop();
-            },
-            yoyo: false
-        });
+}
+
+var initializeTweenMovements = (scene) => {
+    //it can create the tween or remember the next move only if the move it will do right now or after the actual one doesn't make the player collide with walls or bombs
+    scene.input.keyboard.on('keydown-' + 'RIGHT', function () {
+        if (player.status === 'alive') {
+            if (actualTween === undefined && !getCollisionOnMove(player.x, player.y, 'right')) {
+                actualTween = createHorizontalTween(player.x, 'right');
+                actualTween.direction = directions.right;
+                let nextStepPos = getOneStepAheadPosition(player.x, player.y, actualTween.direction);
+                actualTween.next_x = nextStepPos.x;
+                actualTween.next_y = nextStepPos.y;
+            } else if (actualTween && !getCollisionOnMove(actualTween.next_x, actualTween.next_y, 'right')) {
+                nextDirection = directions.right;
+            }
+        }
     });
-}
 
+    scene.input.keyboard.on('keydown-' + 'LEFT', function () {
+        if (player.status === 'alive') {
+            if (actualTween === undefined && !getCollisionOnMove(player.x, player.y, 'left')) {
+                actualTween = createHorizontalTween(player.x, 'left');
+                actualTween.direction = directions.left;
+                let nextStepPos = getOneStepAheadPosition(player.x, player.y, actualTween.direction);
+                actualTween.next_x = nextStepPos.x;
+                actualTween.next_y = nextStepPos.y;
+            } else if (actualTween && !getCollisionOnMove(actualTween.next_x, actualTween.next_y, 'left')) {
+                nextDirection = directions.left;
+            }
+        }
+    });
 
-function update() {
-    //keyboardMovements();
-}
+    scene.input.keyboard.on('keydown-' + 'UP', function () {
+        if (player.status === 'alive') {
+            if (actualTween === undefined && !getCollisionOnMove(player.x, player.y, 'up')) {
+                actualTween = createVerticalTween(player.y, 'up');
+                actualTween.direction = directions.up;
+                let nextStepPos = getOneStepAheadPosition(player.x, player.y, actualTween.direction);
+                actualTween.next_x = nextStepPos.x;
+                actualTween.next_y = nextStepPos.y;
+            } else if (actualTween && !getCollisionOnMove(actualTween.next_x, actualTween.next_y, 'up')) {
+                nextDirection = directions.up;
+            }
+        }
+    });
+
+    scene.input.keyboard.on('keydown-' + 'DOWN', function () {
+        if (player.status === 'alive') {
+            if (actualTween === undefined && !getCollisionOnMove(player.x, player.y, 'down')) {
+                actualTween = createVerticalTween(player.y, 'down');
+                actualTween.direction = directions.down;
+                let nextStepPos = getOneStepAheadPosition(player.x, player.y, actualTween.direction);
+                actualTween.next_x = nextStepPos.x;
+                actualTween.next_y = nextStepPos.y;
+            } else if (actualTween && !getCollisionOnMove(actualTween.next_x, actualTween.next_y, 'down')) {
+                nextDirection = directions.down;
+            }
+        }
+    });
+
+    scene.input.keyboard.on('keydown-' + 'SPACE', function () {
+        if (player.status === 'alive' && !flipFlopBomb && player.bombs > bombs.length) {
+            place_bomb(player.x, player.y);
+            flipFlopBomb = true;
+        }
+    });
+
+    scene.input.keyboard.on('keyup-' + 'SPACE', function () {
+        if (player.status === 'alive' && flipFlopBomb) {
+            flipFlopBomb = false;
+        }
+    });
+};
 
 var directions = {
-    RIGHT: 0,
-    LEFT: 1,
-    UP: 2,
-    DOWN: 3,
-}
-var currMovement, nextMovement;
-var currMovementTimeout;
+    up: 'up',
+    down: 'down',
+    left: 'left',
+    right: 'right'
+};
 
-function movementByTile(event) {
+var createVerticalTween = (player_y, dir) => {
+    return scene.tweens.add({
+        targets: player,
+        duration: speed,
+        y: parseInt(player_y / 16) * 16 + (dir === 'up' ? - 8 : 24),
+        ease: 'Linear',
+        repeat: 0,
+        onStart: function () {
+            player.anims.play(dir, true);
+        },
+        onComplete: () => {
+            player.anims.setCurrentFrame(player.anims.currentAnim.frames[1]);
+            player.anims.stop();
+            actualTween = undefined;
+            createNextTween();
+        },
+        yoyo: false
+    });
+};
 
-    if (event.keyCode === 38) {
-        if (!getCollisionOnMove(player.x, player.y - 16)) {
-            if (currMovement && currMovement != directions.UP) {
-                if (currMovement != directions.DOWN) {
-                    nextMovement = directions.UP;
-                } else {
-                    clearTimeout(currMovementTimeout);
-                    let y = parseInt(player.y / 16) * 16 - player.y;
-                    currMovementTimeout = setTimeout(() => moveTo(0, -y), 26 - player.speed * 2.5);
-                    player.anims.play('up', true);
-                }
-            }
-            else {
-                currMovement = directions.UP;
-                player.anims.play('up', true);
-                currMovementTimeout = setTimeout(() => moveTo(0, -16), 26 - player.speed * 2.5);
-            }
-        }
-    } else if (event.keyCode === 40) {
-        if (!getCollisionOnMove(player.x, player.y + 16)) {
-            if (currMovement && currMovement != directions.DOWN) {
-                if (currMovement != directions.UP) {
-                    nextMovement = directions.DOWN;
-                } else {
-                    clearTimeout(currMovementTimeout);
-                    let y = player.y - parseInt(player.y / 16) * 16;
-                    currMovementTimeout = setTimeout(() => moveTo(0, y), 26 - player.speed * 2.5);
-                    player.anims.play('down', true);
-                }
-            }
-            else {
-                currMovement = directions.UP;
-                player.anims.play('down', true);
-                currMovementTimeout = setTimeout(() => moveTo(0, 16), 26 - player.speed * 2.5);
-            }
-        }
-    } else if (event.keyCode === 37) {
-        if (!getCollisionOnMove(player.x - 16, player.y)) {
-            if (currMovement && currMovement != directions.LEFT) {
-                if (currMovement != directions.RIGHT) {
-                    nextMovement = directions.LEFT;
-                } else {
-                    clearTimeout(currMovementTimeout);
-                    let x = parseInt(player.x / 16) * 16 - player.x;
-                    player.anims.play('left', true);
-                    currMovementTimeout = setTimeout(() => moveTo(x, 0), 26 - player.speed * 2.5);
+var createHorizontalTween = (player_x, dir) => {
+    return scene.tweens.add({
+        targets: player,
+        duration: speed,
+        x: parseInt(player_x / 16) * 16 + (dir === 'left' ? - 8 : 24),
+        ease: 'Linear',
+        repeat: 0,
+        onStart: function () {
+            player.anims.play(dir, true);
+        },
+        onComplete: () => {
+            player.anims.setCurrentFrame(player.anims.currentAnim.frames[1]);
+            player.anims.stop();
+            actualTween = undefined;
+            createNextTween();
+        },
+        yoyo: false
+    });
+};
 
-                }
-            }
-            else {
-                currMovement = directions.LEFT;
-                player.anims.play('left', true);
-                currMovementTimeout = setTimeout(() => moveTo(-16, 0), 26 - player.speed * 2.5);
-            }
-        }
-    } else if (event.keyCode === 39) {
-        if (!getCollisionOnMove(player.x + 16, player.y)) {
-            if (currMovement && currMovement != directions.RIGHT) {
-                if (currMovement != directions.LEFT) {
-                    nextMovement = directions.RIGHT;
-                } else {
-                    clearTimeout(currMovementTimeout);
-                    let x = 2 * player.x - parseInt(player.x / 16) * 16;
-                    console.log(x);
-                    player.anims.play('right', true);
-                    currMovementTimeout = setTimeout(() => moveTo(x, 0), 26 - player.speed * 2.5);
-
-                }
-            }
-            else {
-                currMovement = directions.RIGHT;
-                player.anims.play('right', true);
-                currMovementTimeout = setTimeout(() => moveTo(16, 0), 26 - player.speed * 2.5);
-            }
-        }
+var createNextTween = () => {
+    if (nextDirection) {
+        if (nextDirection === 'up' || nextDirection === 'down')
+            actualTween = createVerticalTween(player.y, nextDirection);
+        else
+            actualTween = createHorizontalTween(player.x, nextDirection);
+        nextDirection = undefined;
     }
 };
 
-function moveTo(x, y) {
-    if (x > 0) {
-        player.x++;
-        x--;
-    } else if (x < 0) {
-        player.x--;
-        x++;
-    } else if (y > 0) {
-        player.y++;
-        y--;
-    } else if (y < 0) {
-        player.y--;
-        y++;
-    }
-    if (x == 0 && y == 0) {
-        player.anims.stop();
-        currMovement = nextMovement;
-        nextMovement = undefined;
-        switch (currMovement) {
-            case directions.UP:
-                currMovementTimeout = setTimeout(() => moveTo(0, -16), 26 - player.speed * 2.5);
-                break;
-            case directions.DOWN:
-                currMovementTimeout = setTimeout(() => moveTo(0, 16), 26 - player.speed * 2.5);
-                break;
-            case directions.LEFT:
-                currMovementTimeout = setTimeout(() => moveTo(-16, 0), 26 - player.speed * 2.5);
-                break;
-            case directions.RIGHT:
-                currMovementTimeout = setTimeout(() => moveTo(16, 0), 26 - player.speed * 2.5);
-                break;
-            default:
-                clearTimeout(currMovementTimeout);
-                currMovementTimeout = undefined;
+var actualTween, nextDirection;
+
+function update() {
+    keyboardMovements();
+    /*if (player.status === 'alive') {
+        speed = 325 - player.speed * 2;
+
+        if (speed <= 100) {
+            player.anims.msPerFrame = 100;
+        } else if (speed <= 320) {
+            player.anims.msPerFrame = 106;
+        } else if (speed <= 340) {
+            player.anims.msPerFrame = 113;
+        } else if (speed <= 360) {
+            player.anims.msPerFrame = 120;
+        } else if (speed <= 380) {
+            player.anims.msPerFrame = 126;
+        } else {
+            player.anims.msPerFrame = 133;
         }
-    } else {
-        currMovementTimeout = setTimeout(() => moveTo(x, y), 26 - player.speed * 2.5);
     }
+
+    if (!player.godlike && scene.physics.collide(player, scene.flamesGroup)) {
+        death(player);
+    }*/
 };
 
-function getCollisionOnMove(x, y) {
-    return map.getTileAtWorldXY(x, y, layer).index === 1 || _.filter(bombs, (el) => getCollisionObject(x, y, el.x, el.y)).length > 0 || _.filter(game.scene.scenes[0].wallsGroup.children.entries, (el) => getCollisionObject(x, y, el.x, el.y)).length > 0;
+function getOneStepAheadPosition(x, y, dir) {
+    let nextStep = { x, y };
+
+    switch (dir) {
+        case directions.right:
+            nextStep.x += 16;
+            break;
+        case directions.left:
+            nextStep.x -= 16;
+            break;
+        case directions.down:
+            nextStep.y += 16;
+            break;
+        case directions.up:
+            nextStep.y -= 16;
+            break;
+    }
+
+    return nextStep;
+};
+
+function getCollisionOnMove(x, y, dir) {
+
+    switch (dir) {
+        case directions.right:
+            x += 16;
+            break;
+        case directions.left:
+            x -= 16;
+            break;
+        case directions.down:
+            y += 16;
+            break;
+        case directions.up:
+            y -= 16;
+            break;
+    }
+    try {
+        return map.getTileAtWorldXY(x, y, layer).index === 1 || _.filter(bombs, (el) => getCollisionObject(x, y, el.x, el.y)).length > 0 || _.filter(game.scene.scenes[0].wallsGroup.children.entries, (el) => getCollisionObject(x, y, el.x, el.y)).length > 0;
+    }
+    catch {
+        return true;
+    }
 };
 
 function getCollisionObject(x1, y1, x2, y2) {
     return (x2 <= x1) && (x1 < x2 + 16) &&
         (y2 <= y1) && (y1 < y2 + 16);
-}
+};
+
+function isMoving() {
+    return tweenUp || tweenRight || tweenLeft || tweenDown;
+};
 
 function keyboardMovements() {
     if (player.status === 'alive') {
-        let tile = { x: parseInt(player.x / 16), y: parseInt(player.y / 16) };
-        player.setVelocity(0, 0);
-        speed = 26 - player.speed * 2.5;
+        speed = 325 - player.speed * 2;
+
+        if (speed <= 100) {
+            player.anims.msPerFrame = 100;
+        } else if (speed <= 320) {
+            player.anims.msPerFrame = 106;
+        } else if (speed <= 340) {
+            player.anims.msPerFrame = 113;
+        } else if (speed <= 360) {
+            player.anims.msPerFrame = 120;
+        } else if (speed <= 380) {
+            player.anims.msPerFrame = 126;
+        } else {
+            player.anims.msPerFrame = 133;
+        }
+
+        if (cursors.right.isDown) {
+            if (actualTween === undefined && !getCollisionOnMove(player.x, player.y, 'right')) {
+                actualTween = createHorizontalTween(player.x, 'right');
+                actualTween.direction = directions.right;
+                let nextStepPos = getOneStepAheadPosition(player.x, player.y, actualTween.direction);
+                actualTween.next_x = nextStepPos.x;
+                actualTween.next_y = nextStepPos.y;
+            } else if (actualTween && !getCollisionOnMove(actualTween.next_x, actualTween.next_y, 'right')) {
+                nextDirection = directions.right;
+            }
+        } else if (cursors.left.isDown) {
+            if (actualTween === undefined && !getCollisionOnMove(player.x, player.y, 'left')) {
+                actualTween = createHorizontalTween(player.x, 'left');
+                actualTween.direction = directions.left;
+                let nextStepPos = getOneStepAheadPosition(player.x, player.y, actualTween.direction);
+                actualTween.next_x = nextStepPos.x;
+                actualTween.next_y = nextStepPos.y;
+            } else if (actualTween && !getCollisionOnMove(actualTween.next_x, actualTween.next_y, 'left')) {
+                nextDirection = directions.left;
+            }
+        } else if (cursors.up.isDown) {
+            if (actualTween === undefined && !getCollisionOnMove(player.x, player.y, 'up')) {
+                actualTween = createVerticalTween(player.y, 'up');
+                actualTween.direction = directions.up;
+                let nextStepPos = getOneStepAheadPosition(player.x, player.y, actualTween.direction);
+                actualTween.next_x = nextStepPos.x;
+                actualTween.next_y = nextStepPos.y;
+            } else if (actualTween && !getCollisionOnMove(actualTween.next_x, actualTween.next_y, 'up')) {
+                nextDirection = directions.up;
+            }
+        } else if (cursors.down.isDown) {
+            if (actualTween === undefined && !getCollisionOnMove(player.x, player.y, 'down')) {
+                actualTween = createVerticalTween(player.y, 'down');
+                actualTween.direction = directions.down;
+                let nextStepPos = getOneStepAheadPosition(player.x, player.y, actualTween.direction);
+                actualTween.next_x = nextStepPos.x;
+                actualTween.next_y = nextStepPos.y;
+            } else if (actualTween && !getCollisionOnMove(actualTween.next_x, actualTween.next_y, 'down')) {
+                nextDirection = directions.down;
+            }
+        }
 
         if (!flipMovement && cursors.right.isDown) {
             flipMovement = true;
@@ -346,7 +452,6 @@ function keyboardMovements() {
 const death = (player) => {
     player.status = "dead";
     player.anims.play('death', true);
-    $(document).unbind('keydown', movementByTile);
     player.once("animationcomplete", () => {
         setTimeout(() => {
             items_collected = player.items_collected;
@@ -637,28 +742,28 @@ const playerAnimation = () => {
     scene.anims.create({
         key: 'left',
         frames: scene.anims.generateFrameNumbers('white-bm', { start: 3, end: 5 }),
-        frameRate: 5,
+        frameRate: 10,
         repeat: -1
     });
 
     scene.anims.create({
         key: 'right',
         frames: scene.anims.generateFrameNumbers('white-bm', { start: 9, end: 11 }),
-        frameRate: 5,
+        frameRate: 10,
         repeat: -1
     });
 
     scene.anims.create({
         key: 'up',
         frames: scene.anims.generateFrameNumbers('white-bm', { start: 0, end: 2 }),
-        frameRate: 5,
+        frameRate: 10,
         repeat: -1
     });
 
     scene.anims.create({
         key: 'down',
         frames: scene.anims.generateFrameNumbers('white-bm', { start: 6, end: 8 }),
-        frameRate: 5,
+        frameRate: 10,
         repeat: -1
     });
 
