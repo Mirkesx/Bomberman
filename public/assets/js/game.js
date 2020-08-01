@@ -688,24 +688,24 @@ function startGame(b, f, s, playersList, your_id) {
             players[your_id].anims.msPerFrame = speed / 3;
 
             if (cursors.right.isDown) {
-                if (actualTween === undefined && !getCollisionOnMove(player.x, player.y, 'right')) {
+                if (actualTween === undefined && !getCollisionOnMove(players[your_id].x, players[your_id].y, 'right')) {
                     anim = userList[your_id].color + '-right';
-                    actualTween = createHorizontalTween(player.x, 'right', anim);
+                    actualTween = createHorizontalTween(players[your_id].x, 'right', anim);
                 }
             } else if (cursors.left.isDown) {
-                if (actualTween === undefined && !getCollisionOnMove(player.x, player.y, 'left')) {
+                if (actualTween === undefined && !getCollisionOnMove(players[your_id].x, players[your_id].y, 'left')) {
                     anim = userList[your_id].color + '-left';
-                    actualTween = createHorizontalTween(player.x, 'left', anim);
+                    actualTween = createHorizontalTween(players[your_id].x, 'left', anim);
                 }
             } else if (cursors.up.isDown) {
-                if (actualTween === undefined && !getCollisionOnMove(player.x, player.y, 'up')) {
+                if (actualTween === undefined && !getCollisionOnMove(players[your_id].x, players[your_id].y, 'up')) {
                     anim = userList[your_id].color + '-up';
-                    actualTween = createVerticalTween(player.y, 'up', anim);
+                    actualTween = createVerticalTween(players[your_id].y, 'up', anim);
                 }
             } else if (cursors.down.isDown) {
-                if (actualTween === undefined && !getCollisionOnMove(player.x, player.y, 'down')) {
+                if (actualTween === undefined && !getCollisionOnMove(players[your_id].x, players[your_id].y, 'down')) {
                     anim = userList[your_id].color + '-down';
-                    actualTween = createVerticalTween(player.y, 'down', anim);
+                    actualTween = createVerticalTween(players[your_id].y, 'down', anim);
                 }
             }
 
@@ -825,7 +825,7 @@ function startGame(b, f, s, playersList, your_id) {
                 players[your_id].anims.play(anim, true);
             },
             onComplete: function () {
-                players[your_id].anims.setCurrentFrame(player.anims.currentAnim.frames[1]);
+                //players[your_id].anims.setCurrentFrame(player.anims.currentAnim.frames[1]);
                 players[your_id].anims.stop();
                 anim = 'stop';
                 animated = false;
@@ -848,7 +848,7 @@ function startGame(b, f, s, playersList, your_id) {
                 players[your_id].anims.play(anim, true);
             },
             onComplete: function () {
-                players[your_id].anims.setCurrentFrame(player.anims.currentAnim.frames[1]);
+                //players[your_id].anims.setCurrentFrame(player.anims.currentAnim.frames[1]);
                 players[your_id].anims.stop();
                 anim = 'stop';
                 animated = false;
