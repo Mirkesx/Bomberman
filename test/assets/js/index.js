@@ -228,10 +228,8 @@ function getCollisionObject(x1, y1, x2, y2) {
 
 function keyboardMovements() {
     if (player.status === 'alive') {
-        player.setVelocity(0, 0);
         speed = 300 - player.speed * 20;
         player.anims.msPerFrame = speed / 3;
-        velocity = 16 * 1000 / speed;
 
         if (cursors.right.isDown) {
             if (actualTween === undefined && !getCollisionOnMove(player.x, player.y, 'right')) {

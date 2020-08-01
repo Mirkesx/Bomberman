@@ -1,4 +1,10 @@
 const game_colors = ['white', 'black', 'blue', 'red'];
+var colorMap = {
+    gray: { sprites: "white-bm", x: 24, y: 24 },
+    black: { sprites: "black-bm", x: 216, y: 24 },
+    blue: { sprites: "blue-bm", x: 24, y: 184 },
+    red: { sprites: "red-bm", x: 216, y: 184 }
+};
 const items_list = [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 3, 9, 9, 9, 9, 9, 23, 23];
 
 var game, cursors;
@@ -18,6 +24,10 @@ function setupGame() {
     bombs = $('#numberBombs').val();
     flames = $('#numberFlames').val();
     speed = $('#numberSpeed').val();
+    _.each(userList, (el) => {
+        if (el.color === 'white')
+            el.color = "gray";
+    });
     socket.emit('start-game', { b: bombs, f: flames, s: speed, players: userList });
     startGame(bombs, flames, speed, userList, userId);
 }
@@ -63,6 +73,7 @@ function startGame(b, f, s, playersList, your_id) {
     var players;
     var bombs, flipFlopBomb;
     var animated; //animated is used to show the right animation with the player sprite
+    var anim;
     var walls;
 
 
@@ -110,7 +121,7 @@ function startGame(b, f, s, playersList, your_id) {
         assetText.setOrigin(0.5, 0.5);
 
         this.load.on('progress', function (value) {
-            console.log(value);
+            //console.log(value);
             progressBar.clear();
             progressBar.fillStyle(0xffffff, 1);
             progressBar.fillRect(250, 280, 300 * value, 30);
@@ -118,12 +129,12 @@ function startGame(b, f, s, playersList, your_id) {
         });
 
         this.load.on('fileprogress', function (file) {
-            console.log(file.src);
+            //console.log(file.src);
             assetText.setText('Loading asset: ' + file.key);
         });
 
         this.load.on('complete', function () {
-            console.log('complete');
+            //console.log('complete');
             progressBar.destroy();
             progressBox.destroy();
             loadingText.destroy();
@@ -184,16 +195,6 @@ function startGame(b, f, s, playersList, your_id) {
         }
 
         // PLAYERS
-        /*players = [];
-
-        players.push(createPlayer(24, 24, game_colors[0] + '-bm', 0));
-        if (n_players > 1)
-            players.push(createPlayer(216, 24, game_colors[1] + '-bm', 1));
-        if (n_players > 2)
-            players.push(createPlayer(24, 184, game_colors[2] + '-bm', 2));
-        if (n_players > 3)
-            players.push(createPlayer(216, 184, game_colors[3] + '-bm', 3));*/
-
         players = addPlayers(playersList);
 
         scene.physics.add.collider(players[your_id], scene.flamesGroup, () => {
@@ -218,6 +219,7 @@ function startGame(b, f, s, playersList, your_id) {
 
         //INITIALIZATIONS VARIABLES
         animated = false;
+        anim = 'stop';
         bombs = [];
 
         this.backgroundSong.play(musicConfig);
@@ -251,6 +253,10 @@ function startGame(b, f, s, playersList, your_id) {
             }
             console.log("Walls/Items loaded");
         }
+
+        $('canvas').on('click', function() {
+            this.focus();
+        });
     };
 
 
@@ -284,12 +290,6 @@ function startGame(b, f, s, playersList, your_id) {
     // FUNCTIONS
 
     const addPlayers = (list) => {
-        const colorMap = {
-            gray: { sprites: "white-bm", x: 24, y: 24 },
-            black: { sprites: "black-bm", x: 216, y: 24 },
-            blue: { sprites: "blue-bm", x: 24, y: 184 },
-            red: { sprites: "red-bm", x: 216, y: 184 }
-        };
         let players = [];
         let i = 0;
         for (let user in list) {
@@ -684,67 +684,48 @@ function startGame(b, f, s, playersList, your_id) {
 
     function phaserKeyboard() {
         if (cursors && players[your_id] && players[your_id].status === 'alive') {
-            let anim = 'stop';
-            players[your_id].setVelocity(0, 0);
-            speed = 50 + players[your_id].speed * 15;
+            speed = 300 - players[your_id].speed * 20;
+            players[your_id].anims.msPerFrame = speed / 3;
 
-            if (cursors.up.isDown) {
-                players[your_id].body.velocity.y = -speed;
-                if (cursors.left.isDown) {
-                    players[your_id].body.velocity.x = -speed;
-                } else if (cursors.right.isDown) {
-                    players[your_id].body.velocity.x = speed;
+            if (cursors.right.isDown) {
+                if (actualTween === undefined && !getCollisionOnMove(player.x, player.y, 'right')) {
+                    anim = userList[your_id].color + '-right';
+                    actualTween = createHorizontalTween(player.x, 'right', anim);
                 }
-
-                players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-up', true);
-                anim = /*game_colors[your_id]*/userList[your_id].color + '-up';
-                animated = true;
-
-            } else if (cursors.down.isDown) {
-                players[your_id].body.velocity.y = speed;
-                if (cursors.left.isDown) {
-                    players[your_id].body.velocity.x = -speed;
-                } else if (cursors.right.isDown) {
-                    players[your_id].body.velocity.x = speed;
-                }
-
-                players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-down', true);
-                anim = /*game_colors[your_id]*/userList[your_id].color + '-down';
-                animated = true;
-
             } else if (cursors.left.isDown) {
-                players[your_id].body.velocity.x = -speed;
-
-                players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-left', true);
-                anim = /*game_colors[your_id]*/userList[your_id].color + '-left';
-                animated = true;
-
+                if (actualTween === undefined && !getCollisionOnMove(player.x, player.y, 'left')) {
+                    anim = userList[your_id].color + '-left';
+                    actualTween = createHorizontalTween(player.x, 'left', anim);
+                }
+            } else if (cursors.up.isDown) {
+                if (actualTween === undefined && !getCollisionOnMove(player.x, player.y, 'up')) {
+                    anim = userList[your_id].color + '-up';
+                    actualTween = createVerticalTween(player.y, 'up', anim);
+                }
+            } else if (cursors.down.isDown) {
+                if (actualTween === undefined && !getCollisionOnMove(player.x, player.y, 'down')) {
+                    anim = userList[your_id].color + '-down';
+                    actualTween = createVerticalTween(player.y, 'down', anim);
+                }
             }
-            else if (cursors.right.isDown) {
-                players[your_id].body.velocity.x = speed;
 
-                players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-right', true);
-                anim = /*game_colors[your_id]*/userList[your_id].color + '-right';
-                animated = true;
-
+            if (actualTween === undefined) {
+                if (anim != 'stop') {
+                    players[your_id].anims.setCurrentFrame(players[your_id].anims.currentAnim.frames[1]);
+                    players[your_id].anims.stop();
+                }
+                anim = 'stop';
+                animated = false;
             }
 
-            if (!flipFlopBomb && players[your_id].bombs > _.filter(bombs, (b) => b.player_id === your_id).length && cursors.ctrl.isDown) {
+            if (!flipFlopBomb && players[your_id].bombs > _.filter(bombs, (b) => b.player_id === your_id).length && cursors.space.isDown) {
                 placeBomb(players[your_id].x, players[your_id].y, your_id, players[your_id].flames);
                 socket.emit('placed-bomb', { x: players[your_id].x, y: players[your_id].y, player_id: your_id, flames_len: players[your_id].flames });
                 flipFlopBomb = true;
             }
 
-            if (flipFlopBomb && cursors.ctrl.isUp) {
+            if (flipFlopBomb && cursors.space.isUp) {
                 flipFlopBomb = false;
-            }
-
-            //to stop the animation
-            if (animated && players[your_id].body.velocity.x == 0 && players[your_id].body.velocity.y == 0) {
-                players[your_id].anims.setCurrentFrame(players[your_id].anims.currentAnim.frames[1]);
-                players[your_id].anims.stop();
-                anim = 'stop';
-                animated = false;
             }
 
             socket.emit('move-player', {
@@ -770,8 +751,8 @@ function startGame(b, f, s, playersList, your_id) {
                     players[your_id].body.velocity.x = speed;
                 }
 
-                players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-up', true);
-                anim = /*game_colors[your_id]*/userList[your_id].color + '-up';
+                players[your_id].anims.play(userList[your_id].color + '-up', true);
+                anim = userList[your_id].color + '-up';
                 animated = true;
 
             } else if (chevronDown) {
@@ -782,23 +763,23 @@ function startGame(b, f, s, playersList, your_id) {
                     players[your_id].body.velocity.x = speed;
                 }
 
-                players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-down', true);
-                anim = /*game_colors[your_id]*/userList[your_id].color + '-down';
+                players[your_id].anims.play(userList[your_id].color + '-down', true);
+                anim = userList[your_id].color + '-down';
                 animated = true;
 
             } else if (chevronLeft) {
                 players[your_id].body.velocity.x = -speed;
 
-                players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-left', true);
-                anim = /*game_colors[your_id]*/userList[your_id].color + '-left';
+                players[your_id].anims.play(userList[your_id].color + '-left', true);
+                anim = userList[your_id].color + '-left';
                 animated = true;
 
             }
             else if (chevronRight) {
                 players[your_id].body.velocity.x = speed;
 
-                players[your_id].anims.play(/*game_colors[your_id]*/userList[your_id].color + '-right', true);
-                anim = /*game_colors[your_id]*/userList[your_id].color + '-right';
+                players[your_id].anims.play(userList[your_id].color + '-right', true);
+                anim = userList[your_id].color + '-right';
                 animated = true;
 
             }
@@ -827,5 +808,84 @@ function startGame(b, f, s, playersList, your_id) {
                 animation: anim,
             });
         }
+    };
+
+
+    // needed for the tile based movement
+    var actualTween;
+
+    var createVerticalTween = (player_y, dir, anim) => {
+        return scene.tweens.add({
+            targets: players[your_id],
+            duration: speed,
+            y: parseInt(player_y / 16) * 16 + (dir === 'up' ? - 8 : 24),
+            ease: 'Linear',
+            repeat: 0,
+            onStart: function () {
+                players[your_id].anims.play(anim, true);
+            },
+            onComplete: function () {
+                players[your_id].anims.setCurrentFrame(player.anims.currentAnim.frames[1]);
+                players[your_id].anims.stop();
+                anim = 'stop';
+                animated = false;
+                actualTween = undefined;
+            },
+            delay: 0,
+            completeDelay: 0,
+            yoyo: false
+        });
+    };
+
+    var createHorizontalTween = (player_x, dir, anim) => {
+        return scene.tweens.add({
+            targets: players[your_id],
+            duration: speed,
+            x: parseInt(player_x / 16) * 16 + (dir === 'left' ? - 8 : 24),
+            ease: 'Linear',
+            repeat: 0,
+            onStart: function () {
+                players[your_id].anims.play(anim, true);
+            },
+            onComplete: function () {
+                players[your_id].anims.setCurrentFrame(player.anims.currentAnim.frames[1]);
+                players[your_id].anims.stop();
+                anim = 'stop';
+                animated = false;
+                actualTween = undefined;
+            },
+            delay: 0,
+            completeDelay: 0,
+            yoyo: false
+        });
+    };
+
+    function getCollisionOnMove(x, y, dir) {
+
+        switch (dir) {
+            case 'right':
+                x += 16;
+                break;
+            case 'left':
+                x -= 16;
+                break;
+            case 'down':
+                y += 16;
+                break;
+            case 'up':
+                y -= 16;
+                break;
+        }
+        try {
+            return map.getTileAtWorldXY(x, y, layer).index === 1 || _.filter(bombs, (el) => getCollisionObject(x, y, el.x, el.y)).length > 0 || _.filter(game.scene.scenes[0].wallsGroup.children.entries, (el) => getCollisionObject(x, y, el.x, el.y)).length > 0;
+        }
+        catch {
+            return true;
+        }
+    };
+
+    function getCollisionObject(x1, y1, x2, y2) {
+        return (x2 <= x1) && (x1 < x2 + 16) &&
+            (y2 <= y1) && (y1 < y2 + 16);
     };
 };

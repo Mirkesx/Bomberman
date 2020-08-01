@@ -351,7 +351,7 @@ $(document).ready(() => {
         userNickname = $("#nickname").val();
         avatar = $('#carouselAvatar').find('.active').attr('data-avatar');
         $('#loginModal').modal('hide');
-        setTimeout(() => $('#enterRoom').modal('show'), 500);
+        setTimeout(() => $('#enterRoom').modal({ backdrop: 'static', keyboard: false }), 500);
         loginUser();
     });
 

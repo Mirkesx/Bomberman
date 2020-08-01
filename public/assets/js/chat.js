@@ -1,6 +1,16 @@
 var sendMsg, receiveMsg, serviceMessage;
 
 $('document').ready(() => {
+    $('#btn-input').on('click', function () {
+        if (game) {
+            game.input.keyboard.enabled = false;
+        }
+    });
+    $('#btn-input').on('focusout', function () {
+        if (game) {
+            game.input.keyboard.enabled = true;
+        }
+    });
     (function () {
         $(function () {
             var getMessageText, message_side;
