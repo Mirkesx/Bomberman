@@ -216,7 +216,7 @@ $(document).ready(() => {
 
                 socket.on("get-color", (list) => {
                     let picked_colors = _.map(_.filter(list, (el) => el.color), (el) => el.color);
-                    let color = _.difference( colors, picked_colors)[0];
+                    let color = _.difference(colors, picked_colors)[0];
                     $('#cardPlaceSelector [data-color="' + color + '"]').trigger('click');
                 });
 
@@ -353,22 +353,26 @@ $(document).ready(() => {
     */
 
     $('#nickname').on('keydown', (event) => {
-        if(event.keyCode === 13)
+        if (event.keyCode === 13)
             $('#loads-room').trigger('click');
     });
 
     $('#roomName').on('keydown', (event) => {
-        if(event.keyCode === 13)
+        if (event.keyCode === 13)
             $('#join-room').trigger('click');
     });
 
     $("#loads-room").on('click', () => {
         $("#nickname").val($("#nickname").val().replace(/ /g, ""));
-        userNickname = $("#nickname").val();
-        avatar = $('#carouselAvatar').find('.active').attr('data-avatar');
-        $('#loginModal').modal('hide');
-        setTimeout(() => $('#enterRoom').modal({ backdrop: 'static', keyboard: false }), 500);
-        loginUser();
+        if ($("#nickname").val().length > 2) {
+            userNickname = $("#nickname").val();
+            avatar = $('#carouselAvatar').find('.active').attr('data-avatar');
+            $('#loginModal').modal('hide');
+            setTimeout(() => $('#enterRoom').modal({ backdrop: 'static', keyboard: false }), 500);
+            loginUser();
+        } else {
+            createPopup("The username must have at least three character", 500, 50);
+        }
     });
 
     $("#join-room").on('click', () => {
@@ -468,13 +472,13 @@ $(document).ready(() => {
     $('.fa-arrow-down.settingButton').click((event) => {
         $el = $(event.currentTarget);
         let val = parseInt($el.parent().find("input").val());
-        if(val > 1)
+        if (val > 1)
             $el.parent().find("input").val(val - 1);
     });
     $('.fa-arrow-up.settingButton').click((event) => {
         $el = $(event.currentTarget);
         let val = parseInt($el.parent().find("input").val());
-        if(val < 10)
+        if (val < 10)
             $el.parent().find("input").val(val + 1);
     });
 
