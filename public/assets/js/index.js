@@ -263,7 +263,7 @@ $(document).ready(() => {
                     cursors = game.scene.scenes[0].input.keyboard.createCursorKeys();
                     cursors['ctrl'] = game.scene.scenes[0].input.keyboard.addKey('CTRL');
                     createPopup("Start!", 500, 100);
-                    $('.popup_scheda').removeClass('bg-danger').addClass('bg-primary');
+                    $('.popup_scheda').removeClass('bg-danger').addClass('bg-light popupStart');
                 }
             });
 

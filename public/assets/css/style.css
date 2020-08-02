@@ -208,3 +208,11 @@ input[type='number']::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
+
+.popupStart {
+    color: black !important;
+}
+
+.popupStart h5{
+    font-size: 50px !important;
+}
