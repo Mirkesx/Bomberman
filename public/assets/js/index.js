@@ -214,20 +214,26 @@ $(document).ready(() => {
                     }
                 });
 
+                socket.on("get-color", (list) => {
+                    let picked_colors = _.map(_.filter(list, (el) => el.color), (el) => el.color);
+                    let color = _.difference( colors, picked_colors)[0];
+                    $('#cardPlaceSelector [data-color="' + color + '"]').trigger('click');
+                });
+
 
                 socket.on("remove-color", (data) => {
                     $('#cardPlaceSelector [data-color="' + data.actual_color + '"]').css('visibility', 'hidden');
-                    //$('#cardPlaceSelector [data-color="' + data.actual_color + '"]').parent().addClass('picked-color');
                     if (data.prev_color) {
                         $('#cardPlaceSelector [data-color="' + data.prev_color + '"]').css('visibility', 'visible');
-                        //$('#cardPlaceSelector [data-color="' + data.prev_color + '"]').parent().removeClass('picked-color');
                     }
                 });
 
 
                 socket.on("release-color", (color) => {
-                    $('#cardPlaceSelector [data-color="' + color + '"]').css('visibility', 'visible');
-                    $('#cardPlaceSelector [data-color="' + color.prev_color + '"]').parent().removeClass('picked-color');
+                    if (color) {
+                        $('#cardPlaceSelector [data-color="' + color + '"]').css('visibility', 'visible');
+                        $('#cardPlaceSelector [data-color="' + color.prev_color + '"]').parent().removeClass('picked-color');
+                    }
                 });
 
 
@@ -248,8 +254,8 @@ $(document).ready(() => {
 
                 // GAME EVENTS
                 socket.on('load-game', (data) => {
-                    if (userId != 0) {
-                        startGame(data.b, data.f, data.s, data.players, userId);
+                    if (userId != -1) {
+                        startGame(data.b, data.f, data.s, data.players, userId, data.stage, data.items);
                     }
                 });
 
@@ -346,6 +352,16 @@ $(document).ready(() => {
     Manage events
     */
 
+    $('#nickname').on('keydown', (event) => {
+        if(event.keyCode === 13)
+            $('#loads-room').trigger('click');
+    });
+
+    $('#roomName').on('keydown', (event) => {
+        if(event.keyCode === 13)
+            $('#join-room').trigger('click');
+    });
+
     $("#loads-room").on('click', () => {
         $("#nickname").val($("#nickname").val().replace(/ /g, ""));
         userNickname = $("#nickname").val();
@@ -399,13 +415,6 @@ $(document).ready(() => {
      */
 
     $('#icon-volume').click(() => {
-        /*if ($('.icon-volume').hasClass('fa-volume-up')) {
-            $('.icon-volume').removeClass('fa-volume-up').addClass('fa-volume-off');
-            game.scene.scenes[0].sound.mute = true;
-        } else {
-            $('.icon-volume').removeClass('fa-volume-off').addClass('fa-volume-up');
-            game.scene.scenes[0].sound.mute = false;
-        }*/
         $('#range-volume').show().focus();
         $('#icon-volume').hide();
     });
@@ -438,6 +447,7 @@ $(document).ready(() => {
                 }, 500);
             }
         }
+        $('#cardPlaceSelector .your-color .btn').trigger('click');
         socket.emit('user-exits');
         inGame = false;
     });
@@ -458,12 +468,14 @@ $(document).ready(() => {
     $('.fa-arrow-down.settingButton').click((event) => {
         $el = $(event.currentTarget);
         let val = parseInt($el.parent().find("input").val());
-        $el.parent().find("input").val(val - 1);
+        if(val > 1)
+            $el.parent().find("input").val(val - 1);
     });
     $('.fa-arrow-up.settingButton').click((event) => {
         $el = $(event.currentTarget);
         let val = parseInt($el.parent().find("input").val());
-        $el.parent().find("input").val(val + 1);
+        if(val < 10)
+            $el.parent().find("input").val(val + 1);
     });
 
     $('#cardPlaceSelector .colors-circle .btn').click((event) => {
@@ -485,14 +497,14 @@ $(document).ready(() => {
                 colorClass = "btn btn-light";
         }
         $('.your-color span').addClass(colorClass);
-        $('.your-color p').html("You picked the color: "+yourColor+".<br>Click again on your color to change the selection!");
+        $('.your-color p').html("You picked the color: " + yourColor + ".<br>Click again on your color to change the selection!");
 
         $('.your-color').show();
         socket.emit('color-claimed', yourColor);
     });
 
     $('#cardPlaceSelector .your-color .btn').click(() => {
-        if($('#buttonReady').hasClass('btn-success')) {
+        if ($('#buttonReady').hasClass('btn-success')) {
             $('#buttonReady').trigger('click');
         }
         $('.your-color span').removeClass();

@@ -146,6 +146,7 @@ io.on('connection', function (client) {
         io.sockets.in(client.roomName).emit('user_logged', data.nickname);
         client.emit("user_list", { list: rooms[client.roomName].userList, h: rooms[client.roomName].host });
         client.emit('load_dashboard', rooms[client.roomName].gameStarted);
+        client.emit('get-color', rooms[client.roomName].userList);
         io.sockets.in(main_lobby).emit('list-of-rooms', rooms);
     };
 
@@ -182,6 +183,8 @@ io.on('connection', function (client) {
         rooms[client.roomName].players = _.range(data.players.length);
         rooms[client.roomName].map = generateWalls(empty_stage);
         rooms[client.roomName].items = generateItems(rooms[client.roomName].map);
+        data.stage = rooms[client.roomName].map;
+        data.items = rooms[client.roomName].items;
         io.sockets.in(client.roomName).emit('load-game', data);
     });
 

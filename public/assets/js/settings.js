@@ -1,4 +1,4 @@
-const colors = ['grey', 'black', 'blue', 'red'];
+const colors = ['gray', 'black', 'blue', 'red'];
 
 const loadSettings = () => {
     $('#gameSetup').show("fast", setupSettings);
@@ -27,12 +27,11 @@ const printUserList = () => {
             color = userList[i].color;
         }
         $row.append('<span class="col-12 col-lg-7 userName" style="color:' + color + ';">' + userList[i].nickname + '</span>');
-        //$row.append('<span class="col-1 fa ' + (userList[i].status == "ready" ? 'fa-check' : 'fa-times') + ' fa-2 ' + userList[i].status + '"></span>');
         $row.append('<span class="col-12 col-lg-5 ' + userList[i].status + '">' + (userList[i].status == "ready" ? 'READY' : 'NOT READY') + '</span>');
         $('#gameSetup').find('#cardPlayersList').find('.card-body').append($row);
     }
-    if (userNickname == host) {
-        if (userList.length == _.filter(userList, (user) => user.status == "ready").length) {
+    if (userNickname === host) {
+        if (userList.length == _.filter(userList, (user) => user.status == "ready").length && _.filter(userList, (user) => user.status == "ready").length > 1) {
             $('#buttonReady').hide();
             $('#buttonStart').show();
         }
@@ -41,7 +40,6 @@ const printUserList = () => {
             $('#buttonReady').show();
         }
     }
-
 };
 
 const disableInputs = () => {
@@ -64,18 +62,20 @@ const setEventsButtons = () => {
 
     $('#buttonReady').click(() => {
         let index = _.findIndex(userList, (user) => user.nickname == userNickname);
-        if (userList[index].status == "not-ready") {
-            if (userList[index].color) {
-                console.log("Now ready.")
-                socket.emit('player-ready', index);
-                $('#buttonReady').removeClass('btn-danger').addClass('btn-success');
-            } else {
-                createPopup("You must choose a color before!", 500, 50);
+        if (index != -1) {
+            if (userList[index].status == "not-ready") {
+                if (userList[index].color) {
+                    console.log("Now ready.")
+                    socket.emit('player-ready', index);
+                    $('#buttonReady').removeClass('btn-danger').addClass('btn-success');
+                } else {
+                    createPopup("You must choose a color before!", 500, 50);
+                }
+            } else if (userList[index].status == "ready") {
+                console.log("Now not ready.")
+                socket.emit('player-not-ready', index);
+                $('#buttonReady').removeClass('btn-success').addClass('btn-danger');
             }
-        } else if (userList[index].status == "ready") {
-            console.log("Now not ready.")
-            socket.emit('player-not-ready', index);
-            $('#buttonReady').removeClass('btn-success').addClass('btn-danger');
         }
     });
 

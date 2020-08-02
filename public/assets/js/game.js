@@ -29,10 +29,9 @@ function setupGame() {
             el.color = "gray";
     });
     socket.emit('start-game', { b: bombs, f: flames, s: speed, players: userList });
-    startGame(bombs, flames, speed, userList, userId);
-}
+};
 
-function startGame(b, f, s, playersList, your_id) {
+function startGame(b, f, s, playersList, your_id,stage,items) {
 
     var config = {
         type: Phaser.AUTO,
@@ -69,7 +68,7 @@ function startGame(b, f, s, playersList, your_id) {
     $('.icon-volume').removeClass('fa-volume-off').addClass('fa-volume-up');
     $('.canvasContainer').html("");
     isMobile = !game.device.os.desktop;
-    var map, tileset, layer, scene, stage;
+    var map, tileset, layer, scene;
     var players;
     var bombs, flipFlopBomb;
     var animated; //animated is used to show the right animation with the player sprite
@@ -140,7 +139,7 @@ function startGame(b, f, s, playersList, your_id) {
             loadingText.destroy();
             percentText.destroy();
             assetText.destroy();
-            socket.emit('request-stage', your_id);
+            //socket.emit('request-stage', your_id);
             socket.emit('user-ready');
         });
 
@@ -191,8 +190,24 @@ function startGame(b, f, s, playersList, your_id) {
             map = scene.make.tilemap({ key: 'map', tileWidth: 16, tileHeight: 16 });
             tileset = map.addTilesetImage('tiles-stage-1');
             layer = map.createStaticLayer(0, tileset, 0, 0);
-            layer.setCollisionByExclusion([3, 4]);
+            //layer.setCollisionByExclusion([3, 4]);
         }
+
+        //WALLS ITEMS
+        walls = [];
+        for (let i = 1; i < 14; i++) {
+            for (let j = 1; j < 12; j++) {
+                if (stage[j][i] === 2 || stage[j][i] === 3) {
+                    let wall = createNewWall(i * 16, j * 16)
+                    walls.push(wall);
+                }
+            }
+        }
+
+        for (let item of items) {
+            createNewItem(item[0], item[1], item[2]);
+        }
+        console.log("Walls/Items loaded");
 
         // PLAYERS
         players = addPlayers(playersList);
@@ -226,13 +241,13 @@ function startGame(b, f, s, playersList, your_id) {
         game.sound.setVolume(0.2);
     }
 
-    setupStage = (s, items) => {
+    /*setupStage = (s, items) => {
         if (!stage) {
             if (map === undefined) {
                 map = scene.make.tilemap({ key: 'map', tileWidth: 16, tileHeight: 16 });
                 tileset = map.addTilesetImage('tiles-stage-1');
                 layer = map.createStaticLayer(0, tileset, 0, 0);
-                layer.setCollisionByExclusion([3, 4]);
+                //layer.setCollisionByExclusion([3, 4]);
             }
 
 
@@ -257,7 +272,7 @@ function startGame(b, f, s, playersList, your_id) {
         $('canvas').on('click', function() {
             this.focus();
         });
-    };
+    };*/
 
 
     const createNewWall = (x, y) => {
