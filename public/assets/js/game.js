@@ -10,16 +10,6 @@ const items_list = [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 3, 9, 9, 9, 9, 9, 23, 23
 var game, cursors;
 var setupStage, replaceItems, placeBomb, moveEnemy, stopEnemy, killEnemy;
 
-var musicConfig = {
-    mute: false,
-    volume: 0.25,
-    rate: 1,
-    detune: 0,
-    seek: 0,
-    loop: true,
-    delay: 0,
-}
-
 function setupGame() {
     bombs = $('#numberBombs').val();
     flames = $('#numberFlames').val();
@@ -58,6 +48,16 @@ function startGame(b, f, s, playersList, your_id,stage,items) {
         },
         pixelArt: true
     };
+
+    var musicConfig = {
+        mute: false,
+        volume: 0.25,
+        rate: 1,
+        detune: 0,
+        seek: 0,
+        loop: true,
+        delay: 0,
+    }
 
     game = new Phaser.Game(config);
 
@@ -238,7 +238,7 @@ function startGame(b, f, s, playersList, your_id,stage,items) {
         bombs = [];
 
         this.backgroundSong.play(musicConfig);
-        game.sound.setVolume(0.2);
+        game.sound.setVolume($('#range-volume').val());
     }
 
     /*setupStage = (s, items) => {
