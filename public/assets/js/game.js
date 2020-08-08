@@ -21,7 +21,7 @@ function setupGame() {
     socket.emit('start-game', { b: bombs, f: flames, s: speed, players: userList });
 };
 
-function startGame(b, f, s, playersList, your_id,stage,items) {
+function startGame(b, f, s, playersList, your_id, stage, items) {
 
     var config = {
         type: Phaser.AUTO,
@@ -140,7 +140,7 @@ function startGame(b, f, s, playersList, your_id,stage,items) {
             percentText.destroy();
             assetText.destroy();
             //socket.emit('request-stage', your_id);
-            socket.emit('user-ready');
+            socket.emit('user-ready', your_id);
         });
 
 
@@ -312,7 +312,7 @@ function startGame(b, f, s, playersList, your_id,stage,items) {
             players.push(createPlayer(player.x, player.y, player.sprites, i));
 
             if (list[user].color == "gray")
-                userList[user].color = "white";
+                playersList[user].color = "white";
             i++;
         }
         return players;
@@ -407,7 +407,7 @@ function startGame(b, f, s, playersList, your_id,stage,items) {
             socket.emit('dead-items', { stage: stage, items: players[id].items_collected, id: your_id });
             players[id].countDeathCollider++;
             players[id].status = "dead";
-            players[id].anims.play(/*game_colors[id]*/userList[id].color + '-death', true);
+            players[id].anims.play(/*game_colors[id]*/playersList[id].color + '-death', true);
             players[id].once("animationcomplete", () => {
                 setTimeout(() => {
                     players[id].destroy();
@@ -417,14 +417,19 @@ function startGame(b, f, s, playersList, your_id,stage,items) {
     };
 
     killEnemy = (id) => {
-        if (your_id != id && players[id]) {
-            players[id].status = "dead";
-            players[id].anims.play(/*game_colors[id]*/userList[id].color + '-death', true);
-            players[id].once("animationcomplete", () => {
-                setTimeout(() => {
-                    players[id].destroy();
-                }, 1000);
-            });
+        console.log(id);
+        if (your_id != id) {
+            try {
+                players[id].status = "dead";
+                players[id].anims.play(/*game_colors[id]*/playersList[id].color + '-death', true);
+                players[id].once("animationcomplete", () => {
+                    setTimeout(() => {
+                        players[id].destroy();
+                    }, 1000);
+                });
+            } catch(err) {
+                console.log(err);
+            }
         }
     }
 
@@ -492,12 +497,12 @@ function startGame(b, f, s, playersList, your_id,stage,items) {
         newY = Math.floor(y) - (Math.floor(y) % 16) + 8;
 
         if (_.filter(bombs, (b) => Math.floor(b.x / 16) == i && Math.floor(b.y / 16) == j).length == 0) {
-            bomb = scene.bombsGroup.create(-128, -128, userList[id].color + '-bomb').setOrigin(0, 0).disableBody(true, true);
+            bomb = scene.bombsGroup.create(-128, -128, playersList[id].color + '-bomb').setOrigin(0, 0).disableBody(true, true);
             bomb.x = newX;
             bomb.y = newY;
             bomb.player_id = id;
             bomb.flames = flames_len;
-            bomb.color = userList[id].color;//game_colors[id];
+            bomb.color = playersList[id].color;//game_colors[id];
             bomb.setSize(13, 13).setOffset(2, 2);
             bomb.setImmovable();
             bomb.setDepth(2000);
@@ -704,22 +709,22 @@ function startGame(b, f, s, playersList, your_id,stage,items) {
 
             if (cursors.right.isDown) {
                 if (actualTween === undefined && !getCollisionOnMove(players[your_id].x, players[your_id].y, 'right')) {
-                    anim = userList[your_id].color + '-right';
+                    anim = playersList[your_id].color + '-right';
                     actualTween = createHorizontalTween(players[your_id].x, 'right', anim);
                 }
             } else if (cursors.left.isDown) {
                 if (actualTween === undefined && !getCollisionOnMove(players[your_id].x, players[your_id].y, 'left')) {
-                    anim = userList[your_id].color + '-left';
+                    anim = playersList[your_id].color + '-left';
                     actualTween = createHorizontalTween(players[your_id].x, 'left', anim);
                 }
             } else if (cursors.up.isDown) {
                 if (actualTween === undefined && !getCollisionOnMove(players[your_id].x, players[your_id].y, 'up')) {
-                    anim = userList[your_id].color + '-up';
+                    anim = playersList[your_id].color + '-up';
                     actualTween = createVerticalTween(players[your_id].y, 'up', anim);
                 }
             } else if (cursors.down.isDown) {
                 if (actualTween === undefined && !getCollisionOnMove(players[your_id].x, players[your_id].y, 'down')) {
-                    anim = userList[your_id].color + '-down';
+                    anim = playersList[your_id].color + '-down';
                     actualTween = createVerticalTween(players[your_id].y, 'down', anim);
                 }
             }
@@ -766,8 +771,8 @@ function startGame(b, f, s, playersList, your_id,stage,items) {
                     players[your_id].body.velocity.x = speed;
                 }
 
-                players[your_id].anims.play(userList[your_id].color + '-up', true);
-                anim = userList[your_id].color + '-up';
+                players[your_id].anims.play(playersList[your_id].color + '-up', true);
+                anim = playersList[your_id].color + '-up';
                 animated = true;
 
             } else if (chevronDown) {
@@ -778,23 +783,23 @@ function startGame(b, f, s, playersList, your_id,stage,items) {
                     players[your_id].body.velocity.x = speed;
                 }
 
-                players[your_id].anims.play(userList[your_id].color + '-down', true);
-                anim = userList[your_id].color + '-down';
+                players[your_id].anims.play(playersList[your_id].color + '-down', true);
+                anim = playersList[your_id].color + '-down';
                 animated = true;
 
             } else if (chevronLeft) {
                 players[your_id].body.velocity.x = -speed;
 
-                players[your_id].anims.play(userList[your_id].color + '-left', true);
-                anim = userList[your_id].color + '-left';
+                players[your_id].anims.play(playersList[your_id].color + '-left', true);
+                anim = playersList[your_id].color + '-left';
                 animated = true;
 
             }
             else if (chevronRight) {
                 players[your_id].body.velocity.x = speed;
 
-                players[your_id].anims.play(userList[your_id].color + '-right', true);
-                anim = userList[your_id].color + '-right';
+                players[your_id].anims.play(playersList[your_id].color + '-right', true);
+                anim = playersList[your_id].color + '-right';
                 animated = true;
 
             }

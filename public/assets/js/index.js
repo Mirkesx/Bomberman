@@ -263,7 +263,7 @@ $(document).ready(() => {
                     cursors = game.scene.scenes[0].input.keyboard.createCursorKeys();
                     cursors['ctrl'] = game.scene.scenes[0].input.keyboard.addKey('CTRL');
                     createPopup("Start!", 500, 100);
-                    $('.popup_scheda').removeClass('bg-danger').addClass('bg-light popupStart');
+                    $('.popup_scheda').removeClass('bg-danger').addClass('bg-light popupStart')//.addClass('bg-light popupStart');
                 }
             });
 
@@ -326,8 +326,8 @@ $(document).ready(() => {
                     createPopup(result, 2000, 150);
                     if (game.scene.scenes[0].your_id === winner)
                         $('.popup_scheda').removeClass('bg-danger').addClass('bg-success');
-                    setTimeout(() => game.destroy(false, false), 2000);
-                    setTimeout(() => exitGame(), 10000);
+                    setTimeout(() => game.destroy(false, false), 1000);
+                    setTimeout(() => exitGame(), 5000);
                     socket.emit('close-game');
                     inGame = false;
                 }

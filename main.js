@@ -193,7 +193,9 @@ io.on('connection', function (client) {
         io.sockets.in(client.roomName).emit('exit-game');
     });
 
-    client.on('user-ready', () => {
+    client.on('user-ready', (id) => {
+        client.isInGame = true;
+        client.in_game_id = id;
         rooms[client.roomName].loaded++;
         if (rooms[client.roomName].loaded == rooms[client.roomName].players.length)
             io.sockets.in(client.roomName).emit('all-users-ready');
