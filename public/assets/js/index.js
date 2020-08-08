@@ -261,10 +261,15 @@ $(document).ready(() => {
             socket.on('all-users-ready', () => {
                 if (!isMobile) {
                     cursors = game.scene.scenes[0].input.keyboard.createCursorKeys();
-                    cursors['ctrl'] = game.scene.scenes[0].input.keyboard.addKey('CTRL');
+                    //cursors['ctrl'] = game.scene.scenes[0].input.keyboard.addKey('CTRL');
                     createPopup("Start!", 1000, 300);
                     $('.popup_scheda').removeClass('bg-danger').addClass('popupStart')//.addClass('bg-light popupStart');
+                } else {
+                    createPopup("Start!", 1000, 100);
+                    $('.popup_scheda').removeClass('bg-danger').addClass('popupStart_m')//.addClass('bg-light popupStart');
                 }
+                game.scene.scenes[0].backgroundSong.play(musicConfig);
+                game.sound.setVolume($('#range-volume').val());
             });
 
             socket.on('exit-game', () => {

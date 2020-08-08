@@ -7,6 +7,16 @@ var colorMap = {
 };
 const items_list = [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 3, 9, 9, 9, 9, 9, 23, 23];
 
+var musicConfig = {
+    mute: false,
+    volume: 0.25,
+    rate: 1,
+    detune: 0,
+    seek: 0,
+    loop: true,
+    delay: 0,
+}
+
 var game, cursors;
 var setupStage, replaceItems, placeBomb, moveEnemy, stopEnemy, killEnemy;
 
@@ -48,16 +58,6 @@ function startGame(b, f, s, playersList, your_id, stage, items) {
         },
         pixelArt: true
     };
-
-    var musicConfig = {
-        mute: false,
-        volume: 0.25,
-        rate: 1,
-        detune: 0,
-        seek: 0,
-        loop: true,
-        delay: 0,
-    }
 
     game = new Phaser.Game(config);
 
@@ -237,8 +237,8 @@ function startGame(b, f, s, playersList, your_id, stage, items) {
         anim = 'stop';
         bombs = [];
 
-        this.backgroundSong.play(musicConfig);
-        game.sound.setVolume($('#range-volume').val());
+        //this.backgroundSong.play(musicConfig);
+        //game.sound.setVolume(0);
     }
 
     /*setupStage = (s, items) => {
@@ -427,7 +427,7 @@ function startGame(b, f, s, playersList, your_id, stage, items) {
                         players[id].destroy();
                     }, 1000);
                 });
-            } catch(err) {
+            } catch (err) {
                 console.log(err);
             }
         }
@@ -759,49 +759,39 @@ function startGame(b, f, s, playersList, your_id, stage, items) {
 
     function mobileControls() {
         if (isMobile && players[your_id] && players[your_id].status === 'alive') {
-            let anim = 'stop';
-            players[your_id].setVelocity(0, 0);
-            speed = 50 + players[your_id].speed * 15;
+            speed = 300 - players[your_id].speed * 20;
+            players[your_id].anims.msPerFrame = speed / 3;
 
             if (chevronUp) {
-                players[your_id].body.velocity.y = -speed;
-                if (chevronLeft) {
-                    players[your_id].body.velocity.x = -speed;
-                } else if (chevronRight) {
-                    players[your_id].body.velocity.x = speed;
+                if (actualTween === undefined && !getCollisionOnMove(players[your_id].x, players[your_id].y, 'up')) {
+                    anim = playersList[your_id].color + '-up';
+                    actualTween = createVerticalTween(players[your_id].y, 'up', anim);
                 }
-
-                players[your_id].anims.play(playersList[your_id].color + '-up', true);
-                anim = playersList[your_id].color + '-up';
-                animated = true;
-
             } else if (chevronDown) {
-                players[your_id].body.velocity.y = speed;
-                if (chevronLeft) {
-                    players[your_id].body.velocity.x = -speed;
-                } else if (chevronRight) {
-                    players[your_id].body.velocity.x = speed;
+                if (actualTween === undefined && !getCollisionOnMove(players[your_id].x, players[your_id].y, 'down')) {
+                    anim = playersList[your_id].color + '-down';
+                    actualTween = createVerticalTween(players[your_id].y, 'down', anim);
                 }
-
-                players[your_id].anims.play(playersList[your_id].color + '-down', true);
-                anim = playersList[your_id].color + '-down';
-                animated = true;
-
             } else if (chevronLeft) {
-                players[your_id].body.velocity.x = -speed;
-
-                players[your_id].anims.play(playersList[your_id].color + '-left', true);
-                anim = playersList[your_id].color + '-left';
-                animated = true;
-
+                if (actualTween === undefined && !getCollisionOnMove(players[your_id].x, players[your_id].y, 'left')) {
+                    anim = playersList[your_id].color + '-left';
+                    actualTween = createHorizontalTween(players[your_id].x, 'left', anim);
+                }
             }
             else if (chevronRight) {
-                players[your_id].body.velocity.x = speed;
+                if (actualTween === undefined && !getCollisionOnMove(players[your_id].x, players[your_id].y, 'right')) {
+                    anim = playersList[your_id].color + '-right';
+                    actualTween = createHorizontalTween(players[your_id].x, 'right', anim);
+                }
+            }
 
-                players[your_id].anims.play(playersList[your_id].color + '-right', true);
-                anim = playersList[your_id].color + '-right';
-                animated = true;
-
+            if (actualTween === undefined) {
+                if (anim != 'stop') {
+                    players[your_id].anims.setCurrentFrame(players[your_id].anims.currentAnim.frames[1]);
+                    players[your_id].anims.stop();
+                }
+                anim = 'stop';
+                animated = false;
             }
 
             if (!flipFlopBomb && players[your_id].bombs > _.filter(bombs, (b) => b.player_id === your_id).length && bombKey) {
@@ -812,13 +802,6 @@ function startGame(b, f, s, playersList, your_id, stage, items) {
 
             if (flipFlopBomb && !bombKey) {
                 flipFlopBomb = false;
-            }
-
-            if (animated && players[your_id].body.velocity.x == 0 && players[your_id].body.velocity.y == 0) {
-                players[your_id].anims.setCurrentFrame(players[your_id].anims.currentAnim.frames[1]);
-                players[your_id].anims.stop();
-                anim = 'stop';
-                animated = false;
             }
 
             socket.emit('move-player', {

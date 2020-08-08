@@ -219,3 +219,13 @@ input[type='number']::-webkit-outer-spin-button {
     font-size: 150px !important;
     text-shadow: 10px 10px black;
 }
+
+.popupStart_m {
+    color: white !important;
+    left: calc(50% - 12px)
+}
+
+.popupStart_m h5{
+    font-size: 25px !important;
+    text-shadow: 2px 2px black;
+}
