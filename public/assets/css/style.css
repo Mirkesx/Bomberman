@@ -211,9 +211,11 @@ input[type='number']::-webkit-outer-spin-button {
 }
 
 .popupStart {
-    color: black !important;
+    color: white !important;
+    left: calc(50% - 75px)
 }
 
 .popupStart h5{
-    font-size: 50px !important;
+    font-size: 150px !important;
+    text-shadow: 10px 10px black;
 }

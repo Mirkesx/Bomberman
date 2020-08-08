@@ -262,8 +262,8 @@ $(document).ready(() => {
                 if (!isMobile) {
                     cursors = game.scene.scenes[0].input.keyboard.createCursorKeys();
                     cursors['ctrl'] = game.scene.scenes[0].input.keyboard.addKey('CTRL');
-                    createPopup("Start!", 500, 100);
-                    $('.popup_scheda').removeClass('bg-danger').addClass('bg-light popupStart')//.addClass('bg-light popupStart');
+                    createPopup("Start!", 1000, 300);
+                    $('.popup_scheda').removeClass('bg-danger').addClass('popupStart')//.addClass('bg-light popupStart');
                 }
             });
 
