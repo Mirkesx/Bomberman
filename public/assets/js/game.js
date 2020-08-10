@@ -140,6 +140,7 @@ function startGame(b, f, s, playersList, your_id, stage, items) {
             percentText.destroy();
             assetText.destroy();
             //socket.emit('request-stage', your_id);
+            $('#gameCard').show();
             socket.emit('user-ready', your_id);
         });
 

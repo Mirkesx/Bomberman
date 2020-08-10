@@ -214,9 +214,7 @@ $(document).ready(() => {
             });
 
             socket.on("get-color", (list) => {
-                let picked_colors = _.map(_.filter(list, (el) => el.color), (el) => el.color);
-                let color = _.difference(colors, picked_colors)[0];
-                $('#cardPlaceSelector [data-color="' + color + '"]').trigger('click');
+                pickAColor(list);
             });
 
 
@@ -259,17 +257,8 @@ $(document).ready(() => {
             });
 
             socket.on('all-users-ready', () => {
-                if (!isMobile) {
-                    cursors = game.scene.scenes[0].input.keyboard.createCursorKeys();
-                    //cursors['ctrl'] = game.scene.scenes[0].input.keyboard.addKey('CTRL');
-                    createPopup("Start!", 1000, 300,150);
-                    $('.popup_scheda').removeClass('bg-danger')//.addClass('popupStart');
-                } else {
-                    createPopup("Start!", 1000, 100);
-                    $('.popup_scheda').removeClass('bg-danger').addClass('popupStart_m');
-                }
-                game.scene.scenes[0].backgroundSong.play(musicConfig);
-                game.sound.setVolume($('#range-volume').val());
+                $('#gameCard').hide();
+                countDown();
             });
 
             socket.on('exit-game', () => {
@@ -590,6 +579,48 @@ function deletePopup(popup, time, top) {
         });
 };
 
+function countDown() {
+    if (!isMobile) {
+        createPopup("3", 333, 300, 150);
+        $('.popup_scheda').removeClass('bg-danger');
+        setTimeout(() => {
+            createPopup("2", 333, 300, 150);
+            $('.popup_scheda').removeClass('bg-danger');
+        }, 1000);
+        setTimeout(() => {
+            createPopup("1", 333, 300, 150);
+            $('.popup_scheda').removeClass('bg-danger');
+        }, 2000);
+    } else {
+        createPopup("3", 333, 100, 250);
+        $('.popup_scheda').removeClass('bg-danger');
+        setTimeout(() => {
+            createPopup("2", 333, 100, 250);
+            $('.popup_scheda').removeClass('bg-danger');
+        }, 1000);
+        setTimeout(() => {
+            createPopup("1", 333, 100, 250);
+            $('.popup_scheda').removeClass('bg-danger');
+        }, 2000);
+    }
+    setTimeout(() => {
+        allowMovements();
+    }, 3000);
+}
+
+function allowMovements() {
+    if (!isMobile) {
+        cursors = game.scene.scenes[0].input.keyboard.createCursorKeys();
+        createPopup("Start!", 1000, 300, 150);
+        $('.popup_scheda').removeClass('bg-danger');
+    } else {
+        createPopup("Start!", 1000, 100, 25);
+        $('.popup_scheda').removeClass('bg-danger');
+    }
+    game.scene.scenes[0].backgroundSong.play(musicConfig);
+    game.sound.setVolume($('#range-volume').val());
+}
+
 var zoomDisable = function () {
     $objHead.find('meta[name=viewport]').remove();
     $objHead.prepend('<meta name="viewport" \
@@ -601,3 +632,9 @@ var zoomEnable = function () {
     $objHead.prepend('<meta name="viewport" \
         content="width=device-width, initial-scale=1.0, user-scalable=1" />');
 };
+
+function pickAColor(list) {
+    let picked_colors = _.map(_.filter(list, (el) => el.color), (el) => el.color);
+    let color = _.difference(colors, picked_colors)[0];
+    $('#cardPlaceSelector [data-color="' + color + '"]').trigger('click');
+}

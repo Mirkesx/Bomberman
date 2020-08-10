@@ -38,3 +38,7 @@
 #stageSelector {
     margin-top: 50px;
 }
+
+#gameCard {
+    display: none;
+}
