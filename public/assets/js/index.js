@@ -262,11 +262,11 @@ $(document).ready(() => {
                 if (!isMobile) {
                     cursors = game.scene.scenes[0].input.keyboard.createCursorKeys();
                     //cursors['ctrl'] = game.scene.scenes[0].input.keyboard.addKey('CTRL');
-                    createPopup("Start!", 1000, 300);
-                    $('.popup_scheda').removeClass('bg-danger').addClass('popupStart')//.addClass('bg-light popupStart');
+                    createPopup("Start!", 1000, 300,150);
+                    $('.popup_scheda').removeClass('bg-danger')//.addClass('popupStart');
                 } else {
                     createPopup("Start!", 1000, 100);
-                    $('.popup_scheda').removeClass('bg-danger').addClass('popupStart_m')//.addClass('bg-light popupStart');
+                    $('.popup_scheda').removeClass('bg-danger').addClass('popupStart_m');
                 }
                 game.scene.scenes[0].backgroundSong.play(musicConfig);
                 game.sound.setVolume($('#range-volume').val());
@@ -548,7 +548,7 @@ function createLoginModal() {
     });
 }
 
-function createPopup(text, time = 500, top = 50) {
+function createPopup(text, time = 500, top = 50, fs = 15) {
     const popup = $('<div class="popup_scheda"></div>')
         .css({
             position: "fixed",
@@ -557,14 +557,14 @@ function createPopup(text, time = 500, top = 50) {
             padding: 50,
             opacity: 0,
             color: "white",
-            "font-weight": "strong",
-            "font-size": 15,
+            "font-weight": "bold",
+            "font-size": fs,
             "border-radius": 50,
             "z-index": 9999,
             "text-align": "center",
             "margin-left": -$('.popup_scheda').outerWidth() / 2
         })
-        .html("<h5>" + text + "</h5>")
+        .html(text)
         .appendTo('body')
         .addClass("bg-danger")
         .animate({

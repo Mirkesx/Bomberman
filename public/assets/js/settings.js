@@ -17,16 +17,16 @@ const setupSettings = () => {
 
 const printUserList = () => {
     $('#gameSetup').find('#cardPlayersList').find('.card-body').html('');
-    if (yourColor === undefined) {
+    /*if (yourColor === undefined) {
         $('#gameSetup').find('#cardPlayersList').find('.card-body').html('You must choose a color!<br>');
-    }
+    }*/
     for (let i = 0; i < userList.length; i++) {
         let $row = $('<div class="row"></div>');
         let color = "black";
         if (userList[i].color) {
             color = userList[i].color;
         }
-        $row.append('<span class="col-12 col-lg-7 userName" style="color:' + color + ';">' + userList[i].nickname + '</span>');
+        $row.append('<span class="col-12 col-lg-7 userName" style="color:' + color + ';">' + (i == 0 ? "Host - " : "") + userList[i].nickname + '</span>');
         $row.append('<span class="col-12 col-lg-5 ' + userList[i].status + '">' + (userList[i].status == "ready" ? 'READY' : 'NOT READY') + '</span>');
         $('#gameSetup').find('#cardPlayersList').find('.card-body').append($row);
     }
