@@ -254,7 +254,7 @@ io.on('connection', function (client) {
 
 
 http.listen(8080, '0.0.0.0', function () {
-    console.log('[SERVER] - Listening on localhost:8080');
+    console.log('[SERVER] - Listening on 0.0.0.0:8080');
 });
 
 

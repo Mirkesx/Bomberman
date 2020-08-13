@@ -36,7 +36,7 @@ $(document).ready(() => {
     const loginUser = () => {
         $objHead = $('head');
 
-        socket = io(window.location.href);
+        socket = io();
 
         socket.on('connect', () => {
 
@@ -336,9 +336,7 @@ $(document).ready(() => {
         $("#usersList").attr("data-original-title", list);
     }
 
-    /*
-    Manage events
-    */
+    //Manage events
 
     $('#nickname').on('keydown', (event) => {
         if (event.keyCode === 13)
@@ -378,9 +376,8 @@ $(document).ready(() => {
         }
     });
 
-    /*
-     * Chat commands
-     */
+    
+    // Chat commands
 
     $('.chat_icon').on('click', () => {
         $('.chat_icon').hide();
@@ -396,15 +393,15 @@ $(document).ready(() => {
 
     $('#usersList').tooltip({ trigger: 'click hover', title: "Users online", placement: 'bottom', html: true });
 
-    /*
-     * Initial Setup
-     */
+    
+    // Initial Setup
+     
 
     createLoginModal();
 
-    /*
-     * Game Commands
-     */
+    
+    // Game Commands
+     
 
     $('#icon-volume').click(() => {
         $('#range-volume').show().focus();
