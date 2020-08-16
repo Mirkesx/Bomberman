@@ -577,26 +577,27 @@ function deletePopup(popup, time, top) {
 };
 
 function countDown() {
+    let height = $(document).height()/4; 
     if (!isMobile) {
-        createPopup("3", 333, 300, 150);
+        createPopup("3", 333, height, 300);
         $('.popup_scheda').removeClass('bg-danger');
         setTimeout(() => {
-            createPopup("2", 333, 300, 150);
+            createPopup("2", 333, height, 300);
             $('.popup_scheda').removeClass('bg-danger');
         }, 1000);
         setTimeout(() => {
-            createPopup("1", 333, 300, 150);
+            createPopup("1", 333, height, 300);
             $('.popup_scheda').removeClass('bg-danger');
         }, 2000);
     } else {
-        createPopup("3", 333, 100, 250);
+        createPopup("3", 333, height, 200);
         $('.popup_scheda').removeClass('bg-danger');
         setTimeout(() => {
-            createPopup("2", 333, 100, 250);
+            createPopup("2", 333, height, 200);
             $('.popup_scheda').removeClass('bg-danger');
         }, 1000);
         setTimeout(() => {
-            createPopup("1", 333, 100, 250);
+            createPopup("1", 333, height, 200);
             $('.popup_scheda').removeClass('bg-danger');
         }, 2000);
     }
@@ -606,12 +607,13 @@ function countDown() {
 }
 
 function allowMovements() {
+    let height = $(document).height()/4; 
     if (!isMobile) {
         cursors = game.scene.scenes[0].input.keyboard.createCursorKeys();
-        createPopup("Start!", 1000, 300, 150);
+        createPopup("Start!", 1000, height, 150);
         $('.popup_scheda').removeClass('bg-danger');
     } else {
-        createPopup("Start!", 1000, 100, 25);
+        createPopup("Start!", 1000, height, 100);
         $('.popup_scheda').removeClass('bg-danger');
     }
     game.scene.scenes[0].backgroundSong.play(musicConfig);
