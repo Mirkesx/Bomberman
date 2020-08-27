@@ -19,6 +19,7 @@ var musicConfig = {
 
 var game, cursors;
 var setupStage, replaceItems, placeBomb, moveEnemy, stopEnemy, killEnemy;
+var everyoneReady; //used to hide the Card telling to wait for others
 
 function setupGame() {
     bombs = $('#numberBombs').val();
@@ -68,6 +69,8 @@ function startGame(b, f, s, playersList, your_id, stage, items) {
     $('.icon-volume').removeClass('fa-volume-off').addClass('fa-volume-up');
     $('.canvasContainer').html("");
     isMobile = !game.device.os.desktop;
+    everyoneReady = false;
+
     var map, tileset, layer, scene;
     var players;
     var bombs, flipFlopBomb;
@@ -140,7 +143,10 @@ function startGame(b, f, s, playersList, your_id, stage, items) {
             percentText.destroy();
             assetText.destroy();
             //socket.emit('request-stage', your_id);
-            $('#gameCard').show();
+            if(!everyoneReady)
+                $('#gameCard').show();
+            else
+                $('#gameCard').hide();
             socket.emit('user-ready', your_id);
         });
 

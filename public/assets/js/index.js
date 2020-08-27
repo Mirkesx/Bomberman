@@ -258,6 +258,7 @@ $(document).ready(() => {
 
             socket.on('all-users-ready', () => {
                 $('#gameCard').hide();
+                everyoneReady = true;
                 countDown();
             });
 
